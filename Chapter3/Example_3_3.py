@@ -38,7 +38,15 @@ for i in range(len(d1)):
     y_out=G*d
     y_axis=np.sqrt(y_out[0]**2+y_out[1]**2)/np.sqrt(d1[i]**2+d2[i]**2)
     x_axis=d1[i]/d2[i]
+    plt.figure(1)
+    plt.title('Figure 3.5')
     plt.plot(x_axis,y_axis,'b.')
-    
+    plt.figure(2)
+    plt.subplot(211)
+    plt.title('input')
+    plt.plot(d1[i],d2[i],'r.')
+    plt.subplot(212)
+    plt.title('output')
+    plt.plot(y_out[0],y_out[1],'b.')
 plt.show()
 
