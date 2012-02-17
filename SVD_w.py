@@ -15,7 +15,12 @@ def G(w):
   
   
 def SVD_w(w_start, w_end):
-    w=np.logspace(w_start,w_end,100000)
+    """ singular value demoposition""" 
+    """ freqeuncy dependant SVD of G""" 
+    """ w_start = start of the logspace for the freqeuncy range"""
+    """ w_end = end of the logspace for the frequency range""" 
+    
+    w=np.logspace(w_start,w_end,10000)
     store_max=np.zeros(len(w))
     store_min=np.zeros(len(w))
     count=0
@@ -29,12 +34,18 @@ def SVD_w(w_start, w_end):
         
     """ plot of the singular values , maximum ans minimum"""   
     plt.subplot(211)  
+    plt.title('Max and Min Singular values over Freq')
+    plt.ylabel('Singular Value')
+    plt.xlabel('w')
     plt.loglog(w,store_max,'r')
     plt.loglog(w,store_min,'b')
     
     """ plot of the condition number""" 
     
     plt.subplot(212)
+    plt.title('Condition Number over Freq')
+    plt.xlabel('w')
+    plt.ylabel('Condition Number')
     plt.loglog(w,store_max/store_min)
     plt.show()
 
