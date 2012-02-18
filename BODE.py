@@ -41,6 +41,7 @@ def Bode():
     plt.subplot(211)
     plt.loglog(w,np.abs(G(w)))
     plt.loglog(wc*np.ones(2),[np.max(np.abs(G(w))),np.min(np.abs(G(w)))])
+    plt.text(w_180,np.average([np.max(np.abs(G(w))),np.min(np.abs(G(w)))]),'<G(jw)=-180 Deg')
     plt.loglog(w_180*np.ones(2),[np.max(np.abs(G(w))),np.min(np.abs(G(w)))])
     plt.loglog(w,1*np.ones(len(w)))
     

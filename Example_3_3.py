@@ -30,7 +30,7 @@ def Unit_circle():
 
 
 
-"""generating the plot in figure 3.5"""
+"""generating the plot in figure 3.5 and figure 3.6"""
 
 
 for i in range(len(d1)):
@@ -48,5 +48,7 @@ for i in range(len(d1)):
     plt.subplot(212)
     plt.title('output')
     plt.plot(y_out[0],y_out[1],'b.')
+    
+    
 plt.show()
 
