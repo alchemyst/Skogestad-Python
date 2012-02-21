@@ -44,8 +44,8 @@ def K_cl(KC):
     [Z_cl_poly,P_cl_poly]=Closed_loop(Kz,Kp,Gz,Gp)
     """calculating the response"""
     f=scs.lti(Z_cl_poly,P_cl_poly)
-
-    [t,y]=f.step()
+    tspan=np.linspace(0,50,100)
+    [t,y]=f.step(0,tspan)
     plt.plot(t,y)
 
 
