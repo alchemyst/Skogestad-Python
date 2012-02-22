@@ -4,8 +4,8 @@ import scipy.signal as scs
 import matplotlib.pyplot as plt 
 
 
-"""this function is different that the previous one in its inputs it takes"""
-"""this is easier than geving the actaul transfer function"""
+# this function is different that the previous one in its inputs it takes
+# this is easier than geving the actaul transfer function
 """due to the ease of which the roots of the transfer function could be determined from the numerator and denominators' polynomial 
 expansion""" 
 
@@ -40,7 +40,7 @@ def Gd():
 def RULES(R,wr):
     
     
-    """rule 1 wc>wd"""
+    # rule 1 wc>wd
     
     def Gd_mod_1(w):
         return np.abs(scs.freqs(Gd()[0],Gd()[1],w)[1])-1
@@ -50,15 +50,15 @@ def RULES(R,wr):
     wc_min_1=wd
     
     
-    """rule 2"""
+    # rule 2
     
     
     
-    """rule 3"""
+    # rule 3
     
     
     
-    """for perfect control"""
+    # for perfect control
     
     def G_Gd_1(w):
         f=scs.freqs(G()[0],G()[1],w)[1]
@@ -69,8 +69,8 @@ def RULES(R,wr):
         
     plt.figure(1)
     if np.abs(scs.freqs(G()[0],G()[1],[w_G_Gd+0.0001])[1])>np.abs(scs.freqs(Gd()[0],Gd()[1],[w_G_Gd+0.0001])[1]):
-        print """Acceptable control"""
-        print """control only at high frequencies""",w_G_Gd,"""< w < inf"""
+        print "Acceptable control"
+        print "control only at high frequencies",w_G_Gd,"< w < inf"
         
         w=np.logspace(-3,np.log10(w_G_Gd),100)
         plt.loglog(w,np.abs(scs.freqs(G()[0],G()[1],w)[1]),'r')
@@ -85,8 +85,8 @@ def RULES(R,wr):
         min_p=np.min([np.abs(scs.freqs(G()[0],G()[1],w)[1]),np.abs(scs.freqs(Gd()[0],Gd()[1],w)[1])])
         
     if np.abs(scs.freqs(G()[0],G()[1],[w_G_Gd-0.0001])[1])>=np.abs(scs.freqs(Gd()[0],Gd()[1],[w_G_Gd-0.0001])[1]):
-        print """Acceptable control"""
-        print """control up to frequency 0 < w < """,w_G_Gd
+        print "Acceptable control"
+        print "control up to frequency 0 < w < ",w_G_Gd
         
         w=np.logspace(-3,np.log10(w_G_Gd),100)
         plt.loglog(w,np.abs(scs.freqs(G()[0],G()[1],w)[1]),'b')
@@ -105,17 +105,17 @@ def RULES(R,wr):
     plt.loglog(w_G_Gd*np.ones(2),[max_p,min_p],'g')
     
     
-    """rule 4 """
+    # rule 4 
     
     
     
-    """rule 5 """
-    """critical freqeuncy of controller needs to smaller than"""
+    # rule 5 
+    # critical freqeuncy of controller needs to smaller than
     wc_5=Time_Delay()[0]/2.0000
     
 
-    """rule 6"""
-    """control over RHP zeros"""
+    # rule 6
+    # control over RHP zeros
   
     Pz_G_Gm=np.polymul(G()[0],Gm()[0])
     
@@ -127,8 +127,8 @@ def RULES(R,wr):
         if np.real(np.max(Pz_roots))>0:
       
             if np.imag(np.min(Pz_roots))==0:
-                """it the roots aren't imagenary"""
-                """looking for the minimum values of the zeros => results in the tightest control"""
+                # it the roots aren't imagenary
+                # looking for the minimum values of the zeros => results in the tightest control
                 wc_6=(np.min(np.abs(Pz_roots)))/2.000
        
             else:
@@ -141,7 +141,7 @@ def RULES(R,wr):
     
     
     
-    """rule 7"""
+    # rule 7
     
     
     def G_GM(w):
@@ -168,15 +168,15 @@ def RULES(R,wr):
     
     wc_min_everything=np.min(w_vec)
     
-    print """  """
-    print """maximum value of wc < """, wc_min_everything 
+    print "  "
+    print "maximum value of wc < ", wc_min_everything 
     
    
 
     
     
-    """rule 8"""
-    """unstable RHP poles"""
+    # rule 8
+    # unstable RHP poles
     Poles_p=np.roots(G()[1])
 
     vec_p   =[wc_min_1]
@@ -188,7 +188,7 @@ def RULES(R,wr):
 
     wc_min_everything=np.max(vec_p)
     
-    print """minimum value of wc > """,wc_min_everything
+    print "minimum value of wc > ",wc_min_everything
     
             
         

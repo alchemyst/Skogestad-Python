@@ -8,7 +8,7 @@ def G(w):
     """ function to create the matrix of transfer functions"""
     s=w*1j
     
-    """ the matrix transfer function""" 
+    # the matrix transfer function
     G=[[1/(s+1),1/(10*s+1)**2,1],[0.4/((s)*(s+3)),-0.1/(s**2+1),1],[1/(s+1),10/(s+11),1/(s+0.001)]]
     return G
   
@@ -19,17 +19,17 @@ def Time_delay(w):
   
   
 def SVD_w(w_start, w_end):
-    """ singular value demoposition""" 
-    """ freqeuncy dependant SVD of G""" 
-    """ w_start = start of the logspace for the freqeuncy range"""
+    """ singular value demoposition 
+    freqeuncy dependant SVD of G 
+    w_start = start of the logspace for the freqeuncy range"""
     
-    """ this is an open loop study""" 
+    #  this is an open loop study 
     
-    """ w_end = end of the logspace for the frequency range""" 
+    #  w_end = end of the logspace for the frequency range 
     
     w=np.logspace(w_start,w_end,10000)
     
-    """ getting the size of the system""" 
+    #  getting the size of the system 
     A=G(0.0001)
     [U,s,V]=np.linalg.svd(A)
     output_direction_max=np.zeros([U.shape[0],len(w)])
@@ -56,7 +56,7 @@ def SVD_w(w_start, w_end):
         
         count=count+1
         
-    """ plot of the singular values , maximum ans minimum"""   
+    #  plot of the singular values , maximum ans minimum   
     plt.figure(1)
     plt.subplot(211)  
     plt.title('Max and Min Singular values over Freq')
@@ -65,7 +65,7 @@ def SVD_w(w_start, w_end):
     plt.loglog(w,store_max,'r')
     plt.loglog(w,store_min,'b')
     
-    """ plot of the condition number""" 
+    #  plot of the condition number 
     
     plt.subplot(212)
     plt.title('Condition Number over Freq')
@@ -75,7 +75,7 @@ def SVD_w(w_start, w_end):
     
 
     
-    """ plots of different inputs to the maximum ans minimum """
+    #  plots of different inputs to the maximum ans minimum 
     
     if (input_direction_max.shape[0])>2:
         for i in range(input_direction_max.shape[0]):
@@ -115,7 +115,7 @@ def SVD_w(w_start, w_end):
         plt.semilogx(w,input_direction_min[1,:],'b.')
    
    
-    """ plotting of the resulting max and min of the output vectore""" 
+    #  plotting of the resulting max and min of the output vectore 
     
     if (output_direction_max.shape[0])>2:
         for i in range(output_direction_max.shape[0]):

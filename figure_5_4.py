@@ -14,3 +14,5 @@ for k in [0.1, 0.5, 1.0, 2.0]:
     S = 1 - T
     plt.loglog(w, abs(S))
 plt.show()
+
+print s

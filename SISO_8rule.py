@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 
 def G(w):
-    """for any other system this is where all the system transfer functions are stored"""
-    """in the Laplace domain"""
+    """for any other system this is where all the system transfer functions are stored
+    in the Laplace domain"""
     s=w*1j
     G=40/((s+1)*(10*s+1))
     
@@ -25,21 +25,21 @@ def SISO_RULES(w_start,w_end):
     w=np.logspace(w_start,w_end,100)   
 
     
-    """rule 1 checks and limitations"""
+    # rule 1 checks and limitations
     def Gd_w(w_cal_1):
         return np.abs(Gd(w_cal_1))-1
     
-    """frequency where |Gd|=1"""
+    # frequency where |Gd|=1
     wd  =sc.optimize.fsolve(Gd_w,0.01)
 
-    print """wc >= """ , wd 
+    print "wc >= " , wd 
         
     #plt.figure(1) 
     #plt.title('Show where |S|<=|1/Gd|')
     #plt.loglog(w,1/np.abs(Gd(w)))
        
         
-    """rule 2 checks and limitations"""
+    # rule 2 checks and limitations
     
     
     
@@ -49,7 +49,7 @@ def SISO_RULES(w_start,w_end):
     
     
     
-    """rule 3 checks and limitations"""
+    # rule 3 checks and limitations
     def G_Gd_A(w_cal):
         """|G|=|Gd|"""
         return np.abs(G(w_cal))-np.abs(Gd(w_cal))+1
@@ -58,15 +58,15 @@ def SISO_RULES(w_start,w_end):
         
  
     if np.abs(G(w_G_Gd_A+1))>np.abs(Gd(w_G_Gd_A+1)):
-        print """Acceptable control"""
-        print """control only at high frequencies""",w_G_Gd_A,"""< w < inf"""
+        print "Acceptable control"
+        print "control only at high frequencies",w_G_Gd_A,"< w < inf"
         
     elif np.abs(G(w_G_Gd_A-1))>np.abs(Gd(w_G_Gd_A-1)):
-        print """Acceptable control"""
-        print """control up to frequency 0 < w < """,w_G_Gd_A
+        print "Acceptable control"
+        print "control up to frequency 0 < w < ",w_G_Gd_A
         
-    """plot to check """
-    """color coded plots"""
+    # plot to check 
+    # color coded plots
     
     plt_good_G  =[]
     plt_good_Gd =[]
@@ -100,7 +100,7 @@ def SISO_RULES(w_start,w_end):
     plt.loglog(w_bad,plt_bad_Gd,'r.')
     plt.loglog(w_G_Gd_A*np.ones(2),[np.max(np.abs(G(w))),np.min(np.abs(G(w)))])
     
-    """Perfect control"""
+    # Perfect control
     
     def G_Gd_P(w_cal):
         return np.abs(G(w_cal))-np.abs(Gd(w_cal))
@@ -109,19 +109,19 @@ def SISO_RULES(w_start,w_end):
     wd_P=sc.optimize.fsolve(G_Gd_P,0.1)
     
     
-    """rule 4 checks and limitations"""
+    # rule 4 checks and limitations
     
     
-    """rule 5 checks and limitations"""
+    # rule 5 checks and limitations
     
     
-    """rule 6 checks and limitations"""
+    # rule 6 checks and limitations
     
     
-    """rule 7 checks and limitations"""
+    # rule 7 checks and limitations
     
     
-    """rule 8 checks and limitations"""
+    # rule 8 checks and limitations
     
     
     plt.show()
