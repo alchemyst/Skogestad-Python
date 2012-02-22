@@ -77,85 +77,29 @@ def SVD_w(w_start, w_end):
     
     #  plots of different inputs to the maximum ans minimum 
     
-    if (input_direction_max.shape[0])>2:
-        for i in range(input_direction_max.shape[0]):
-            a=(input_direction_max.shape[0])*100+10+i+1
-            plt.figure(2)
-
-            label       ='Max Input Dir', i+1
-            plt.xlabel(label)
-            
-            plt.subplot(a)
-            plt.semilogx(w,input_direction_max[i,:],'r.')
-            
-    else:
-        plt.figure(2)
-        plt.subplot(211)
-        plt.semilogx(w,input_direction_max[0,:],'r.')
-        plt.subplot(212)
-        plt.semilogx(w,input_direction_max[1,:],'r.')
-
-
-    if (input_direction_min.shape[0])>2:
-        for i in range(input_direction_min.shape[0]):
-            a=(input_direction_min.shape[0])*100+10+i+1
-            plt.figure(2)
-
-            label       ='min Input Dir', i+1
-            plt.xlabel(label)
-            
-            plt.subplot(a)
-            plt.semilogx(w,input_direction_min[i,:],'b.')
-            
-    else:
-        plt.figure(2)
-        plt.subplot(211)
-        plt.semilogx(w,input_direction_min[0,:],'b.')
-        plt.subplot(212)
-        plt.semilogx(w,input_direction_min[1,:],'b.')
+    def plot_direction(direction, name, color):
+        if (direction.shape[0])>2:
+            for i in range(direction.shape[0]):
+                label       = '%s Input Dir %i' % (name, i+1)
+                plt.xlabel(label)
+                
+                plt.subplot((direction.shape[0]), 1,  i + 1)
+                plt.semilogx(w,direction[i,:],color)
+                
+        else:
+            plt.subplot(211)
+            plt.semilogx(w,direction[0,:],color)
+            plt.subplot(212)
+            plt.semilogx(w,direction[1,:],color)
    
+    plt.figure(2)
+    plot_direction(input_direction_max, "max Input", "r.")
+    plot_direction(input_direction_min, "min Input", "b.")
+    plt.figure(3)
+    plot_direction(output_direction_max, "max Output", "r.")
+    plot_direction(output_direction_min, "min Output", "b.")
    
-    #  plotting of the resulting max and min of the output vectore 
-    
-    if (output_direction_max.shape[0])>2:
-        for i in range(output_direction_max.shape[0]):
-            a=(output_direction_max.shape[0])*100+10+i+1
-            plt.figure(3)
-
-            label       ='Max output Dir', i+1
-            plt.xlabel(label)
-            
-            plt.subplot(a)
-            plt.semilogx(w,output_direction_max[i,:],'r.')
-            
-    else:
-        plt.figure(3)
-        plt.subplot(211)
-        plt.semilogx(w,output_direction_max[0,:],'r.')
-        plt.subplot(212)
-        plt.semilogx(w,output_direction_max[1,:],'r.')
-        
-        
-    if (output_direction_min.shape[0])>2:
-        for i in range(output_direction_min.shape[0]):
-            a=(output_direction_min.shape[0])*100+10+i+1
-            plt.figure(3)
-
-            label       ='Min output Dir', i+1
-            plt.xlabel(label)
-            
-            plt.subplot(a)
-            plt.semilogx(w,output_direction_min[i,:],'b.')
-            
-    else:
-        plt.figure(3)
-        plt.subplot(211)
-        plt.semilogx(w,output_direction_min[0,:],'b.')
-        plt.subplot(212)
-        plt.semilogx(w,output_direction_min[1,:],'b.')
-        
-        
-   
+    #  plotting of the resulting max and min of the output vectore    
     plt.show()
    
 SVD_w(-3,3)
