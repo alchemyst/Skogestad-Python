@@ -48,9 +48,12 @@ def Analyses_second_order(v,t,max_peeks):
     if max_peeks>1:
         decay_ratio=(max_v[0,0]-1)/(max_v[1,0]-1)
         overshoot   =max_v[0,0]
+        
     print 'decay ratio = ',decay_ratio
     print 'overshoot = ',overshoot
     
+    total_varaince=np.sum(np.abs(np.diff(y)))
+    print 'Total Varaince ',total_varaince
 
     plt.plot(time_max,max_v,'rD')
     plt.plot(time_min,min_v,'bD')
@@ -62,7 +65,7 @@ def Analyses_second_order(v,t,max_peeks):
 """time constant =1 dampening coefficient =0.7 and steady state gain =1"""
 """G=1/(s**2+1.4*s+1)"""
 
-f=scs.lti([1],[1,0.98,1])
+f=scs.lti([1],[1,0.8,1])
 [t,y]=f.step()
 
 #y=np.random.random(20)
