@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 
 def G(w):
-    """system equations in here (laplace domian)"""
-    """only for SISO problems for now"""
+    """system equations in here (laplace domian)
+    only for SISO problems for now"""
     s   =w*1j
     
-    """enter what ever system under inspections, transfer function in here"""
+    # enter what ever system under inspections, transfer function in here
     G=8/((s+0.01)*(s+3)*(s+2))
     
     return G
@@ -35,7 +35,7 @@ def Nyquist(w_start,w_end):
     plt.xlabel('Re G(wj)')
     plt.ylabel('Im G(wj)')
     
-    """plotting a unit circle"""
+    # plotting a unit circle
     x=np.linspace(-1,1,200)
     
     y_upper=np.sqrt(1-(x)**2)

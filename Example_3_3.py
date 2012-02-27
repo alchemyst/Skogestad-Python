@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 G=np.matrix([[5,4],[3,2]])
 
-"""SVD decomposition"""
+# SVD decomposition
 
 [U,S,T]=np.linalg.svd(G)
 
-"""first function is to create the unit circle"""
+# first function is to create the unit circle
 
 def Unit_circle():
     x=np.linspace(-0.99,0.99,100)
@@ -30,7 +30,7 @@ def Unit_circle():
 
 
 
-"""generating the plot in figure 3.5 and figure 3.6"""
+# generating the plot in figure 3.5 and figure 3.6
 
 
 for i in range(len(d1)):

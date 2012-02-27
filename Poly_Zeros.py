@@ -5,16 +5,16 @@ import matplotlib.pyplot as plt
 
 
 def Poly_Zeros_T(Poly_z_K,Poly_p_K,Poly_z_G,Poly_p_G):
-    """Gevin the polynomial expansion in the denominator and numerator of the controller function K and G
-    then this function returns the poles and zeros of the closed loop transfer function in terms of reference signal"""
+    """Given the polynomial expansion in the denominator and numerator of the controller function K and G
+    then this function returns the poles and zeros of the closed loop transfer function in terms of reference signal
     
-    """the arrays for the input must range from the highest order of the polynomial to the lowest"""
+    the arrays for the input must range from the highest order of the polynomial to the lowest"""
     
     Poly_z=numpy.polymul(Poly_z_K,Poly_z_G)
     Poly_p=numpy.polyadd(numpy.polymul(Poly_p_K, Poly_z_G), numpy.polymul(Poly_p_K, Poly_p_G))
     
     
-    """return the poles and zeros of T"""
+    # return the poles and zeros of T
     
     Zeros=numpy.roots(Poly_z)
     Poles=numpy.roots(Poly_p)

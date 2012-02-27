@@ -4,10 +4,10 @@ import scipy.signal as scs
 
 
 def Analyses_second_order(v,t,max_peeks):
-    """take vector of output (v) , time vector along with the outputs (t) and  time where the analyses stops (t_end)"""
-    """scaled models are used in this analyses"""
+    """take vector of output (v) , time vector along with the outputs (t) and  time where the analyses stops (t_end)
+    scaled models are used in this analyses"""
     
-    """empty vectors for storing data"""
+    # empty vectors for storing data
     max_v=[]
     min_v=[]
     time_min=[]
@@ -17,23 +17,23 @@ def Analyses_second_order(v,t,max_peeks):
     if np.max(v)>=1:
         for k in range(max_peeks):
             if len(v)-2>=1:
-                """give indices from min to max value of the output vector"""
+                # give indices from min to max value of the output vector
                 sort    =np.argsort(v)
-                """store the maximum value and time where the maximum occurs of the system"""
+                # store the maximum value and time where the maximum occurs of the system
                 max_v.append( [v[sort[-1]]])
-                """updating the vector to not contain information already contained in max vector"""
+                # updating the vector to not contain information already contained in max vector
                 v       =v[sort[-1]+1:]
-                """sorting updated output vector that doesn't contain the previous maximum value"""
+                # sorting updated output vector that doesn't contain the previous maximum value
                 sort    =np.argsort(v)
-                """store the minimum value and time where the minimum occurs of the system"""
+                # store the minimum value and time where the minimum occurs of the system
                 min_v.append([v[sort[0]]])            
-                """updating the vector to not contain information already contained in the min value"""
+                # updating the vector to not contain information already contained in the min value
                 v       =v[sort[0]+1:]
                 
     else:
-        return """not second order"""
+        return "not second order"
     
-    """finding the times where the corresponding maximums and minimums occur"""
+    # finding the times where the corresponding maximums and minimums occur
     for i in range(len(t)):
         for j in range(len(max_v)):
         
@@ -44,7 +44,7 @@ def Analyses_second_order(v,t,max_peeks):
     
     max_v,min_v=np.matrix(max_v),np.matrix(min_v)
 
-    """the analysis of rise time, overshoot decay ratio"""
+    # the analysis of rise time, overshoot decay ratio
     if max_peeks>1:
         decay_ratio=(max_v[0,0]-1)/(max_v[1,0]-1)
         overshoot   =max_v[0,0]
@@ -61,9 +61,9 @@ def Analyses_second_order(v,t,max_peeks):
     
 
 
-"""example"""
-"""time constant =1 dampening coefficient =0.7 and steady state gain =1"""
-"""G=1/(s**2+1.4*s+1)"""
+# example
+# time constant =1 dampening coefficient =0.7 and steady state gain =1
+# G=1/(s**2+1.4*s+1)
 
 f=scs.lti([1],[1,0.8,1])
 [t,y]=f.step()
