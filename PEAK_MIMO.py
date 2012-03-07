@@ -17,7 +17,9 @@ def Gms(s):
     return G_ms, Gd_ms
 
 def Zeros_Poles_RHP():
-    """ Give a vector with all the RHP zeros and poles"""
+    """ Give a vector with all the RHP zeros and poles
+    RHP zeros and poles are calulated from sage program"""
+    
     Zeros_G     =[]
     Poles_G     =[]
     Zeros_Gd    =[]
