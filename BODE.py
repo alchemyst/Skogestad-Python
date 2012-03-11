@@ -3,7 +3,7 @@ import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt 
 
-
+#Just Trying out Git
 
 def G(w):
     """system equations in here (laplace domian)"""
