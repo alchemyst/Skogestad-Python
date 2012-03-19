@@ -55,7 +55,7 @@ def RGA_w(w_start,w_end,x,y):
         count=count+1
 
     for i in range(len(x)):
-        plt.loglog(w,store[i,:])
+        plt.semilogx(w,store[i,:])
     
     plt.title('RGA over Freq')
     plt.xlabel('w')
@@ -64,4 +64,4 @@ def RGA_w(w_start,w_end,x,y):
 
        
        
-RGA_w(-6,2,[0,1],[0,0])
+RGA_w(-4,0,[0,1],[0,0])

@@ -35,3 +35,16 @@ def deadtime():
 
 def PEAK_MIMO():
     
+    #sensitivty peak of closed loop. eq 6-24 pg 225 skogestad 
+    
+    
+    #complimentary sensitivity peak (with dead time only if dead time is present)
+    
+    #check for dead time 
+    
+    dead_G=deadtime[0]
+    dead_gd=deadtime[1]
+    
+    if np.sum(dead_G)!=0:
+        #therefore deadtime is present in the system therefore exstra precuations need to be taken 
+        
