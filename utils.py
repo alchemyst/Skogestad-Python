@@ -44,3 +44,16 @@ def findst(G, K):
 def phase(G, deg=False):
     return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg else numpy.pi)
 
+
+def Closed_loop(Kz, Kp, Gz, Gp):
+    """Kz & Gz is the polynomial constants in the numerator
+    Kp & Gp is the polynomial constants in the denominator"""
+
+    # calculating the product of the two polynomials in the numerator and denominator of transfer function GK
+    Z_GK = numpy.polymul(Kz, Gz)
+    P_GK = numpy.polymul(Kp, Gp)
+
+    #calculating the polynomial of closed loop sensitivity function s = 1/(1+GK)
+    Zeros_poly = Z_GK
+    Poles_poly = numpy.polyadd(Z_GK, P_GK)
+    return Zeros_poly, Poles_poly

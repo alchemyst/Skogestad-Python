@@ -1,26 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as scs
+from utils import Closed_loop
 
 # Process model of G with various Controller Gains
 # G(s) = (-s+1)/(s+1)
 #controller k1 = kc*((s+1)/s)*(1/(0.05*s+1))
 
 # explicitly calculate the poles and zeros of the closed loop transfer function
-
-
-def Closed_loop(Kz, Kp, Gz, Gp):
-    """Kz & Gz is the polynomial constants in the numerator
-    Kp & Gp is the polynomial constants in the denominator"""
-
-    # calculating the product of the two polynomials in the numerator and denominator of transfer function GK
-    Z_GK = np.polymul(Kz, Gz)
-    P_GK = np.polymul(Kp, Gp)
-
-    #calculating the polynomial of closed loop sensitivity function s = 1/(1+GK)
-    Zeros_poly = Z_GK
-    Poles_poly = np.polyadd(Z_GK, P_GK)
-    return Zeros_poly, Poles_poly
 
 
 def K_cl(KC):
