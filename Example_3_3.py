@@ -37,7 +37,7 @@ for i in range(len(d1)):
     plt.figure(1)
     plt.title('Figure 3.5')
     plt.plot(x_axis, y_axis, 'b.')
-    plt.axis([-5,5,np.matrix.min(SVD)-0.2,np.matrix.max(SVD)+0.2])
+    plt.axis([-5, 5, np.matrix.min(SVD)-0.2, np.matrix.max(SVD)+0.2])
     plt.figure(2)
     plt.subplot(211)
     plt.title('input')
@@ -48,9 +48,9 @@ for i in range(len(d1)):
 
 #plotting of the vectors for the largest gain and smallest gain
 plt.figure(2)
-plt.subplot(211)    
-plt.plot([0,-T[0,0]],[0,-T[0,1]],'b-')
-plt.plot([0,T[1,0]],[0,T[1,1]],'b-')
+plt.subplot(211)
+plt.plot([0, -T[0, 0]], [0, -T[0, 1]], 'b-')
+plt.plot([0, T[1, 0]], [0, T[1, 1]], 'b-')
 plt.text(0.3, 0.3, r'$\bar v$', fontsize=15)
 plt.text(0.3, -0.7, r'$\frac{v}{}$', fontsize=22)
 plt.show()
