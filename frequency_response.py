@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 def unwrapped_angle(Gfr):
-    return numpy.unwrap(numpy.arctan2(numpy.imag(Gfr), numpy.real(Gfr)))
+    return numpy.unwrap(numpy.angle(Gfr))
 
 def bode(w, Gfr):
     plt.subplot(2, 1, 1)
