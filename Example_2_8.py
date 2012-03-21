@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt
+from utils import phase
 
 # Loop shaping is an iterative procedure where the designer
 # 1. shapes and reshapes |L(jw)| after computing PM and GM,
@@ -22,10 +23,6 @@ K = kc*(10*s+1)*(5*s+1)/(s*(2*s+1)*(0.33*s+1))
 #closed-loop transfer function
 L = G*K
 
-
-def phase(L):
-    return np.unwrap(np.arctan2(np.imag(L), np.real(L)))
-
 #magnitude and phase
 plt.subplot(2, 1, 1)
 plt.loglog(w, abs(L))
@@ -33,7 +30,7 @@ plt.loglog(w, 1*np.ones(len(w)))
 plt.ylabel('Magnitude')
 
 plt.subplot(2, 1, 2)
-plt.semilogx(w, (180/np.pi)*phase(L))
+plt.semilogx(w, phase(L, deg=True))
 plt.semilogx(w, (-180)*np.ones(len(w)))
 plt.ylabel('Phase')
 plt.xlabel('frequency (rad/s)')

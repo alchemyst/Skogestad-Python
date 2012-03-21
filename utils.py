@@ -5,9 +5,9 @@ Created on Jan 27, 2012
 '''
 
 import numpy
-import control
 
-tf = control.TransferFunction
+#import control
+#tf = control.TransferFunction
 
 def circle(cx, cy, r):
     npoints = 100
@@ -21,7 +21,7 @@ def distance_from_nominal(w, k, tau, theta, nom_response):
     return numpy.abs(r - nom_response)
 
 def arrayfun(f, A):
-    """ recurses down to scalar elements in A, then applies f, return ing lists containing the result"""
+    """ recurses down to scalar elements in A, then applies f, returning lists containing the result"""
     if len(A.shape) == 0:
         return f(A)
     else:
@@ -40,3 +40,7 @@ def findst(G, K):
     S = inv(I + L)
     T = S*L
     return S, T
+
+def phase(G, deg=False):
+    return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg else numpy.pi)
+

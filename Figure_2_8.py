@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as scs
 import scipy as sc
+from utils import phase
 
 # TODO: Don't duplicate functions
 def Closed_loop(Kz, Kp, Gz, Gp):
@@ -24,7 +25,7 @@ def Closed_loop(Kz, Kp, Gz, Gp):
 def Wu_180(w):
     s = w*1j
     G = 3*(-2*(s)+1)/((10*s+1)*(5*s+1))
-    Wu = (np.arctan2(np.imag(G), np.real(G)))+np.pi
+    Wu = np.angle(G) + np.pi
     return Wu
 
 

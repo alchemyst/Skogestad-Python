@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt
+from utils import phase
 
 
 # this function is different that the previous one in its inputs it takes
@@ -148,7 +149,7 @@ def RULES(R, wr):
         Pz = np.polymul(G()[0], Gm()[0])
         Pp = np.polymul(G()[1], Gm()[1])
         G_w = scs.freqs(Pz, Pp, w)[1]
-        return np.abs(np.unwrap(np.arctan2(np.imag(G_w), np.real(G_w))))-np.pi
+        return np.abs(phase(G_w))-np.pi
 
     w = np.logspace(-3, 3, 100)
     plt.figure(2)
@@ -159,7 +160,7 @@ def RULES(R, wr):
     plt.subplot(211)
     plt.loglog(w, np.abs(h))
     plt.subplot(212)
-    plt.semilogx(w, np.unwrap(np.arctan2(np.imag(h), np.real(h))))
+    plt.semilogx(w, phase(h))
 
 
     wc_7 = np.abs(sc.optimize.fsolve(G_GM, 10))

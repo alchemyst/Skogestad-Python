@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt
+from utils import phase
 
 
 def G(w):
@@ -27,12 +28,12 @@ def Bode():
 
     def arg(w):
         """function to calculate the phase angle at -180 deg"""
-        return np.arctan2(np.imag(G(w)), np.real(G(w))) + np.pi
+        return np.angle(G(w)) + np.pi
 
     # where the freqeuncy is calculated where arg G(jw) = -180 deg
     w_180 = sc.optimize.fsolve(arg, -1)
 
-    PM = (np.arctan2(np.imag(G(wc)), np.real(G(wc)))+np.pi)*180/np.pi
+    PM = np.angle(G(wc), deg=True) + 180
     GM = 1/(np.abs(G(w_180)))
 
     # plotting of Bode plot and with corresponding freqeuncies for PM and GM
@@ -46,8 +47,9 @@ def Bode():
 
     # argument of G
     plt.subplot(212)
-    plt.semilogx(w, 180/np.pi*np.unwrap(np.arctan2(np.imag(G(w)), np.real(G(w)))))
-    plt.semilogx(wc*np.ones(2), [np.max(180/np.pi*np.unwrap(np.arctan2(np.imag(G(w)), np.real(G(w))))), np.min(180/np.pi*np.unwrap(np.arctan2(np.imag(G(w)), np.real(G(w)))))])
+    phaseangle = phase(G(w), deg=True)
+    plt.semilogx(w, phaseangle)
+    plt.semilogx(wc*np.ones(2), [np.max(phaseangle), np.min(phaseangle)])
     plt.semilogx(w_180*np.ones(2), [-180, 0])
     plt.show()
 
