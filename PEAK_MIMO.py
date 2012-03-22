@@ -169,7 +169,10 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,R,wr):
     #print 'Freqeuncy till which input saturation would not acure'
     #print w_mod_G_gd_1
     print 'Figure 1 is the plot of G**1 gd'
+<<<<<<< HEAD
     print '' 
+=======
+>>>>>>> 1e81e23e5f7a94b69a049c1041958624b91e9c0a
     plt.figure(1)
     plt.xlabel('w')
     plt.ylabel('|inv(G)* gd|')
@@ -178,12 +181,16 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,R,wr):
     
     #checking input saturation for acceptable control  disturbance rejection 
     #equation 6-55 pg 241 in skogestad 
+<<<<<<< HEAD
     #checking each singular values and the associated input vector with output direction vector of Gd
     
     store_value_input_sat=np.zeros([])
     
     for i in range(len(w)):
         
+=======
+    
+>>>>>>> 1e81e23e5f7a94b69a049c1041958624b91e9c0a
     
     
     
@@ -192,6 +199,7 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,R,wr):
     #eq 6-53 pg 241 
  
     singular_min_G_ref_track=[np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
+<<<<<<< HEAD
     plt.figure(2)
     plt.loglog(w,singular_min_G_ref_track)
     plt.loglog([w[0],w[-1]],[1,1])
@@ -218,6 +226,29 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,R,wr):
     print 'Figure 3 is the maximum and minimum sigular values of G over a freqeuncy range'    
     print ''
     plt.figure(3)
+=======
+    
+
+    
+    
+    #checking input saturation for accepatable control with reference change 
+    
+    
+    #added check for controllability is the minimum and maximum singular values of system transfer function matrix 
+    # as a function of frequency
+    
+    singular_min_G=np.zeros(len(w))
+    singular_max_G=np.zeros(len(w))
+    
+    
+    for i in range(len(w)):
+        singular_min_G[i]= np.min(np.linalg.svd(G(1j*w[i]))[1])
+        singular_max_G[i]= np.max(np.linalg.svd(G(1j*w[i]))[1])
+    
+    
+    print 'Figure 2 is the maximum and minimum sigular values of G over a freqeuncy range'    
+    plt.figure(2)
+>>>>>>> 1e81e23e5f7a94b69a049c1041958624b91e9c0a
     plt.loglog(w,singular_min_G)   
     plt.loglog(w,singular_max_G)
     
