@@ -47,10 +47,12 @@ def deadtime(s):
 
 
 
-def PEAK_MIMO(w_start,w_end,error_poles_direction):
+def PEAK_MIMO(w_start,w_end,error_poles_direction,R,wr):
     """ this function is for multivariable system analyses of controlability
     gives:
-    minimum peak values on S and T with or without deadtime""" 
+    minimum peak values on S and T with or without deadtime
+    R is the expected worst case reference change
+    wr is the freqeuncy up to where reference tracking is required""" 
     
 
     
@@ -97,13 +99,18 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction):
             
             
             #this matrix is the matrix from which the SVD is going to be done to determine the final minimum peak
-            pre_mat     = (np.sqrt(np.linalg.inv(Qz)))*Qzp*(np.sqrt(np.linalg.inv(Qp)))
+            pre_mat     = (np.sqrt((complex(np.linalg.inv(Qz))))*Qzp*(np.sqrt(complex(np.linalg.inv(Qp)))))
             
             #final calculation for the peak value
             Ms_min      = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
             print ''
             print 'Minimum peak values on T and S'
             print 'Ms_min = Mt_min =', Ms_min
+            
+        else:
+            print '' 
+            print 'Minimum peak values on T and S' 
+            print 'No limits on minimum peak values'
             
     #check for dead time 
     #dead_G=deadtime[0]
@@ -127,7 +134,7 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction):
      
       
     #eq 6-50 pg 240 from skogestad          
-    #Checking input saturation for perfect control 
+    #Checking input saturation for perfect control for disturbance rejection
     #checking for maximum disturbance just at steady state 
     
     [U_gd,S_gd,V_gd] = np.linalg.svd(Gd(0.000001))
@@ -161,20 +168,69 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction):
     
     #print 'Freqeuncy till which input saturation would not acure'
     #print w_mod_G_gd_1
-    
+    print 'Figure 1 is the plot of G**1 gd'
+    print '' 
     plt.figure(1)
     plt.xlabel('w')
-    plt.ylabel('|inv(G)* gd')
+    plt.ylabel('|inv(G)* gd|')
     plt.semilogx(w,mod_G_gd) 
     
     
-    #checking input saturation for 
+    #checking input saturation for acceptable control  disturbance rejection 
+    #equation 6-55 pg 241 in skogestad 
+    #checking each singular values and the associated input vector with output direction vector of Gd
+    
+    store_value_input_sat=np.zeros([])
+    
+    for i in range(len(w)):
+        
     
     
+    
+    
+    #checking input saturation for perfect control with reference change 
+    #eq 6-53 pg 241 
+ 
+    singular_min_G_ref_track=[np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
+    plt.figure(2)
+    plt.loglog(w,singular_min_G_ref_track)
+    plt.loglog([w[0],w[-1]],[1,1])
+    plt.loglog(w[0],1.2)
+    plt.loglog(w[0],0.8)
+    plt.loglog([wr,wr],[np.min([0.8,np.min(singular_min_G_ref_track)]),np.max([1.2,np.max(singular_min_G_ref_track)])])
+    
+    
+    
+    print 'Figure 2 is to check input saturation for reference changes'
+    print 'Shows a line of 1, where the singular value needs to be above 1'
+    print 'Shows the wr up to where control is needed'
+    print '' 
+    
+    
+    #checking input saturation for accepatable control with reference change 
+    
+    
+    #added check for controllability is the minimum and maximum singular values of system transfer function matrix 
+    # as a function of frequency
+    singular_min_G=[np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
+    singular_max_G=[np.max(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
+    
+    print 'Figure 3 is the maximum and minimum sigular values of G over a freqeuncy range'    
+    print ''
+    plt.figure(3)
+    plt.loglog(w,singular_min_G)   
+    plt.loglog(w,singular_max_G)
+    
+        
     plt.show()
     
     return Ms_min
 
+R=np.matrix([[1],[1]])
+R=R/np.abs(R)
 
-PEAK_MIMO(-4,5,0.00001)
+#just a check to make shure the R and G matrix is the correct shapes
+G(1)*R
+
+PEAK_MIMO(-4,5,0.00001,R,0.1 )
         
