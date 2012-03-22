@@ -38,6 +38,8 @@ for i in range(len(d1)):
     plt.title('Figure 3.5')
     plt.plot(x_axis, y_axis, 'b.')
     plt.axis([-5,5,np.matrix.min(SVD)-0.2,np.matrix.max(SVD)+0.2])
+    plt.xlabel(r'$d_{20}/d_{10}$', fontsize=14)
+    plt.ylabel(r'$||y||_2/||d||_2$', fontsize=15)
     plt.figure(2)
     plt.subplot(211)
     plt.title('input')
