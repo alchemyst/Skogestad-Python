@@ -22,7 +22,7 @@ def freq(G):
 
 def margins(G):
     """ Calculate the gain margin and phase margin of a system.
-    
+
     Input: G - a function of s
     Outputs:
        GM    Gain margin
@@ -30,9 +30,9 @@ def margins(G):
        wc    Gain crossover frequency
        w_180 Phase Crossover frequency
     """
-    
-    Gw = freq(G) 
-     
+
+    Gw = freq(G)
+
     def mod(x):
         """to give the function to calculate |G(jw)| = 1"""
         return np.abs(Gw(x)) - 1
@@ -61,7 +61,7 @@ def Bode(G):
     # plotting of Bode plot and with corresponding freqeuncies for PM and GM
     w = np.logspace(-5, np.log(w_180), 1000)
     s = 1j*w
-    
+
     plt.subplot(211)
     gains = np.abs(G(s))
     plt.loglog(w, gains)
