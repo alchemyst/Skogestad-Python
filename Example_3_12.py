@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# The following code performs Example 3.12 of Skogestad. 
+# The following code performs Example 3.12 of Skogestad.
 # Here the RGA, iterative RGA, condition number and minimized
-# condition number is calculated for constant transfer function G. 
-# The minimized coondition number is not implemented. 
+# condition number is calculated for constant transfer function G.
+# The minimized coondition number is not implemented.
 # Examples 3.13-15 are all similar
 
 def RGA(A):
@@ -23,8 +23,8 @@ def IterRGA(A, n):
 def RGAnumber(A):
     RGAnum = np.sum(np.abs(RGA(A) - np.identity(len(A))))
     return RGAnum
-    
-            
+
+
 G = np.matrix([[100, 0], [0, 1]])
 
 [U, S, V] = np.linalg.svd(G)
@@ -35,4 +35,3 @@ numR = RGAnumber(G)
 numC = condnum(S)
 
 print 'RGA:\n', R, '\nIterative RGA:\n', ItR, '\nCondition Number:\n', numC
-

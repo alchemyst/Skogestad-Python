@@ -12,11 +12,11 @@ import numpy as np
 # F* = 2 kg/s
 # therefore;
 # G(s) = np.matrix([[1, 1], [(1-x*)/F* -x*/F*]])
-#after substitution
+# after substitution
 G = np.matrix([[1, 1], [0.4, -0.1]])
-Ginv = np.linalg.pinv(G)    #pinv = psuedo inverse works also for non-square matrices
-#RGA is a matrix of relative gains obtained by term by term multiplication
-#of the transfer function and its psuedo inverse (G**-1)**T
+Ginv = np.linalg.pinv(G)    # pinv = psuedo inverse works also for non-square matrices
+# RGA is a matrix of relative gains obtained by term by term multiplication
+# of the transfer function and its psuedo inverse (G**-1)**T
 RGA = np.multiply(G, np.transpose(Ginv))
 print RGA
 
@@ -27,4 +27,4 @@ print RGA
 # RGA21 = 0.8 close to 1; effect of u1(sugar) on the sugar fraction y2
 # RGA22 = 0.2; effect of u2 (water) on the sugar fraction y2
 # It is reasonable to use input u2 (water) to control amount y1 hence RGA = 0.8
-# and use input u1 (sugar) to control the sugar fraction y2 
+# and use input u1 (sugar) to control the sugar fraction y2
