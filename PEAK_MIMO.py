@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def G(s):
     """ give the transfer matrix of the system"""
-    G = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s+1)/(s-2)]])
+    G = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s-2)]])
     return G
 
 def Gd(s):
@@ -22,21 +22,19 @@ def reference_change():
     R = R/np.linalg.norm(R, 2)
     return R
 
-def Gms(s):
-    """ stable, minimum phase system of G and Gd"""
-    G_ms = [[]]
-    Gd_ms = [[]]
+def G_s(s):
+    """ stable, minimum phase system of G and Gd
+    This could be done symbolically using Sage"""
 
-    G_s = [[]]
-    Gd_s = [[]]
-    return G_ms, Gd_ms, G_s, Gd_s
+    G_s = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s+2)]])
+    return G_s
 
 def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
 
     Zeros_G = [1]
-    Poles_G = [-2]
+    Poles_G = [2]
     Zeros_Gd = []
     Poles_Gd = []
     return Zeros_G, Poles_G, Zeros_Gd, Poles_Gd
@@ -133,7 +131,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
             #final calculation for the peak value
             Ms_min = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
             print ''
-            print 'Minimum peak values on T and S'
+            print 'Minimum peak values on T and S without deadtime'
             print 'Ms_min = Mt_min = ', Ms_min
             print ''
 
@@ -158,11 +156,23 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
     #        for j in range(len(Poles_G))
     #            dead_m
 
-    #plant with RHP zeros from 6-48
-    #checking that the plant and controlled variables have the ability to reject load disturbances
+    #eq 6-48 pg 239 for plant with RHP zeros
+    #checking alignment of disturbances and RHP zeros
+    RHP_alignment = [np.abs(np.linalg.svd(G(RHP_Z+error_poles_direction))[0][:, 0].H*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[1][0]*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[0][:, 0]) for RHP_Z in Zeros_G]
 
+    print 'Checking alignment of process output zeros to disturbances'
+    print 'These values should be less than 1'
+    print RHP_alignment
+    print ''
 
+    #checking peak values of KS eq 6-24 pg 229 np.linalg.svd(A)[2][:, 0]
+    #done with less tight lower bounds
+    KS_PEAK = [np.linalg.norm(np.transpose(np.conjugate(np.linalg.svd(G_s(RHP_p+error_poles_direction))[2][:, 0]))*np.linalg.pinv(G_s(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
+    KS_max = np.max(KS_PEAK)
 
+    print 'Lower bound on K'
+    print 'KS needs to larger than ', KS_max
+    print ''
 
     #eq 6-50 pg 240 from skogestad
     #eg 6-50 pg 240 from skogestad for simultanious disturbacne matrix
@@ -238,24 +248,27 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
     #print 'frequencies till which input saturation would not occurs'
     #print w_mod_G_gd_1
 
+
+    print 'Figure 3 is disturbance condition number'
+    print 'A large number indicates that the disturbance is in a bad direction'
+    print ''
     #eq 6-43 pg 238 disturbance condition number
     #this in done over a frequency range to see if possible problems at higher frequencies
+    #finding yd
 
+    dist_condition_num = [np.linalg.svd(G(w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(w_i))[1][0]*np.linalg.svd(Gd(w_i))[0][:, 0])[1][0] for w_i in w]
 
-    #checking the disturbance condition number at steady  state
+    plt.figure(3)
+    plt.title('yd Condition number')
+    plt.ylabel('condition number')
+    plt.xlabel('w')
+    plt.loglog(w, dist_condition_num)
 
-
-
-    #eq 6-48 pg 239 for plant with RHP zeros
-    #
-
-
-
-    #
     #
     #
+    #
 
-    print 'Figure 3 is the singular value of an specific output with input and disturbance direction vector'
+    print 'Figure 4 is the singular value of an specific output with input and disturbance direction vector'
     print 'The solid blue line needs to be large than the red line'
     print 'This only needs to be checked up to frequencies where |u**H gd| >1'
     print ''
@@ -274,14 +287,14 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
             store_rhs_eq[j, i] = np.abs(np.transpose(np.conjugate(np.linalg.svd(G(w[i]))[2][:, j]))*np.max(np.linalg.svd(Gd(w[i]))[1])*np.linalg.svd(Gd(w[i]))[0][:, 0])-1
             store_lhs_eq[j, i] = sc_lin.svd(G(w[i]))[1][j]
 
-    plot_direction(store_rhs_eq, 'Acceptable control eq6-55', 'r', 3)
-    plot_direction(store_lhs_eq, 'Acceptable control eq6-55', 'b', 3)
+    plot_direction(store_rhs_eq, 'Acceptable control eq6-55', 'r', 4)
+    plot_direction(store_lhs_eq, 'Acceptable control eq6-55', 'b', 4)
 
     #
     #
     #
 
-    print 'Figure 4 is to check input saturation for reference changes'
+    print 'Figure 5 is to check input saturation for reference changes'
     print 'Red line in both graphs needs to be larger than the blue line for values w < wr'
     print 'Shows the wr up to where control is needed'
     print ''
@@ -297,7 +310,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
 
     singular_min_G_ref_track = [np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
 
-    plt.figure(4)
+    plt.figure(5)
     plt.subplot(211)
     plt.title('min_sing(G(jw)) minimum requirement')
     plt.loglog(w, singular_min_G_ref_track, 'r')
@@ -318,8 +331,8 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
     #
     #
 
-    print 'Figure 5 is the maximum and minimum singular values of G over a frequency range'
-    print 'Figure 5 is also the maximum and minimum singular values of Gd over a frequency range'
+    print 'Figure 6 is the maximum and minimum singular values of G over a frequency range'
+    print 'Figure 6 is also the maximum and minimum singular values of Gd over a frequency range'
     print 'Blue is the minimum values and Red is the maximum singular values'
     print 'Plot of Gd should be smaller than 1 else control is needed at frequencies where Gd is bigger than 1'
     print ''
@@ -335,7 +348,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
     singular_max_Gd = [np.max(np.linalg.svd(Gd(1j*w_i))[1]) for w_i in w]
     condition_num_G = [np.max(np.linalg.svd(G(1j*w_i))[1])/np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
 
-    plt.figure(5)
+    plt.figure(6)
     plt.subplot(311)
     plt.title('min_S(G(jw)) and max_S(G(jw))')
     plt.loglog(w, singular_min_G, 'b')
