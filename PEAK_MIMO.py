@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def G(s):
     """ give the transfer matrix of the system"""
-    G       = np.matrix([[ 1/s+1 , 1 ],[1/(s+2)**2 , (s+1)/(s-2)]])
+    G       = np.matrix([[ 1/s+1 , 1 ],[1/(s+2)**2 , (s-1)/(s-2)]])
     return G 
 
 def Gd(s):
@@ -22,21 +22,19 @@ def reference_change():
     R=R/np.linalg.norm(R,2)
     return R
 
-def Gms(s):
-    """ stable, minimum phase system of G and Gd"""
-    G_ms    = [[]]
-    Gd_ms   = [[]]
+def G_s(s):
+    """ stable, minimum phase system of G and Gd
+    This could be done symbolically using Sage"""
     
-    G_s     = [[]]
-    Gd_s    = [[]]
-    return G_ms, Gd_ms ,G_s , Gd_s
+    G_s     = np.matrix([[ 1/s+1 , 1 ],[1/(s+2)**2 , (s-1)/(s+2)]])
+    return G_s
 
 def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
     
     Zeros_G     =[1]
-    Poles_G     =[-2]
+    Poles_G     =[2]
     Zeros_Gd    =[]
     Poles_Gd    =[]
     return Zeros_G , Poles_G , Zeros_Gd , Poles_Gd 
@@ -135,7 +133,7 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,wr):
             #final calculation for the peak value
             Ms_min      = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
             print ''
-            print 'Minimum peak values on T and S'
+            print 'Minimum peak values on T and S without deadtime'
             print 'Ms_min = Mt_min =', Ms_min
             print ''
             
@@ -160,12 +158,25 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,wr):
     #        for j in range(len(Poles_G))
     #            dead_m
       
-    #plant with RHP zeros from 6-48
-    #checking that the plant and controlled variables have the ability to reject load disturbances
+    #eq 6-48 pg 239 for plant with RHP zeros 
+    #checking alignment of disturbances and RHP zeros
+    RHP_alignment =[np.abs(np.linalg.svd(G(RHP_Z+error_poles_direction))[0][:,0].H*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[1][0]*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[0][:,0]) for RHP_Z in Zeros_G]
+    
+    print 'Checking alignment of process output zeros to disturbances'
+    print 'These values should be less than 1'
+    print RHP_alignment
+    print ''
+        
+    #checking peak values of KS eq 6-24 pg 229 np.linalg.svd(A)[2][:,0]
+    #done with less tight lower bounds 
+    KS_PEAK=[np.linalg.norm(np.transpose(np.conjugate(np.linalg.svd(G_s(RHP_p+error_poles_direction))[2][:,0]))*np.linalg.pinv(G_s(RHP_p+error_poles_direction)),2) for RHP_p in Poles_G]
+    KS_max  = np.max(KS_PEAK)  
+    
+    print 'Lower bound on K'
+    print 'KS needs to larger than ',KS_max
+    print ''
     
     
-     
-      
     #eq 6-50 pg 240 from skogestad 
     #eg 6-50 pg 240 from skogestad for simultanious disturbacne matrix         
     #Checking input saturation for perfect control for disturbance rejection
@@ -260,13 +271,7 @@ def PEAK_MIMO(w_start,w_end,error_poles_direction,wr):
     
     
     
-    #eq 6-48 pg 239 for plant with RHP zeros 
-    #checking alignment of disturbances and RHP zeros
-    RHP_alignment =[np.abs(np.linalg.svd(G(RHP_Z+error_poles_direction))[0][:,0].H*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[1][0]*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[0][:,0]) for RHP_Z in Zeros_G]
-    
-    print 'Checking alignment of process output zeros to disturbances'
-    print 'These values should be less than 1'
-    print RHP_alignment
+
     
     
     #
