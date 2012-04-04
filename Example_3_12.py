@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import RGA
 
 # The following code performs Example 3.12 of Skogestad.
 # Here the RGA, iterative RGA, condition number and minimized
@@ -7,17 +8,13 @@ import matplotlib.pyplot as plt
 # The minimized coondition number is not implemented.
 # Examples 3.13-15 are all similar
 
-def RGA(A):
-    A = np.multiply(A, np.transpose(np.linalg.pinv(A)))
-    return A
-
 def condnum(A):
     gamma = A[0]/A[-1]
     return gamma
 
 def IterRGA(A, n):
     for i in range(1, n):
-            A = RGA(A)
+        A = RGA(A)
     return A
 
 def RGAnumber(A):

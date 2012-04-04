@@ -1,12 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import RGA
 
 # The following code performs Example 3.11 of Skogestad.
-
-def RGA(A):
-    A = np.multiply(A, np.transpose(np.linalg.pinv(A)))
-    return A
-
 def G(s):
     G = 0.01*np.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*np.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     return G

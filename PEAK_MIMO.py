@@ -110,19 +110,19 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
 
 
             yz_mat1 = np.matrix(np.diag(Zeros_G))*np.matrix(np.ones([len(Zeros_G), len(Zeros_G)]))
-            yz_mat2 = np.transpose(yz_mat1)
+            yz_mat2 = yz_mat1.T
 
-            Qz = (np.transpose(np.conjugate(yz_direction))*yz_direction)/(yz_mat1+yz_mat2)
+            Qz = (yz_direction.H*yz_direction)/(yz_mat1+yz_mat2)
 
             yp_mat1 = np.matrix(np.diag(Poles_G))*np.matrix(np.ones([len(Poles_G), len(Poles_G)]))
-            yp_mat2 = np.transpose(yp_mat1)
+            yp_mat2 = yp_mat1.T
 
-            Qp = (np.transpose(np.conjugate(yp_direction))*yp_direction)/(yp_mat1+yp_mat2)
+            Qp = (yp_direction.H*yp_direction)/(yp_mat1+yp_mat2)
 
             yzp_mat1 = np.matrix(np.diag(Zeros_G))*np.matrix(np.ones([len(Zeros_G), len(Poles_G)]))
             yzp_mat2 = np.matrix(np.ones([len(Zeros_G), len(Poles_G)]))*np.matrix(np.diag(Poles_G))
 
-            Qzp = np.transpose(np.conjugate(yz_direction))*yp_direction/(yzp_mat1-yzp_mat2)
+            Qzp = yz_direction.H*yp_direction/(yzp_mat1-yzp_mat2)
 
 
             #this matrix is the matrix from which the SVD is going to be done to determine the final minimum peak
@@ -167,7 +167,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
 
     #checking peak values of KS eq 6-24 pg 229 np.linalg.svd(A)[2][:, 0]
     #done with less tight lower bounds
-    KS_PEAK = [np.linalg.norm(np.transpose(np.conjugate(np.linalg.svd(G_s(RHP_p+error_poles_direction))[2][:, 0]))*np.linalg.pinv(G_s(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
+    KS_PEAK = [np.linalg.norm(np.linalg.svd(G_s(RHP_p+error_poles_direction))[2][:, 0].H*np.linalg.pinv(G_s(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
     KS_max = np.max(KS_PEAK)
 
     print 'Lower bound on K'
@@ -284,7 +284,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
 
     for i in range(len(w)):
         for j in range(np.shape(G(0.0001))[0]):
-            store_rhs_eq[j, i] = np.abs(np.transpose(np.conjugate(np.linalg.svd(G(w[i]))[2][:, j]))*np.max(np.linalg.svd(Gd(w[i]))[1])*np.linalg.svd(Gd(w[i]))[0][:, 0])-1
+            store_rhs_eq[j, i] = np.abs(np.linalg.svd(G(w[i]))[2][:, j].H*np.max(np.linalg.svd(Gd(w[i]))[1])*np.linalg.svd(Gd(w[i]))[0][:, 0])-1
             store_lhs_eq[j, i] = sc_lin.svd(G(w[i]))[1][j]
 
     plot_direction(store_rhs_eq, 'Acceptable control eq6-55', 'r', 4)

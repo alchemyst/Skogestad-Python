@@ -7,9 +7,9 @@ import scipy.signal as sign
 # the controllability Gramian.
 
 # Define state space matrices
-A = np.matrix([[-2, -2], 
+A = np.matrix([[-2, -2],
                [0, -4]])
-B = np.array([[1], 
+B = np.array([[1],
               [1]])
 C = np.array([[1, 0]])
 D = 0
