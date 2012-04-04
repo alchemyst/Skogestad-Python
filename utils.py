@@ -57,3 +57,9 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     Zeros_poly = Z_GK
     Poles_poly = numpy.polyadd(Z_GK, P_GK)
     return Zeros_poly, Poles_poly
+
+def RGA(Gin):
+    """ Calculate the Relative Gain Array of a matrix """
+    G = numpy.asarray(Gin)
+    Ginv = numpy.linalg.pinv(G)
+    return G*Ginv.T

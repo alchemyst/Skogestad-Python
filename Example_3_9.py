@@ -1,7 +1,8 @@
 import numpy as np
+from utils import RGA
 
-"""Blending process: mix sugar (u1) and water (u2) to
-   control amount (y1 = F) and sugar fraction(y2 = x) in a soft drink"""
+# Blending process: mix sugar (u1) and water (u2) to control amount
+# (y1 = F) and sugar fraction(y2 = x) in a soft drink
 
 # y = G*u
 # After linearization the equations become:
@@ -14,11 +15,7 @@ import numpy as np
 # G(s) = np.matrix([[1, 1], [(1-x*)/F* -x*/F*]])
 # after substitution
 G = np.matrix([[1, 1], [0.4, -0.1]])
-Ginv = np.linalg.pinv(G)    # pinv = psuedo inverse works also for non-square matrices
-# RGA is a matrix of relative gains obtained by term by term multiplication
-# of the transfer function and its psuedo inverse (G**-1)**T
-RGA = np.multiply(G, np.transpose(Ginv))
-print RGA
+print RGA(G)
 
 # pairing rule 1: prefer pairing on RGA elements close to 1
 # RGA = [[0.2, 0.8], [0.8, 0.2]]

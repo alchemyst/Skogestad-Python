@@ -1,22 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-def RGA_SS(A):
-    """ this is for steady state RGA"
-    here is no freqeuncy dependency
-
-    A is a steady state gain matrix of system"""
-
-    RGA_SS = np.multiply(A, np.transpose(np.linalg.pinv(A)))
-    print RGA_SS
-    return RGA_SS
+from utils import RGA
 
 # example 3.9 Skogestad pg 85
 
 A = np.matrix([[1, 1], [0.4, -0.1]])
 
-RGA = RGA_SS(A)
+print RGA(A)
 
 #  the next two function is to calculate the frequancy dependend RGA
 
@@ -47,8 +37,7 @@ def RGA_w(w_start, w_end, x, y):
 
     count = 0
     for w_i in w:
-        A = G(w_i)
-        RGA_w = np.multiply(A, np.transpose(np.linalg.pinv(A)))
+        RGA_w = RGA(G(w_i))
         store[:, count] = RGA_w[x, y]
         count = count+1
 
@@ -57,7 +46,7 @@ def RGA_w(w_start, w_end, x, y):
 
     plt.title('RGA over Freq')
     plt.xlabel('w')
-    plt.ylabel('|RGA values| gevin x , y ')
+    plt.ylabel('|RGA values| given x , y ')
     plt.show()
 
 RGA_w(-6, 2, [0, 1], [0, 0])
