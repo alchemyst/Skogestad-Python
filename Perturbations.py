@@ -37,7 +37,7 @@ def Possibilities(umin, umax, Amount):
         dimindex = range(Ndims)
         # have at least one constrained dimension
         for Nunconstrained in range(0, Ndims):
-            # select all ways of generating this 
+            # select all ways of generating this
             for dims in itertools.combinations(dimindex, Nunconstrained):
                 pointbase = coords(box)
                 for i in dims:
@@ -46,7 +46,7 @@ def Possibilities(umin, umax, Amount):
                     yield coord
 
 
-    box=box_ready(umin, umax, 2)
+    box=box_ready(umin, umax, Amount)
 
     vec=[]
     for c in surfmesh(box):
@@ -56,13 +56,14 @@ def Possibilities(umin, umax, Amount):
 
     return perturbations
 
+if __name__ == '__main__':
 
-#for example a matrix of the minimum and maximum values of a certain set of parameters
-umin     =[[85], [160], [0.1], [1]]
-umax     =[[95], [120], [0.8], [4]]
+    #for example a matrix of the minimum and maximum values of a certain set of parameters
+    umin     =[[85], [160], [0.1], [1]]
+    umax     =[[95], [120], [0.8], [4]]
 
-#create a matrix of all possibilities of the umin and umax vectors
-#the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
-Possible = Possibilities(umin, umax, 2)
-print Possible
-print Possible.shape[0]
+    #create a matrix of all possibilities of the umin and umax vectors
+    #the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
+    Possible = Possibilities(umin, umax, 2)
+    print Possible
+    print Possible.shape[0]
