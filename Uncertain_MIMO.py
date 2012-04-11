@@ -28,14 +28,13 @@ def Gp(s, vec, i):
 
 def weight_i(s):
     """function to give the weight of the uncertainty"""
-    w_i = (4*s+0.5)/((4/2.5)*s+1)
+    w_i = (s/0.22+0.63)/((1/(4*0.22))*s+1)
     return w_i
 
 
 #create a matrix of all possibilities of the umin and umax vectors
 #the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
-vec = Possibilities(umin, umax, 5)
-
+vec = Possibilities(umin, umax, 2)
 
 def Bound_SISO_wi(w_star, w_end, vec):
     #upper bounds on S'
