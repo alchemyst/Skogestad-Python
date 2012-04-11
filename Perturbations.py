@@ -59,11 +59,11 @@ def Possibilities(umin, umax, Amount):
 if __name__ == '__main__':
 
     #for example a matrix of the minimum and maximum values of a certain set of parameters
-    umin     =[[85], [160], [0.1], [1]]
-    umax     =[[95], [120], [0.8], [4]]
+    umin     =[[0], [0]]
+    umax     =[[1], [1]]
 
     #create a matrix of all possibilities of the umin and umax vectors
     #the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
-    Possible = Possibilities(umin, umax, 2)
+    Possible = Possibilities(umin, umax, 5)
     print Possible
     print Possible.shape[0]
