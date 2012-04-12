@@ -1,8 +1,5 @@
 import numpy as np
-import scipy as sc
 import scipy.linalg as sc_lin
-import scipy.optimize as sc_opt
-import scipy.signal as scs
 import matplotlib.pyplot as plt
 
 
@@ -33,31 +30,32 @@ def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
 
-    Zeros_G = [1]
-    Poles_G = [2]
+    Zeros_G = [1, 5]
+    Poles_G = [2, 3]
     Zeros_Gd = []
     Poles_Gd = []
     return Zeros_G, Poles_G, Zeros_Gd, Poles_Gd
 
 
 
-def deadtime(s):
+def deadtime():
     """ vector of the deadtime of the system"""
     #individual time delays
-    dead_G = []
-    dead_Gd = []
+    dead_G = np.matrix([[0, -2], [-1, -4]])
+    dead_Gd = np.matrix([])
 
     return dead_G, dead_Gd
 
 
 
 
-def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
+def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     """ this function is for multivariable system analysis of controllability
     gives:
     minimum peak values on S and T with or without deadtime
     R is the expected worst case reference change, with condition that ||R||2<= 2
-    wr is the frequency up to where reference tracking is required"""
+    wr is the frequency up to where reference tracking is required
+    enter value of 1 in deadtime_if if system has dead time"""
 
 
     def plot_direction(direction, name, color, figure_num):
@@ -107,7 +105,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
                 #error_poles_direction is to to prevent the numerical method from breaking
                 [U, S, V] = np.linalg.svd(G(Poles_G[i]+error_poles_direction))
                 yp_direction[:, i] = U[:, 0]
-
+            print yp_direction
 
             yz_mat1 = np.matrix(np.diag(Zeros_G))*np.matrix(np.ones([len(Zeros_G), len(Zeros_G)]))
             yz_mat2 = yz_mat1.T
@@ -124,16 +122,52 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
 
             Qzp = yz_direction.H*yp_direction/(yzp_mat1-yzp_mat2)
 
+            if deadtime_if==0:
+                #this matrix is the matrix from which the SVD is going to be done to determine the final minimum peak
+                pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz)))*Qzp*(sc_lin.sqrtm(np.linalg.inv(Qp))))
 
-            #this matrix is the matrix from which the SVD is going to be done to determine the final minimum peak
-            pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz)))*Qzp*(sc_lin.sqrtm(np.linalg.inv(Qp))))
+                #final calculation for the peak value
+                Ms_min = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
+                print ''
+                print 'Minimum peak values on T and S without deadtime'
+                print 'Ms_min = Mt_min = ', Ms_min
+                print ''
 
-            #final calculation for the peak value
-            Ms_min = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
-            print ''
-            print 'Minimum peak values on T and S without deadtime'
-            print 'Ms_min = Mt_min = ', Ms_min
-            print ''
+            #skogestad eq 6-16 pg 226 using maximum deadtime per output channel to give tightest lowest bounds
+            if deadtime_if == 1:
+                #create vector to be used for the diagonal deadtime matrix containing each outputs' maximum dead time
+                #this would ensure tighter bounds on T and S
+                #the minimum function is used because all stable systems has dead time with a negative sign
+
+                dead_time_vec_max_row = np.zeros(deadtime()[0].shape[0])
+
+                for i in range(deadtime()[0].shape[0]):
+                    dead_time_vec_max_row[i] = np.max(deadtime()[0][i, :])
+
+
+                def Dead_time_matrix(s, dead_time_vec_max_row):
+
+                    dead_time_matrix = np.diag(np.exp(np.multiply(dead_time_vec_max_row, s)))
+                    return dead_time_matrix
+
+                Q_dead = np.zeros([G(0.0001).shape[0], G(0.0001).shape[0]])
+
+                for j in range(len(Poles_G)):
+                    for j in range(len(Poles_G)):
+                        denominator_mat= np.transpose(np.conjugate(yp_direction[:, i]))*Dead_time_matrix(Poles_G[i], dead_time_vec_max_row)*Dead_time_matrix(Poles_G[j], dead_time_vec_max_row)*yp_direction[:, j]
+                        numerator_mat = Poles_G[i]+Poles_G[i]
+
+                        Q_dead[i, j] = denominator_mat/numerator_mat
+
+                #calculating the Mt_min with dead time
+                lambda_mat = sc_lin.sqrtm(np.linalg.pinv(Q_dead))*(Qp+Qzp*np.linalg.pinv(Qz)*(np.transpose(np.conjugate(Qzp))))*sc_lin.sqrtm(np.linalg.pinv(Q_dead))
+
+                Ms_min=np.real(np.max(np.linalg.eig(lambda_mat)[0]))
+                print ''
+                print 'Minimum peak values on T and S without dead time'
+                print 'Dead time per output channel is for the worst case dead time in that channel'
+                print 'Ms_min = Mt_min = ', Ms_min
+                print ''
 
         else:
             print ''
@@ -370,4 +404,4 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr):
     return Ms_min
 
 
-PEAK_MIMO(-4, 5, 0.00001, 0.1)
+PEAK_MIMO(-4, 5, 0.00001, 0.1, 1)
