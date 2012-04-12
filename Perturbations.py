@@ -67,3 +67,9 @@ if __name__ == '__main__':
     Possible = Possibilities(umin, umax, 5)
     print Possible
     print Possible.shape[0]
+umin=np.ones([20,1])
+umax=2*np.random.random([20,1])
+print umax
+print umin
+
+print Possibilities(umin,umax,1)
