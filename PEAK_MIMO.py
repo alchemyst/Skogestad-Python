@@ -30,7 +30,7 @@ def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
 
-    Zeros_G = [1, 3.01]
+    Zeros_G = [1, 5]
     Poles_G = [2, 3]
     Zeros_Gd = []
     Poles_Gd = []
@@ -47,7 +47,7 @@ def deadtime():
     return dead_G, dead_Gd
 
 
-print deadtime()[0].shape[0]
+
 
 def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     """ this function is for multivariable system analysis of controllability
@@ -142,7 +142,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
                 dead_time_vec_max_row = np.zeros(deadtime()[0].shape[0])
 
                 for i in range(deadtime()[0].shape[0]):
-                    dead_time_vec_max_row[i] = np.min(deadtime()[0][i, :])
+                    dead_time_vec_max_row[i] = np.max(deadtime()[0][i, :])
 
 
                 def Dead_time_matrix(s, dead_time_vec_max_row):
