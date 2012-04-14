@@ -9,8 +9,8 @@ from Perturbations import Possibilities
 #give the minimum and maximum values of a spesific variable in a matrix form
 
 #for example a matrix of the minimum and maximum values of a certain set of parameters
-umin     =[[1], [1], [1]]
-umax     =[[3], [3], [3]]
+umin = [1, 1, 1]
+umax = [3, 3, 3]
 
 def G(s):
     """returns value of the nominal plant"""

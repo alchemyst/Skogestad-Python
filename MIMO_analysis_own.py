@@ -9,13 +9,11 @@ from Perturbations import Possibilities
 
 #geving perturbations matrices for use in creud uncertainty analysis of a MIMO system with disturbance matrix 
 
-umin_G=np.matrix([[0.8],[0.08],[0.8],[2.6],[8],[0.8],[80],[0.8],[1.6],[2.4],[24]])
-umax_G=np.matrix([[1.2],[0.12],[1.2],[3.4],[12],[1.2],[120],[1.2],[2.4],[3.6],[36]])
-print umin_G.shape
+umin_G = [0.8, 0.08, 0.8, 2.6, 8, 0.8, 80, 0.8, 1.6, 2.4, 24]
+umax_G = [1.2, 0.12, 1.2, 3.4, 12, 1.2, 120, 1.2, 2.4, 3.6, 36]
 
-umin_Gd=np.matrix([[0.8],[0.8],[1.6],[1.6],[3.4],[0.8],[6],[3.4],[1.6],[0.8],[8],[3.4],[0.8],[4.2],[2.8]])
-umax_Gd=np.matrix([[1.2],[1.2],[2.4],[2.4],[4.4],[1.2],[10],[4.6],[2.4],[1.2],[10],[4.6],[1.2],[5.6],[3.2]])
-print umin_Gd.shape
+umin_Gd = [0.8, 0.8, 1.6, 1.6, 3.4, 0.8, 6, 3.4, 1.6, 0.8, 8, 3.4, 0.8, 4.2, 2.8]
+umax_Gd = [1.2, 1.2, 2.4, 2.4, 4.4, 1.2, 10, 4.6, 2.4, 1.2, 10, 4.6, 1.2, 5.6, 3.2]
 
 def Gd(s):
     """disturbance transfer function matrix 
