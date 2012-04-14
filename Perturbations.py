@@ -11,9 +11,9 @@ def Possibilities(umin, umax, Amount):
         box = np.zeros((len(umin), 3))
         for i in range(2):
             for j in range(len(umin)):
-                if i ==0:
+                if i == 0:
                     box[j, i] = umin[j]
-                if i ==1:
+                if i == 1:
                     box[j, i] = umax[j]
         box[:, -1] = Amount
         return box
@@ -46,21 +46,21 @@ def Possibilities(umin, umax, Amount):
                     yield coord
 
 
-    box=box_ready(umin, umax, Amount)
+    box = box_ready(umin, umax, Amount)
 
-    vec=[]
+    vec = []
     for c in surfmesh(box):
         vec.append(c)
 
-    perturbations =np.matrix(vec)
+    perturbations = np.matrix(vec)
 
     return perturbations
 
 if __name__ == '__main__':
 
     #for example a matrix of the minimum and maximum values of a certain set of parameters
-    umin     =[[0], [0]]
-    umax     =[[1], [1]]
+    umin = [[0], [0]]
+    umax = [[1], [1]]
 
     #create a matrix of all possibilities of the umin and umax vectors
     #the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
@@ -68,9 +68,10 @@ if __name__ == '__main__':
 
     print Possible
     print Possible.shape[0]
-umin=np.ones([20,1])
-umax=2*np.random.random([20,1])
-print umax
-print umin
 
-print Possibilities(umin,umax,1)
+    umin = np.ones([20, 1])
+    umax = 2*np.random.random([20, 1])
+    print umax
+    print umin
+
+    print Possibilities(umin, umax, 1)
