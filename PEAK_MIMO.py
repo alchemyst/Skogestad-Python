@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
+from utils import plot_freq_subplot
 
 
 def G(s):
@@ -56,28 +57,6 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     R is the expected worst case reference change, with condition that ||R||2<= 2
     wr is the frequency up to where reference tracking is required
     enter value of 1 in deadtime_if if system has dead time"""
-
-
-    def plot_direction(direction, name, color, figure_num):
-        plt.figure(figure_num)
-        if (direction.shape[0])>2:
-            for i in range(direction.shape[0]):
-                #label = '%s Input Dir %i' % (name, i+1)
-
-                plt.subplot((direction.shape[0]), 1, i + 1)
-                plt.title(name)
-                plt.semilogx(w, direction[i, :], color)
-
-        else:
-
-            plt.subplot(211)
-            plt.title(name)
-            plt.semilogx(w, direction[0, :], color)
-
-            plt.subplot(212)
-            plt.title(name)
-            plt.semilogx(w, direction[1, :], color)
-
 
     #importing most of the zeros and poles data
     [Zeros_G, Poles_G, Zeros_Gd, Poles_Gd] = Zeros_Poles_RHP()
@@ -259,8 +238,8 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #def for subplotting all the possible variations of mod_G_Gd
 
 
-    plot_direction(np.ones([2, len(w)]), 'Perfect control Gd', 'r', 1)
-    plot_direction(mod_G_Gd, 'Perfect control Gd', 'b', 1)
+    plot_freq_subplot(plt, w, np.ones([2, len(w)]), 'Perfect control Gd', 'r', 1)
+    plot_freq_subplot(plt, w, mod_G_Gd, 'Perfect control Gd', 'b', 1)
 
     plt.figure(2)
     plt.title('Input Saturation for perfect control |inv(G)*gd|<= 1')
@@ -321,8 +300,8 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
             store_rhs_eq[j, i] = np.abs(np.linalg.svd(G(w[i]))[2][:, j].H*np.max(np.linalg.svd(Gd(w[i]))[1])*np.linalg.svd(Gd(w[i]))[0][:, 0])-1
             store_lhs_eq[j, i] = sc_lin.svd(G(w[i]))[1][j]
 
-    plot_direction(store_rhs_eq, 'Acceptable control eq6-55', 'r', 4)
-    plot_direction(store_lhs_eq, 'Acceptable control eq6-55', 'b', 4)
+    plot_freq_subplot(plt, w, store_rhs_eq, 'Acceptable control eq6-55', 'r', 4)
+    plot_freq_subplot(plt, w, store_lhs_eq, 'Acceptable control eq6-55', 'b', 4)
 
     #
     #

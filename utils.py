@@ -65,22 +65,12 @@ def RGA(Gin):
     return G*Ginv.T
 
 
-def plot_direction(direction, name, color, figure_num):
+def plot_freq_subplot(plt, w, direction, name, color, figure_num):
     plt.figure(figure_num)
-    if (direction.shape[0])>2:
-        for i in range(direction.shape[0]):
-            #label = '%s Input Dir %i' % (name, i+1)
+    N = direction.shape[0]
+    for i in range(N):
+        #label = '%s Input Dir %i' % (name, i+1)
 
-            plt.subplot((direction.shape[0]), 1, i + 1)
-            plt.title(name)
-            plt.semilogx(w, direction[i, :], color)
-
-    else:
-
-        plt.subplot(211)
+        plt.subplot(N, 1, i + 1)
         plt.title(name)
-        plt.semilogx(w, direction[0, :], color)
-
-        plt.subplot(212)
-        plt.title(name)
-        plt.semilogx(w, direction[1, :], color)
+        plt.semilogx(w, direction[i, :], color)
