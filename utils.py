@@ -5,6 +5,8 @@ Created on Jan 27, 2012
 '''
 
 import numpy
+import scipy.signal
+
 
 #import control
 #tf = control.TransferFunction
@@ -58,6 +60,7 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     Poles_poly = numpy.polyadd(Z_GK, P_GK)
     return Zeros_poly, Poles_poly
 
+
 def RGA(Gin):
     """ Calculate the Relative Gain Array of a matrix """
     G = numpy.asarray(Gin)
@@ -110,6 +113,13 @@ class tf(object):
         ...
     ValueError: Transfer functions can only be added if their deadtimes are the same
     
+    It is sometimes useful to define 
+    >>> s = tf([1, 0])
+    >>> 1 + s
+    tf([1 1], [1])
+    
+    >>> 1/(s + 1)
+    tf([1], [1 1])
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0):
@@ -121,6 +131,9 @@ class tf(object):
     def inverse(self):
         """ inverse of the transfer function """
         return tf(self.denominator, self.numerator, -self.deadtime)
+    
+    def step(self, *args):
+        return scipy.signal.lti(self.numerator, self.denominator).step(*args)
 
     def __repr__(self):
         r = "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
@@ -142,19 +155,39 @@ class tf(object):
                 numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
         if self.deadtime != other.deadtime:
             raise ValueError("Transfer functions can only be added if their deadtimes are the same")
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator + 
                   other.numerator*self.denominator, gcd, self.deadtime)
 
+    def __radd__(self, other):
+        return self + other
+
     def __mul__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
         return tf(self.numerator*other.numerator,
                   self.denominator*other.denominator,
                   self.deadtime + other.deadtime)
 
+    def __rmul__(self, other):
+        return self * other
+
     def __div__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
         return self * other.inverse()
+
+    def __rdiv__(self, other):
+        return tf(other)/self
+
+def feedback(forward, backward):
+    """ Calculate the feedback equivalent transfer function """
+    return forward/(1 + forward*backward)
+
 
 if __name__ == '__main__':
     import doctest

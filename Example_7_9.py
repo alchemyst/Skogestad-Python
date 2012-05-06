@@ -2,28 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def G(s):
-    G = 3*(-2*s + 1)/((5*s + 1)*(10*s + 1))
-    return G
+    return 3 * (-2 * s + 1) / ((5 * s + 1) * (10 * s + 1))
 
 def K(s, kc):
-    K = kc*(12.7*s + 1)/(12.7*s)
-    return K
+    return kc * (12.7 * s + 1) / (12.7 * s)
 
 def Wi(s):
-    Wi = (10*s + 0.33)/((10/5.25)*s + 1)
-    return Wi
+    return (10 * s + 0.33) / ((10 / 5.25) * s + 1)
 
 def Gnom(s):
-    Gnom = 4*(-3*s + 1)/((4*s + 1)**2)
-    return Gnom
+    return 4 * (-3 * s + 1) / ((4 * s + 1) ** 2)
 
 def l(Gn, G):
-    l = np.abs((Gn - G)/G)
-    return l
+    return np.abs((Gn - G) / G)
 
 def T(G, K):
-    T = (G*K)/(1 + G*K)
-    return T
+    return (G * K) / (1 + G * K)
 
 w = np.logspace(-3, 1, 300)
 s = 1j*w
