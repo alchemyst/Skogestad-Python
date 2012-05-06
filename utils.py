@@ -97,7 +97,7 @@ def polygcd(a, b):
         q, r = a/b
         a = b
         b = r
-    return a/a[0]
+    return a/a[len(a)]
 
 
 class tf(object):
@@ -195,6 +195,12 @@ class tf(object):
     def __radd__(self, other):
         return self + other
 
+    def __sub__(self, other):
+        return self + (-other)
+    
+    def __rsub__(self, other):
+        return other + (-self)
+
     def __mul__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
@@ -212,6 +218,10 @@ class tf(object):
 
     def __rdiv__(self, other):
         return tf(other)/self
+
+    def __neg__(self):
+        return tf(-self.numerator, self.denominator, self.deadtime)
+
 
 def feedback(forward, backward):
     """ Calculate the feedback equivalent transfer function """
