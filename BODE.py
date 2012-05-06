@@ -2,17 +2,9 @@ import numpy as np
 import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt
-from utils import phase
+from utils import phase, tf
 
-
-def G(s):
-    """system equations in here (laplace domian)
-    only for SISO problems for now"""
-
-    # enter what ever system under inspections, transfer function in here
-    G = 8/((s+8)*(s+1))
-
-    return G
+G = tf(8, [1, 8]) * tf(1, [1, 1])
 
 # freq(G) returns a frequency response function given a laplace function
 def freq(G):
