@@ -79,6 +79,27 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.semilogx(w, direction[i, :], color)
 
 
+def polygcd(a, b):
+    """ Find the Greatest Common Divisor of two polynomials using Euclid's algorithm:
+    http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
+    
+    >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
+    >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
+    >>> polygcd(a, b)
+    poly1d([ 1.,  1.])
+    
+    >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
+    poly1d([ 1.])
+    """
+    if len(a) > len(b):
+        a, b = b, a
+    while len(b) > 0 or abs(b[0]) > 0:
+        q, r = a/b
+        a = b
+        b = r
+    return a/a[0]
+
+
 class tf(object):
     """ Very basic transfer function object 
     
@@ -86,26 +107,28 @@ class tf(object):
 
     >>> G = tf(1, [1, 1])
     >>> G
-    tf([1], [1 1])
+    tf([ 1.], [ 1.  1.])
     
     >>> G2 = tf(1, [2, 1])
     
     The object knows how to do addition:
     >>> G + G2
-    tf([3 2], [2 3 1])
+    tf([ 3.  2.], [ 2.  3.  1.])
+    >>> G + G # check for simplification
+    tf([ 2.], [ 1.  1.])
     
     multiplication
     >>> G * G2
-    tf([1], [2 3 1])
+    tf([ 1.], [ 2.  3.  1.])
     
     division
     >>> G / G2
-    tf([2 1], [1 1])
+    tf([ 2.  1.], [ 1.  1.])
     
     Deadtime is supported:
     >>> G3 = tf(1, [1, 1], deadtime=2)
     >>> G3
-    tf([1], [1 1], deadtime=2)
+    tf([ 1.], [ 1.  1.], deadtime=2)
     
     Note we can't add transfer functions with different deadtime:
     >>> G2 + G3
@@ -116,16 +139,17 @@ class tf(object):
     It is sometimes useful to define 
     >>> s = tf([1, 0])
     >>> 1 + s
-    tf([1 1], [1])
+    tf([ 1.  1.], [ 1.])
     
     >>> 1/(s + 1)
-    tf([1], [1 1])
+    tf([ 1.], [ 1.  1.])
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0):
         """ Initialize the transfer function from a numerator and denominator polynomial """
         self.numerator = numpy.poly1d(numerator)
         self.denominator = numpy.poly1d(denominator)
+        self.simplify()
         self.deadtime = deadtime
 
     def inverse(self):
@@ -134,6 +158,11 @@ class tf(object):
     
     def step(self, *args):
         return scipy.signal.lti(self.numerator, self.denominator).step(*args)
+
+    def simplify(self):
+        g = polygcd(self.numerator, self.denominator)
+        self.numerator, remainder = self.numerator/g
+        self.denominator, remainder = self.denominator/g
 
     def __repr__(self):
         r = "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
