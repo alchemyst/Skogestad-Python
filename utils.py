@@ -74,3 +74,88 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.subplot(N, 1, i + 1)
         plt.title(name)
         plt.semilogx(w, direction[i, :], color)
+
+
+class tf(object):
+    """ Very basic transfer function object 
+    
+    Construct with a numerator and denominator.  
+
+    >>> G = tf(1, [1, 1])
+    >>> G
+    tf([1], [1 1])
+    
+    >>> G2 = tf(1, [2, 1])
+    
+    The object knows how to do addition:
+    >>> G + G2
+    tf([3 2], [2 3 1])
+    
+    multiplication
+    >>> G * G2
+    tf([1], [2 3 1])
+    
+    division
+    >>> G / G2
+    tf([2 1], [1 1])
+    
+    Deadtime is supported:
+    >>> G3 = tf(1, [1, 1], deadtime=2)
+    >>> G3
+    tf([1], [1 1], deadtime=2)
+    
+    Note we can't add transfer functions with different deadtime:
+    >>> G2 + G3
+    Traceback (most recent call last):
+        ...
+    ValueError: Transfer functions can only be added if their deadtimes are the same
+    
+    """
+
+    def __init__(self, numerator, denominator=1, deadtime=0):
+        """ Initialize the transfer function from a numerator and denominator polynomial """
+        self.numerator = numpy.poly1d(numerator)
+        self.denominator = numpy.poly1d(denominator)
+        self.deadtime = deadtime
+
+    def inverse(self):
+        """ inverse of the transfer function """
+        return tf(self.denominator, self.numerator, -self.deadtime)
+
+    def __repr__(self):
+        r = "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
+        if self.deadtime != 0:
+            r += ", deadtime=" + str(self.deadtime)
+        r += ")"
+        return r
+
+    def __call__(self, s):
+        """ This allows the transfer function to be evaluated at particular values of s
+        Effectively, this makes a tf object behave just like a function of s
+
+        >>> G = tf(1, [1, 1])
+        >>> G(0)
+        1.0
+        """
+        return (numpy.polyval(self.numerator, s) /
+                numpy.polyval(self.denominator, s) *
+                numpy.exp(-s * self.deadtime))
+
+    def __add__(self, other):
+        if self.deadtime != other.deadtime:
+            raise ValueError("Transfer functions can only be added if their deadtimes are the same")
+        gcd = self.denominator * other.denominator
+        return tf(self.numerator*other.denominator + 
+                  other.numerator*self.denominator, gcd, self.deadtime)
+
+    def __mul__(self, other):
+        return tf(self.numerator*other.numerator,
+                  self.denominator*other.denominator,
+                  self.deadtime + other.deadtime)
+
+    def __div__(self, other):
+        return self * other.inverse()
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
