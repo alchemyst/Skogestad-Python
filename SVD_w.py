@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sc
 import scipy.signal as scs
 import matplotlib.pyplot as plt
-
+from utils import plot_freq_subplot
 
 def G(w):
     """ function to create the matrix of transfer functions"""
@@ -76,28 +76,11 @@ def SVD_w(w_start, w_end):
 
 
     #  plots of different inputs to the maximum ans minimum
+    plot_freq_subplot(plt, w, input_direction_max, "max Input", "r.", 2)
+    plot_freq_subplot(plt, w, input_direction_min, "min Input", "b.", 2)
 
-    def plot_direction(direction, name, color):
-        if (direction.shape[0])>2:
-            for i in range(direction.shape[0]):
-                label = '%s Input Dir %i' % (name, i+1)
-                plt.xlabel(label)
-
-                plt.subplot((direction.shape[0]), 1, i + 1)
-                plt.semilogx(w, direction[i, :], color)
-
-        else:
-            plt.subplot(211)
-            plt.semilogx(w, direction[0, :], color)
-            plt.subplot(212)
-            plt.semilogx(w, direction[1, :], color)
-
-    plt.figure(2)
-    plot_direction(input_direction_max, "max Input", "r.")
-    plot_direction(input_direction_min, "min Input", "b.")
-    plt.figure(3)
-    plot_direction(output_direction_max, "max Output", "r.")
-    plot_direction(output_direction_min, "min Output", "b.")
+    plot_freq_subplot(plt, w, output_direction_max, "max Output", "r.", 3)
+    plot_freq_subplot(plt, w, output_direction_min, "min Output", "b.", 3)
 
     #  plotting of the resulting max and min of the output vectore
     plt.show()

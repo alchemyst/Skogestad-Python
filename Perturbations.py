@@ -7,16 +7,7 @@ def Possibilities(umin, umax, Amount):
 
     def box_ready(umin, umax, Amount):
         """create a suitable matrix for the mesh function"""
-        umin, umax = np.matrix(umin), np.matrix(umax)
-        box = np.zeros((len(umin), 3))
-        for i in range(2):
-            for j in range(len(umin)):
-                if i ==0:
-                    box[j, i] = umin[j]
-                if i ==1:
-                    box[j, i] = umax[j]
-        box[:, -1] = Amount
-        return box
+        return zip(umin, umax, [Amount]*len(umin))
 
     def coords(box):
         return [entry[:2] for entry in box]
@@ -45,31 +36,25 @@ def Possibilities(umin, umax, Amount):
                 for coord in itertools.product(*pointbase):
                     yield coord
 
-
-    box=box_ready(umin, umax, Amount)
-
-    vec=[]
-    for c in surfmesh(box):
-        vec.append(c)
-
-    perturbations =np.matrix(vec)
-
-    return perturbations
+    box = box_ready(umin, umax, Amount)
+    return np.array(list(surfmesh(box)))
 
 if __name__ == '__main__':
 
     #for example a matrix of the minimum and maximum values of a certain set of parameters
-    umin     =[[0], [0]]
-    umax     =[[1], [1]]
+    umin = [0, 0]
+    umax = [1, 1]
 
     #create a matrix of all possibilities of the umin and umax vectors
     #the first entry of the matrix correspondse to the first entry in the minimum and maximum matrices
     Possible = Possibilities(umin, umax, 5)
+
     print Possible
     print Possible.shape[0]
-umin=np.ones([20,1])
-umax=2*np.random.random([20,1])
-print umax
-print umin
 
-print Possibilities(umin,umax,1)
+    umin = np.ones(20)
+    umax = 2*np.random.random(20)
+    print umax
+    print umin
+
+    print Possibilities(umin, umax, 1)
