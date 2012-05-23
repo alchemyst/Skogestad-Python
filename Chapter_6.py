@@ -1,6 +1,6 @@
-import matplotlib.pyplot as plt 
-import scipy.linalg as sc_lin 
-import numpy as np 
+import matplotlib.pyplot as plt
+import scipy.linalg as sc_lin
+import numpy as np
 
 #this program contains all the important equations of chapter 6 of Skogestad pre-programmed
 #the first set of function is of the specific system
@@ -11,7 +11,7 @@ def G(s):
     return G
 
 def Gd(s):
-    Gd = np.matrix([[1/(s+1)], [1/(s+20)]])
+    Gd = np.matrix([[1/(s+1), 3, 3], [1/(s+20), 4, 5]])
     return Gd
 
 def reference_change():
@@ -37,7 +37,6 @@ def Zeros_Poles_RHP():
 
     return Zeros_G, Poles_G
 
-
 def deadtime():
     """ vector of the deadtime of the system"""
     #individual time delays
@@ -45,7 +44,6 @@ def deadtime():
     dead_Gd = np.matrix([])
 
     return dead_G, dead_Gd
-
 
 def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     #this function will calculate the minimum peak values of S and T if the system has zeros and poles for the output
@@ -270,13 +268,36 @@ def Equation_6_48(error_zeros_direction):
     print RHP_alignment
     print ''
 
-def Equation_6_50(w_star, w_end):
+def Equation_6_50(w_start, w_end, matrix='single'):
+    #if matrix is equal to single then just a single disturbance in Gd is considered
+    #if matrix is equal to multiple then the full Gd matrix is considered
+
     #equation 6-50 from Skogestad 
     #checking input saturation for disturbance 
     #the one is for simltaneous disturbances 
     #the other is for a single disturbance
-    
-    [rows columns]= np.shape(Gd(0.0001))
-    
-    for column in columns: 
-        
+
+    print 'The blue line needs to be smaller than 1'
+    print 'This is for perfect control with disturbance rejection'
+
+    w=np.logspace(w_start, w_end, 10)
+
+    if matrix =='single':
+        columns= np.shape(Gd(0.0001))[1]
+
+        count = 1
+        for column in range(columns):
+            mod_invG_gd=[np.max(np.linalg.pinv(G(1j*w_i))*Gd(1j*w_i)[:, column]) for w_i in w]
+            plt.figure(count)
+            plt.semilogx(w, mod_invG_gd, 'b')
+            plt.semilogx([w[0], w[-1]], [1, 1], 'r')
+            count=count+1
+
+
+    if matrix =='multiple':
+        mod_invG_Gd=[np.max(np.linalg.pinv(G(1j*w_i))*Gd(1j*w_i)) for w_i in w]
+        plt.semilogx(w, mod_invG_Gd,'b')
+        plt.semilogx([w[0], w[-1]], [1, 1], 'r')
+    plt.show()
+
+
