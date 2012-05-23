@@ -269,7 +269,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #this in done over a frequency range to see if possible problems at higher frequencies
     #finding yd
 
-    dist_condition_num = [np.linalg.svd(G(w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(w_i))[1][0]*np.linalg.svd(Gd(w_i))[0][:, 0])[1][0] for w_i in w]
+    dist_condition_num = [np.linalg.svd(G(w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(w_i))[1][0]*np.linalg.svd(Gd(w_i))[1][0]*np.linalg.svd(Gd(w_i))[0][:, 0])[1][0] for w_i in w]
 
     plt.figure(3)
     plt.title('yd Condition number')
