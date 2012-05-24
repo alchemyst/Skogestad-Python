@@ -291,13 +291,85 @@ def Equation_6_50(w_start, w_end, matrix='single'):
             plt.figure(count)
             plt.semilogx(w, mod_invG_gd, 'b')
             plt.semilogx([w[0], w[-1]], [1, 1], 'r')
+            plt.loglog(w[0], 1.1)
+            plt.loglog(w[0], 0.8)
             count=count+1
 
 
     if matrix =='multiple':
         mod_invG_Gd=[np.max(np.linalg.pinv(G(1j*w_i))*Gd(1j*w_i)) for w_i in w]
-        plt.semilogx(w, mod_invG_Gd,'b')
+        plt.semilogx(w, mod_invG_Gd, 'b')
         plt.semilogx([w[0], w[-1]], [1, 1], 'r')
+        plt.loglog(w[0], 1.1)
+        plt.loglog(w[0], 0.8)
     plt.show()
 
+def Equation_6_52(w_start, w_end, R, wr, type_eq='minimal'):
+    #this is an function is from equation 6-52 and 6-53 from skogestad
+    #the one is the minimal requirement for input saturation check in terms of set point tracking 
+    #the other is the more tighter bounds and check 
+    #type is to spesify if the minimal requiremant wants to be check 
+    #tighter for the more tighter bound for set point tracking
+    
+    print 'All the plots in this function needs to be larger than 1'
+    print 'If the values on the plot is not larger than 1 then '
+    print 'input saturation would occur'
+
+    w=np.logspace(w_start, w_end, 1000)
+
+    if type_eq=='minimal':
+        min_singular = [np.linalg.svd(G(1j*w_i))[1][-1] for w_i in w]
+        plt.loglog(w, min_singular, 'b')
+        plt.loglog([w[0], w[-1]], [1, 1], 'r')
+        plt.loglog(w[0], 1.1)
+        plt.loglog(w[0], 0.8)
+
+    if type_eq=='tighter':
+        min_singular_invR_G = np.array([np.linalg.svd(np.linalg.pinv(R)*G(1j*w_i))[1][-1] for w_i in w])
+        plt.loglog(w, min_singular_invR_G, 'b')
+        plt.loglog([w[0], w[-1]], [1, 1], 'r')
+        plt.loglog([wr, wr], [0.8*np.min(min_singular_invR_G), 1.2*np.max(min_singular_invR_G)], 'g')
+        plt.loglog(w[0], 1.1)
+        plt.loglog(w[0], 0.8)
+
+    plt.show()
+
+#Equation_6_52(-4, 4, reference_change(), 0.001, 'tighter')
+
+def Equation_6_55(w_start, w_end):
+    #this equation is from Skogestad 6-55
+    #this is for acceptable control with disturbance rejection
+
+    print 'For the graphs thats generated the blue line needs to be above the red line'
+    print 'If the red line is above, input saturation is going to occur for acceptable control with load rejection'
+    w=np.logspace(w_start, w_end, 1000)
+
+    columns_Gd= np.shape(Gd(0.0001))[1]
+    columns_G=np.shape(G(0.0001))[1]
+
+    count_G=0
+    count_Gd = 0
+
+    for column in range(columns_Gd):
+        count_Gd=count_Gd+1
+        count_G=0
+
+        for column_G in range(columns_G):
+            lhs_eq = np.zeros([len(w), 1])
+            rhs_eq = np.zeros([len(w), 1])
+
+            for i in range(len(w)):
+                lhs_eq[i, :] = np.abs(np.linalg.svd(G(1j*w[i]))[2][:, column_G].H*Gd(1j*w[i])[:, column])-1
+                rhs_eq[i, :] = np.linalg.svd(G(1j*w[i]))[1][column_G]
+
+            count_G = count_G+1
+            plt.figure(count_Gd)
+            plt.subplot(columns_G, 1, count_G)
+            plt.semilogx(w, lhs_eq, 'r')
+            plt.semilogx(w, rhs_eq, 'b')
+
+    plt.show()
+
+
+#Equation_6_55(-4, 4)
 
