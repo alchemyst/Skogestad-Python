@@ -291,17 +291,13 @@ def Equation_6_50(w_start, w_end, matrix='single'):
             plt.figure(count)
             plt.semilogx(w, mod_invG_gd, 'b')
             plt.semilogx([w[0], w[-1]], [1, 1], 'r')
-            plt.loglog(w[0], 1.1)
-            plt.loglog(w[0], 0.8)
             count=count+1
 
 
     if matrix =='multiple':
         mod_invG_Gd=[np.max(np.linalg.pinv(G(1j*w_i))*Gd(1j*w_i)) for w_i in w]
-        plt.semilogx(w, mod_invG_Gd, 'b')
+        plt.semilogx(w, mod_invG_Gd,'b')
         plt.semilogx([w[0], w[-1]], [1, 1], 'r')
-        plt.loglog(w[0], 1.1)
-        plt.loglog(w[0], 0.8)
     plt.show()
 
 def Equation_6_52(w_start, w_end, R, wr, type_eq='minimal'):

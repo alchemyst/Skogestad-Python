@@ -18,9 +18,11 @@ def circle(cx, cy, r):
     x = cx + numpy.cos(theta)*r
     return x, y
 
+
 def distance_from_nominal(w, k, tau, theta, nom_response):
     r = k/(tau*w*i + 1)*numpy.exp(-theta*w*i)
     return numpy.abs(r - nom_response)
+
 
 def arrayfun(f, A):
     """ recurses down to scalar elements in A, then applies f, returning lists containing the result"""
@@ -29,11 +31,14 @@ def arrayfun(f, A):
     else:
         return [arrayfun(f, b) for b in A]
 
+
 def listify(A):
     return [A]
 
+
 def gaintf(K):
     r = tf(arrayfun(listify, K), arrayfun(listify, numpy.ones_like(K)))
+
 
 def findst(G, K):
     """ Find S and T given a value for G and K """
@@ -42,6 +47,7 @@ def findst(G, K):
     S = inv(I + L)
     T = S*L
     return S, T
+
 
 def phase(G, deg=False):
     return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg else numpy.pi)
@@ -82,12 +88,12 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
 def polygcd(a, b):
     """ Find the Greatest Common Divisor of two polynomials using Euclid's algorithm:
     http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
-    
+
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
     >>> polygcd(a, b)
     poly1d([ 1.,  1.])
-    
+
     >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
     poly1d([ 1.])
     """
@@ -101,46 +107,46 @@ def polygcd(a, b):
 
 
 class tf(object):
-    """ Very basic transfer function object 
-    
-    Construct with a numerator and denominator.  
+    """ Very basic transfer function object
+
+    Construct with a numerator and denominator.
 
     >>> G = tf(1, [1, 1])
     >>> G
     tf([ 1.], [ 1.  1.])
-    
+
     >>> G2 = tf(1, [2, 1])
-    
+
     The object knows how to do addition:
     >>> G + G2
     tf([ 3.  2.], [ 2.  3.  1.])
     >>> G + G # check for simplification
     tf([ 2.], [ 1.  1.])
-    
+
     multiplication
     >>> G * G2
     tf([ 1.], [ 2.  3.  1.])
-    
+
     division
     >>> G / G2
     tf([ 2.  1.], [ 1.  1.])
-    
+
     Deadtime is supported:
     >>> G3 = tf(1, [1, 1], deadtime=2)
     >>> G3
     tf([ 1.], [ 1.  1.], deadtime=2)
-    
+
     Note we can't add transfer functions with different deadtime:
     >>> G2 + G3
     Traceback (most recent call last):
         ...
     ValueError: Transfer functions can only be added if their deadtimes are the same
-    
-    It is sometimes useful to define 
+
+    It is sometimes useful to define
     >>> s = tf([1, 0])
     >>> 1 + s
     tf([ 1.  1.], [ 1.])
-    
+
     >>> 1/(s + 1)
     tf([ 1.], [ 1.  1.])
     """
@@ -155,7 +161,7 @@ class tf(object):
     def inverse(self):
         """ inverse of the transfer function """
         return tf(self.denominator, self.numerator, -self.deadtime)
-    
+
     def step(self, *args):
         return scipy.signal.lti(self.numerator, self.denominator).step(*args)
 
@@ -189,7 +195,7 @@ class tf(object):
         if self.deadtime != other.deadtime:
             raise ValueError("Transfer functions can only be added if their deadtimes are the same")
         gcd = self.denominator * other.denominator
-        return tf(self.numerator*other.denominator + 
+        return tf(self.numerator*other.denominator +
                   other.numerator*self.denominator, gcd, self.deadtime)
 
     def __radd__(self, other):
@@ -197,7 +203,7 @@ class tf(object):
 
     def __sub__(self, other):
         return self + (-other)
-    
+
     def __rsub__(self, other):
         return other + (-self)
 
