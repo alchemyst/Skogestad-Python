@@ -16,10 +16,7 @@ def G(w):
 
     #  the matrix transfer function
     #  this specific one is Example 3.11
-    G = [[0.001*np.exp(-5*s)*(-34.54*(s+0.0572))/((s+1.72E-04)*(4.32*s+1)),
-        0.001*np.exp(-5*s)*(1.913)/((s+1.72E-04)*(4.32*s+1))],
-        [0.001*np.exp(-5*s)*(-32.22*s)/((s+1.72E-04)*(4.32*s+1)),
-        0.001*np.exp(-5*s)*(-9.188*(s+6.95E-04))/((s+1.72E-04)*(4.32*s+1))]]
+    G = 
     return G
 
 

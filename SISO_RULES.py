@@ -27,7 +27,7 @@ def Gm():
 
 def Time_Delay():
     """matrix with theta values, combined time delay of system and measuring element"""
-    Delay = [1]
+    Delay = [-1]
     return Delay
 
 
@@ -150,7 +150,7 @@ def RULES(R, wr):
         Pp = np.polymul(G()[1], Gm()[1])
         G_w = scs.freqs(Pz, Pp, w)[1]
         return np.abs(phase(G_w))-np.pi
-
+    
     w = np.logspace(-3, 3, 100)
     plt.figure(2)
     Pz = np.polymul(G()[0], Gm()[0])
@@ -160,7 +160,7 @@ def RULES(R, wr):
     plt.subplot(211)
     plt.loglog(w, np.abs(h))
     plt.subplot(212)
-    plt.semilogx(w, phase(h))
+    plt.semilogx(w, (phase(h)+w*Time_Delay()))
 
 
     wc_7 = np.abs(sc.optimize.fsolve(G_GM, 10))
