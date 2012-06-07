@@ -7,11 +7,11 @@ import numpy as np
 
 def G(s):
     """ give the transfer matrix of the system"""
-    G = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s-2)]])
+    G = np.matrix([[100,102],[100, 100]])
     return G
 
 def Gd(s):
-    Gd = np.matrix([[1/(s+1), 3, 3], [1/(s+20), 4, 5]])
+    Gd = 1/(s+1)*np.matrix([[10],[10]])
     return Gd
 
 def reference_change():
@@ -32,7 +32,7 @@ def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
 
-    Zeros_G = [1, 5]
+    Zeros_G = [0.6861, 2.0000]
     Poles_G = [2, 3]
 
     return Zeros_G, Poles_G
@@ -244,8 +244,7 @@ def Equation_6_43(w_start, w_end):
 
     w=np.logspace(w_start, w_end, 1000)
 
-    dist_condition_num = [np.linalg.svd(G(1j*w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(1j*w_i))[1][0]*np.linalg.svd(Gd(1j*w_i))[1][0]*np.linalg.svd(Gd(1j*w_i))[0][:, 0])[1][0] for w_i in w]
-
+    dist_condition_num = [np.linalg.svd(G(1j*w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(1j*w_i))*np.linalg.svd(Gd(1j*w_i))[1][0]*np.linalg.svd(Gd(1j*w_i))[0][:, 0])[1][0] for w_i in w]
     condition_num = [np.linalg.svd(G(1j*w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(1j*w_i)))[1][0] for w_i in w]
 
     plt.figure(1)
@@ -255,18 +254,21 @@ def Equation_6_43(w_start, w_end):
 
     return dist_condition_num, condition_num
 
+#Equation_6_43(-2, 2)
+
 def Equation_6_48(error_zeros_direction):
     #equation 6-48 from Skogestad 
     #checking system's zeros alignment with the disturbacne matrix
 
     Zeros_G = Zeros_Poles_RHP()[0]
-
-    RHP_alignment = [np.abs(np.linalg.svd(G(RHP_Z+error_zeros_direction))[0][:, 0].H*np.linalg.svd(Gd(RHP_Z+error_zeros_direction))[1][0]*np.linalg.svd(Gd(RHP_Z+error_zeros_direction))[0][:, 0]) for RHP_Z in Zeros_G]
-
+    [columns, rows]=np.shape(Gd(0.001))
     print 'Checking alignment of process output zeros to disturbances'
     print 'These values should be less than 1'
+    RHP_alignment = np.array([np.abs(np.linalg.svd(G(RHP_Z+error_zeros_direction))[0][:, -1].H*np.linalg.svd(Gd(RHP_Z+error_zeros_direction)[:,c])[1][0]*np.linalg.svd(Gd(RHP_Z+error_zeros_direction)[:,c])[0][:, 0]) for RHP_Z in Zeros_G for c in range(columns)])
     print RHP_alignment
     print ''
+
+#Equation_6_48(0.00001)
 
 def Equation_6_50(w_start, w_end, matrix='single'):
     #if matrix is equal to single then just a single disturbance in Gd is considered
