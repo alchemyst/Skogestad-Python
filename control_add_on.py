@@ -107,6 +107,9 @@ def cross_over_freq(sys, tol=0.05):
     
     return omega[index]
     
-
-   
+def weight_function(option):
+    """This should return a weight function as a transfer function.
+    """
+    pass
+ 
     
