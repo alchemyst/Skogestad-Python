@@ -35,7 +35,10 @@ P = LA.solve_lyapunov(A, -B * B.T)
 
 # Display results
 print '\nThe Transfer function realization is:'
-print 'G(s) = ', '(', G.num[0, 1], 's +', G.num[0, 2], ') / (', G.den[0], 's^2 +', G.den[1], 's +', G.den[2], ')'
+print 'G(s) = ' 
+print np.poly1d(G.num[0], variable='s')
+print "----------------"
+print np.poly1d(G.den, variable='s')
 
 print '\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1]
 print '   With eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1]
