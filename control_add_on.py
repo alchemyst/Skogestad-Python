@@ -107,9 +107,35 @@ def cross_over_freq(sys, tol=0.05):
     
     return omega[index]
     
-def weight_function(option):
-    """This should return a weight function as a transfer function.
+"""
+This function should return a transfer function object of a weight function
+as described in Skogestad pg. 58 (section 2.7.2)  
+
+Options: 
+2.72 roll off of 1 for |S|.
+2.73 forces a steeper slope on |S|
+5.37 is good for tight control at high frequencies for S.
+
+5.45 is good for T where the roll off of |T| is at least 1 at high frequencies, 
+|T| is less than M at low frequencies and the cross over frequency is w_B.
+"""
+def weight_function(option, w_B, M = 2, A = 0):
+    """ 
+    Parameters: option => the weight function (enter the equation ref in skogestad)
+                w_B    => minimum bandwidth (not optional)
+                M      => maximum peak of transfer function (optional at M = 2)
+                A      => steady state offset of less than A < 1 (optional at A = 0)
     """
-    pass
+    if option == 2.72:
+        wp = cn.tf([1, M*w_B],[M, M*A*w_B])
+    elif option == 2.73:
+        wp = cn.tf([1, 2*(M**0.5)*w_B, M*(w_B**2)], [M, w_B*M*2*(A**0.5), A*M*(w_B**2)])
+    elif option == 5.37:
+        wp = cn.tf([1],[M]) + cn.tf([1,0],[0,w_B])
+    elif option == 5.45:
+        wp = cn.tf([1,0],[w_B])+cn.tf([1],[M])
+    return wp
+        
+    
  
     
