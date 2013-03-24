@@ -120,19 +120,24 @@ follows from that.
 """
 This method will just show the intersection of the dead time frequency
 with the loop gain magnitude. (forms part of rule 1 and rule 5)
+
+Effectively what you want here is to know if:
+|Gd(w_theta)| < 1 where w_theta = 1/(dead time)
 """
 def dead_time_bound(L, Gd, deadtime, freq = np.arange(0.001, 1,0.001)):
     """
     Parameters: L => the loop transfer function
                 Gd => Disturbance transfer function
                 deadtime => the deadtime in seconds of the system
+    Notes: If the cross over frequencies are very large or very small
+    you will have to find them yourself.
     """
     mag, phase, omega = cn.bode_plot(L, omega = freq)
-    mag_d, phase, omega = cn.bode_plot(Gd, omega = freq) 
+    mag_d, phase_d, omega_d = cn.bode_plot(Gd, omega = freq) 
     plt.clf()
     
-    gm, pm, wg, wp_L = cn.margin(L)
-    gm, pm, wg, wp_Gd = cn.margin(Gd)
+    gm, pm, wg, wp_L = cn.margin(mag, phase, omega)
+    gm, pm, wg, wp_Gd = cn.margin(mag_d, phase_d, omega_d)
     
     freq_lim = [freq[x] for x in range(len(freq)) if mag[x] > 0.1 and mag[x] < 10]
     mag_lim = [mag[x] for x in range(len(freq)) if mag[x] > 0.1 and mag[x] < 10]
