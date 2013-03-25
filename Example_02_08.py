@@ -1,6 +1,4 @@
 import numpy as np
-import scipy as sc
-import scipy.signal as scs
 import matplotlib.pyplot as plt
 from utils import phase, tf, feedback
 
@@ -29,12 +27,12 @@ L = G*K
 #magnitude and phase
 plt.subplot(2, 1, 1)
 plt.loglog(w, abs(L(wi)))
-plt.loglog(w, np.ones_like(w))
+plt.axhline(1)
 plt.ylabel('Magnitude')
 
 plt.subplot(2, 1, 2)
 plt.semilogx(w, phase(L(wi), deg=True))
-plt.semilogx(w, -180*np.ones_like(w))
+plt.axhline(-180)
 plt.ylabel('Phase')
 plt.xlabel('frequency (rad/s)')
 plt.figure()

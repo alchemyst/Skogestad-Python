@@ -16,7 +16,8 @@ def G(w):
 
     #  the matrix transfer function
     #  this specific one is Example 3.11
-    G = 
+    G = 1/(5*s + 1)*np.matrix([[s+1, s+4],
+                               [1, 2]])
     return G
 
 
