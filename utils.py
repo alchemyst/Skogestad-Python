@@ -25,7 +25,11 @@ def distance_from_nominal(w, k, tau, theta, nom_response):
 
 
 def arrayfun(f, A):
-    """ recurses down to scalar elements in A, then applies f, returning lists containing the result"""
+    """ 
+    Recurses down to scalar elements in A, then applies f, returning lists
+    containing the result.
+
+    """
     if len(A.shape) == 0:
         return f(A)
     else:
@@ -50,12 +54,13 @@ def findst(G, K):
 
 
 def phase(G, deg=False):
-    return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg else numpy.pi)
+    return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg
+    else numpy.pi)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
-    """Kz & Gz is the polynomial constants in the numerator
-    Kp & Gp is the polynomial constants in the denominator"""
+    """ Kz & Gz is the polynomial constants in the numerator
+    Kp & Gp is the polynomial constants in the denominator """
 
     # calculating the product of the two polynomials in the numerator and denominator of transfer function GK
     Z_GK = numpy.polymul(Kz, Gz)
