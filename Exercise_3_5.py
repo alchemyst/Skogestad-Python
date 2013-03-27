@@ -15,11 +15,15 @@ def norms(G):
     [U, S, V] = np.linalg.svd(G)
     Max_singularval = max(S)
 
+    print 'G = ', G
+    print ' '   
     print 'Spectral radius =', spectrad
     print 'Frobenius norm =', Frob_norm
     print 'Sum norm =', Sum_norm
     print 'Maximum column sum =', Columnsum
     print 'Maximum row sum =', Rowsum
     print 'Maximum singular value =', Max_singularval
+    print ' '
 
 norms(G_3_29)
+norms(G_3_30)
