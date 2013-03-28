@@ -3,7 +3,7 @@ Created on 27 Mar 2013
 
 @author: St Elmo Wilken
 '''
-
+import control as cn
 import MIMO_Tools as mimo
 
 # The system
@@ -19,5 +19,6 @@ print "State Controllable: " + str(control)
 print "Input Pole Vectors: " +str(in_vecs[0]) + " and " + str(in_vecs[1])
 print "The controllability matrix is: "
 print c_matrix
+
 
 
