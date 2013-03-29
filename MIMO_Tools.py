@@ -97,4 +97,45 @@ def is_min_realisation(A, B, C):
     
     return is_min_real     
 
+def normal_zero_directions(zero_vec, tf, e = 0.0001):
+    """
+    Parameters: zero_vec => a vector containing all the transmission zeros of a system
+                tf       => the transfer function G(s) of the system
+                e        => this avoids possible divide by zero errors in G(z)
+    Returns:    zero_dir => zero directions in the form:
+                            (zero, input direction, output direction)
+    Notes: this method is going to give dubious answers if the function G has pole zero cancellation...
+    """
+    zero_dir = []
+    for z in zero_vec:
+        num, den = cn.tfdata(tf)
+        rows, cols = np.shape(num)
+
+        G = np.empty(shape=(rows,cols))
+
+        for x in range(rows):
+            for y in range(cols):
+                top = np.polyval(num[x][y], z)
+                bot = np.polyval(den[x][y], z)
+                if bot == 0.0:
+                    bot = e
+                
+                entry = float(top)/bot
+                G[x][y] = entry
+
+        U, S, V = np.linalg.svd(G) 
+        V = np.transpose(np.conjugate(V))
+        u_rows, u_cols = np.shape(U)
+        v_rows, v_cols = np.shape(V)
+        yz = np.hsplit(U, u_cols)[-1]
+        uz = np.hsplit(V, v_cols)[-1]
+        zero_dir.append((z, uz, yz))
+    return zero_dir
+        
+                
+
+    
+    
+    #U, S, V = np.linalg.svd(a, full_matrices, compute_uv)
+    
 
