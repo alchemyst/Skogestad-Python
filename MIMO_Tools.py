@@ -13,7 +13,7 @@ import scipy.linalg as spla
 
 """
 This toolbox assumes you have the control toolbox at your
-disposal...
+disposal... And all the imports above... 
 """
 
 def state_controllability(A, B):
@@ -97,7 +97,7 @@ def is_min_realisation(A, B, C):
     
     return is_min_real     
 
-def normal_zero_directions(zero_vec, tf, e = 0.0001):
+def zero_directions(zero_vec, tf, e = 0.0001):
     """
     Parameters: zero_vec => a vector containing all the transmission zeros of a system
                 tf       => the transfer function G(s) of the system
@@ -131,11 +131,3 @@ def normal_zero_directions(zero_vec, tf, e = 0.0001):
         uz = np.hsplit(V, v_cols)[-1]
         zero_dir.append((z, uz, yz))
     return zero_dir
-        
-                
-
-    
-    
-    #U, S, V = np.linalg.svd(a, full_matrices, compute_uv)
-    
-
