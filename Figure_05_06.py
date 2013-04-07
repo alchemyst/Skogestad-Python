@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # This module generates the graph in fig 5.6
 def S(s, theta):
-    S = 1 -np.exp(-theta*s)
+    S = 1 - np.exp(-theta*s)
     return S
 
 
