@@ -86,14 +86,9 @@ def cross_over_freq(sys, tol=0.05):
     Parameter: sys => Transfer function like object
                tol => tolerance (will increase by 20 % for each cycle of searching)
     Returns:   cross_over_freq => the cross over frequency i.e. where mag ~ 1
-    
-    Problems: It raises an exception when I try to close the figure fig...
     """
 
-    fig = plt.figure()
-    mag, phase, omega = cn.bode_plot(sys)
-    plt.close(fig) #python doesn't like this at all... Help?
-
+    mag, phase, omega = cn.bode_plot(sys, plot=False)
     
     cross_over_dist = np.abs(1-mag)
     # there is a more elegant solution using argmin but that doesn't guarantee that you
