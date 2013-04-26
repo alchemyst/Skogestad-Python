@@ -92,8 +92,10 @@ def cross_over_freq(sys, tol=0.05):
     mag, phase, omega = cn.bode_plot(sys, plot=False)
 
     cross_over_dist = np.abs(1 - mag)
-    # there is a more elegant solution using argmin but that doesn't guarantee that you
-    # return the first possible match...
+
+    # There is a more elegant solution using argmin but that doesn't guarantee
+    # that you return the first possible match...
+
     index = -1
     flag = True
     while flag:
