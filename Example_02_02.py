@@ -15,4 +15,6 @@ for K in [0.5, 1.5, 2, 2.5]:
     [t, y] = T.step(0, tspan)
     plt.plot(t, y)
 
+plt.legend(["Kc = 0.5","Kc = 1","Kc = 2","Kc = 2.5"])    
+plt.xlabel('Time [s]')
 plt.show()
