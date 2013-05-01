@@ -32,21 +32,19 @@ def state_controllability(A, B):
     """
     state_control = True
 
+    A = np.asmatrix(A)
+    B = np.asmatrix(B)
+
     # computing all input pole vectors.
     ev, vl = spla.eig(A, left=True, right=False)
-    rows, cols = np.shape(vl)
-    in_pole_vec = [np.around(np.dot(np.transpose(np.conjugate(np.array(B))), x), 3)
-           for x in np.hsplit(vl, cols)]
+    in_pole_vec = [np.around(B.conj().T.dot(x)) for x in vl.T]
     sum_pole_vec = [np.sum(x) for x in in_pole_vec]
     num_zero = np.size(np.where(np.array(sum_pole_vec) == 0.0))
     if num_zero > 0:
         state_control = False
 
     # computing the controllability matrix
-    rows, cols = np.shape(A)
-    c_plus = []
-    for index in range(cols):
-        c_plus.append(np.dot(np.linalg.matrix_power(A, index), B))
+    c_plus = [A**n*B for n in range(A.shape[1])]
     control_matrix = np.hstack(c_plus)
 
     return state_control, in_pole_vec, control_matrix
@@ -63,20 +61,19 @@ def state_observability(A, C):
     """
     state_obsr = True
 
+    A = np.asmatrix(A)
+    C = np.asmatrix(C)
+
     # computing all output pole vectors
     ev, vr = spla.eig(A, left=False, right=True)
-    rows, cols = np.shape(vr)
-    out_pole_vec = [np.around(np.dot(np.array(C), x), 3) for x in np.hsplit(vr, cols)]
+    out_pole_vec = [np.around(C.dot(x), 3) for x in vr.T]
     sum_pole_vec = [np.sum(x) for x in out_pole_vec]
     num_zero = np.size(np.where(np.array(sum_pole_vec) == 0.0))
     if num_zero > 0:
         state_obsr = False
 
     # computing observability matrix
-    rows, cols = np.shape(A)
-    o_plus = []
-    for index in range(rows):
-        o_plus.append(np.dot(C, np.linalg.matrix_power(A, index)))
+    o_plus = [C*A**n for n in range(A.shape[1])]
     observe_matrix = np.vstack(o_plus)
 
     return state_obsr, out_pole_vec, observe_matrix
