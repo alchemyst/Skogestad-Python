@@ -66,7 +66,7 @@ def deadtime():
     return dead_G, dead_Gd
 
 
-def Equation_6_8_output(error_poles_direction, deadtime_if=0):
+def Equation_6_8_output(error_poles_direction, usedeadtime=False):
     """
     This function will calculate the minimum peak values of S and T
     if the system has zeros and poles in the output.
@@ -80,7 +80,6 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     yp_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Poles_G)]))
 
     for i in range(len(Zeros_G)):
-
         [U, S, V] = np.linalg.svd(G(Zeros_G[i]+error_poles_direction))
         yz_direction[:, i] = U[:, -1]
 
@@ -109,7 +108,7 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
 
     Qzp = yz_direction.H * yp_direction / (yzp_mat1 - yzp_mat2)
 
-    if deadtime_if == 0:
+    if usedeadtime:
         # This matrix is the matrix from which the SVD is going to be done
         # to determine the final minimum peak
         pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz))) * Qzp *
@@ -125,7 +124,7 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     # Skogestad eq 6-16 pg 226 using maximum deadtime per output channel to
     # give tightest lowest bounds.
 
-    if deadtime_if == 1:
+    if usedeadtime:
         # Create vector to be used for the diagonal deadtime matrix containing
         # each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S.
@@ -176,19 +175,21 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     return Ms_min
 
 
-def Equation_6_8_input(error_poles_direction, deadtime_if=0):
-    # This function will calculate the minimum peak values of S and T if the
-    # system has zeros and poles for the input.
-    # Could also be specified for a system with deadtime.
-
-    [Zeros_G, Poles_G, Zeros_Gd, Poles_Gd] = Zeros_Poles_RHP()
+def Equation_6_8_input(error_poles_direction, usedeadtime=False):
+    """
+    This function will calculate the minimum peak values of S and T if the
+    system has zeros and poles for the input.
+    Could also be specified for a system with deadtime.
+    """
+    #TODO: This function should be merged with the one above.
+    
+    Zeros_G, Poles_G = Zeros_Poles_RHP()
 
     # Two matrices to save all the RHP zeros and poles directions
     uz_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Zeros_G)]))
     up_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Poles_G)]))
 
     for i in range(len(Zeros_G)):
-
         [U, S, V] = np.linalg.svd(G(Zeros_G[i] + error_poles_direction))
         uz_direction[:, i] = V[:, -1]
 
@@ -217,7 +218,7 @@ def Equation_6_8_input(error_poles_direction, deadtime_if=0):
 
     Qzp = uz_direction.H * up_direction / (yzp_mat1 - yzp_mat2)
 
-    if deadtime_if == 0:
+    if usedeadtime:
         # This matrix is the matrix from which the SVD is going to be done
         # to determine the final minimum peak.
         pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz))) * Qzp *
@@ -232,7 +233,7 @@ def Equation_6_8_input(error_poles_direction, deadtime_if=0):
 
     # Skogestad eq 6-16 pg 226 using maximum deadtime per output channel
     # to give tightest lowest bounds.
-    if deadtime_if == 1:
+    if usedeadtime:
         # Create vector to be used for the diagonal deadtime matrix containing
         # each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S.
