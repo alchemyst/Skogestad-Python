@@ -451,7 +451,7 @@ def Equation_6_55(w_start, w_end):
             for i in range(len(w)):
                 lhs_eq[i, :] = (np.abs(np.linalg.svd(
                                 G(1j * w[i]))[2][:, column_G].H *
-                                Gd(1j*w[i])[:, column])-1
+                                Gd(1j*w[i])[:, column])-1)
                 rhs_eq[i, :] = np.linalg.svd(G(1j*w[i]))[1][column_G]
 
             count_G = count_G + 1
