@@ -11,13 +11,13 @@ def G(s):
     """
     Give the transfer matrix of the system
     """
-    G = np.matrix([[100, 102], [100, 100]])
-    return G
+    return np.matrix([[100, 102], 
+                      [100, 100]])
 
 
 def Gd(s):
-    Gd = 1/(s+1)*np.matrix([[10], [10]])
-    return Gd
+    return 1 / (s + 1) * np.matrix([[10], 
+                                    [10]])
 
 
 def reference_change():
@@ -26,8 +26,9 @@ def reference_change():
     to check input saturation
     """
 
-    R = np.matrix([[1, 0], [0, 1]])
-    R = R/np.linalg.norm(R, 2)
+    R = np.matrix([[1, 0], 
+                   [0, 1]])
+    R /= np.linalg.norm(R, 2)
     return R
 
 
@@ -37,8 +38,8 @@ def G_s(s):
     This could be obtained symbolically using Sage
     """
 
-    G_s = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s+2)]])
-    return G_s
+    return np.matrix([[1 / s + 1, 1], 
+                      [1 / (s + 2) ** 2, (s - 1) / (s + 2)]])
 
 
 def Zeros_Poles_RHP():
@@ -46,7 +47,7 @@ def Zeros_Poles_RHP():
     Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from Sage program
     """
-
+    #TODO: These should be calculated properly
     Zeros_G = [0.6861, 2.0000]
     Poles_G = [2, 3]
 
@@ -58,7 +59,8 @@ def deadtime():
     Vector of the deadtime of the system
     """
     # Individual time delays
-    dead_G = np.matrix([[0, -2], [-1, -4]])
+    dead_G = np.matrix([[0, -2], 
+                        [-1, -4]])
     dead_Gd = np.matrix([])
 
     return dead_G, dead_Gd
@@ -71,8 +73,7 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     Systems with deadtime can also be specified.
     """
 
-    Zeros_G = Zeros_Poles_RHP()[0]
-    Poles_G = Zeros_Poles_RHP()[1]
+    Zeros_G, Poles_G = Zeros_Poles_RHP()
 
     # Two matrices to save all the RHP zeros and poles directions
     yz_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Zeros_G)]))

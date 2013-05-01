@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
 import scipy.optimize as sc_opt
 import scipy.signal as scs
