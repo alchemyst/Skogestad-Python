@@ -35,15 +35,13 @@ def state_controllability(A, B):
     A = np.asmatrix(A)
     B = np.asmatrix(B)
 
-    # computing all input pole vectors.
+    # compute all input pole vectors.
     ev, vl = spla.eig(A, left=True, right=False)
     in_pole_vec = [np.around(B.conj().T.dot(x)) for x in vl.T]
-    sum_pole_vec = [np.sum(x) for x in in_pole_vec]
-    num_zero = np.size(np.where(np.array(sum_pole_vec) == 0.0))
-    if num_zero > 0:
-        state_control = False
+    # TODO: is this calculation correct?
+    state_control = not any(np.sum(x) == 0.0 for x in in_pole_vec)
 
-    # computing the controllability matrix
+    # compute the controllability matrix
     c_plus = [A**n*B for n in range(A.shape[1])]
     control_matrix = np.hstack(c_plus)
 
@@ -64,15 +62,13 @@ def state_observability(A, C):
     A = np.asmatrix(A)
     C = np.asmatrix(C)
 
-    # computing all output pole vectors
+    # compute all output pole vectors
     ev, vr = spla.eig(A, left=False, right=True)
     out_pole_vec = [np.around(C.dot(x), 3) for x in vr.T]
-    sum_pole_vec = [np.sum(x) for x in out_pole_vec]
-    num_zero = np.size(np.where(np.array(sum_pole_vec) == 0.0))
-    if num_zero > 0:
-        state_obsr = False
+    # TODO: is this calculation correct?
+    state_obsr = not any(np.sum(x)==0.0 for x in out_pole_vec)
 
-    # computing observability matrix
+    # compute observability matrix
     o_plus = [C*A**n for n in range(A.shape[1])]
     observe_matrix = np.vstack(o_plus)
 
@@ -90,12 +86,7 @@ def is_min_realisation(A, B, C):
     state_obsr, out_pole_vec, observe_matrix = state_observability(A, C)
     state_control, in_pole_vec, control_matrix = state_controllability(A, B)
 
-    is_min_real = False
-
-    if state_control == True and state_obsr == True:
-        is_min_real = True
-
-    return is_min_real
+    return state_control and state_obsr
 
 
 def zero_directions(zero_vec, tf, e=0.0001):
