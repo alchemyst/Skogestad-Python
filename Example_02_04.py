@@ -91,29 +91,40 @@ plt.xlabel("Frequency [rad/s]")
 
 
 #Calculate the frequency at which |L(jw)| = 1
-#def L_1(w):
-#    return L-1
-#wc = sc.optimize.fsolve(L_1, 0.1)
+wc = w[np.flatnonzero(np.abs(L)<1)[0]]
+
 #Calculate the frequency at which Angle[L(jw)] = -180
-#def L_180(w):
-#    return np.angle(L) + np.pi
-#w180 = sc.optimize.fsolve(L_180, 0.1)
-#Calculate the phase margin
-#PM = np.angle(L(wc), deg=True) + 180
+def Lu_180(w):
+    s = w*1j
+    G = 3*(-2*(s)+1)/((10*s+1)*(5*s+1))
+    K = Kc*(1+1/(Tauc*s))
+    L = G*K   
+    return np.angle(L) + np.pi
+w180 = sc.optimize.fsolve(Lu_180, 0.1)
 #Calculate the gain margin
-#GM = 1/(np.abs(L(w180)))
+def L_w(w):
+    s = w*1j
+    G = 3*(-2*(s)+1)/((10*s+1)*(5*s+1))
+    K = Kc*(1+1/(Tauc*s))
+    L = G*K
+    return np.abs(L) 
+GM = 1/L_w(w180) 
+
+#Calculate the phase margin
+PM = Lu_180(wc)
+print "GM:" , np.round(GM, 2)
+print "PM:" , np.round(PM*180/np.pi, 1) , "deg or" ,np.round(PM, 2) , "rad"
 
 #Calculate the frequency at which |S(jw)| = 0.707
-#def S_b(w):
-#    return S-(1/np.sqrt(2))
-#wb = sc.optimize.fsolve(L_180, 0.1)    
+wb = w[np.flatnonzero(np.abs(S)<(1/np.sqrt(2)))[0]]
 #Calculate the frequency at which |T(jw)| = 0.707    
-#def T_bt(w):
-#    return T-(1/np.sqrt(2))   
-#wbt = sc.optimize.fsolve(L_180, 0.1)    
+wbt = w[np.flatnonzero(np.abs(T)<(1/np.sqrt(2)))[0]]
 
-#if (PM < 90) and (wb < wc) and (wc < wbt)
-#    print "Frequency range wb < wc < wbt is valid"
+print "wb:" , wb  
+print "wc:" , np.round(wc, 2)
+print "wbt:" , np.round(wbt, 2) 
+if (PM < 90) and (wb < wc) and (wc < wbt):
+    print "Frequency range wb < wc < wbt is valid"
 
 
 plt.show()
