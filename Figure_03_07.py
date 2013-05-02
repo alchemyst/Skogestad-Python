@@ -16,17 +16,17 @@ def SVD(G, s):
     freqresp = map(G, s)
     sigmas = np.matrix([Sigma for U, Sigma, V in map(la.svd, freqresp)])
     return sigmas
-    
+
 def condition_number(G, s):
     """Function to determine condition number"""
     freqresp = map(G, s)
-    sigmas = np.matrix([Sigma for U, Sigma, 
+    sigmas = np.matrix([Sigma for U, Sigma,
                            V in map(np.linalg.svd, freqresp)])
     nrows, ncols = sigmas.shape
     gamma = np.zeros(nrows)
-    for i, row_vector in enumerate(sigmas): 
-        gamma[i] = sigmas[i,0]/sigmas[i,1] 
-    
+    for i, row_vector in enumerate(sigmas):
+        gamma[i] = sigmas[i,0]/sigmas[i,1]
+
     return gamma
 
 
