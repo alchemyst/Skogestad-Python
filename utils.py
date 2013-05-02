@@ -25,7 +25,7 @@ def distance_from_nominal(w, k, tau, theta, nom_response):
 
 
 def arrayfun(f, A):
-    """ 
+    """
     Recurses down to scalar elements in A, then applies f, returning lists
     containing the result.
 
@@ -233,9 +233,24 @@ class tf(object):
     def __neg__(self):
         return tf(-self.numerator, self.denominator, self.deadtime)
 
+def sigmas(A):
+    """ Return the singular values of A
+    
+    This is a convenience wrapper to enable easy calculation of singular values over frequency
+    
+    Example:
+    >> A = numpy.array([[1, 2],
+                        [3, 4]])
+    >> sigmas(A)
+    array([ 5.4649857 ,  0.36596619])
+    
+    """
+    #TODO: This should probably be created with functools.partial
+    return numpy.linalg.svd(A, compute_uv=False)
 
 def feedback(forward, backward):
     """ Calculate the feedback equivalent transfer function """
+    #TODO: This should be made MIMO-aware
     return forward/(1 + forward*backward)
 
 

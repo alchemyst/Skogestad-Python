@@ -3,12 +3,13 @@ Created on 27 Mar 2013
 
 @author: St Elmo Wilken
 '''
-import control as cn
 import MIMO_Tools as mimo
 
 # The system
-A = [[-2, -2],[0, -4]]
-B = [[1],[1]]
+A = [[-2, -2],
+     [0, -4]]
+B = [[1],
+     [1]]
 C = [[1, 0]]
 D = [[0]]
 
