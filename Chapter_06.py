@@ -11,13 +11,13 @@ def G(s):
     """
     Give the transfer matrix of the system
     """
-    G = np.matrix([[100, 102], [100, 100]])
-    return G
+    return np.matrix([[100, 102], 
+                      [100, 100]])
 
 
 def Gd(s):
-    Gd = 1/(s+1)*np.matrix([[10], [10]])
-    return Gd
+    return 1 / (s + 1) * np.matrix([[10], 
+                                    [10]])
 
 
 def reference_change():
@@ -26,8 +26,9 @@ def reference_change():
     to check input saturation
     """
 
-    R = np.matrix([[1, 0], [0, 1]])
-    R = R/np.linalg.norm(R, 2)
+    R = np.matrix([[1, 0], 
+                   [0, 1]])
+    R /= np.linalg.norm(R, 2)
     return R
 
 
@@ -37,8 +38,8 @@ def G_s(s):
     This could be obtained symbolically using Sage
     """
 
-    G_s = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s+2)]])
-    return G_s
+    return np.matrix([[1 / s + 1, 1], 
+                      [1 / (s + 2) ** 2, (s - 1) / (s + 2)]])
 
 
 def Zeros_Poles_RHP():
@@ -46,7 +47,7 @@ def Zeros_Poles_RHP():
     Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from Sage program
     """
-
+    #TODO: These should be calculated properly
     Zeros_G = [0.6861, 2.0000]
     Poles_G = [2, 3]
 
@@ -58,28 +59,27 @@ def deadtime():
     Vector of the deadtime of the system
     """
     # Individual time delays
-    dead_G = np.matrix([[0, -2], [-1, -4]])
+    dead_G = np.matrix([[0, -2], 
+                        [-1, -4]])
     dead_Gd = np.matrix([])
 
     return dead_G, dead_Gd
 
 
-def Equation_6_8_output(error_poles_direction, deadtime_if=0):
+def Equation_6_8_output(error_poles_direction, usedeadtime=False):
     """
     This function will calculate the minimum peak values of S and T
     if the system has zeros and poles in the output.
     Systems with deadtime can also be specified.
     """
 
-    Zeros_G = Zeros_Poles_RHP()[0]
-    Poles_G = Zeros_Poles_RHP()[1]
+    Zeros_G, Poles_G = Zeros_Poles_RHP()
 
     # Two matrices to save all the RHP zeros and poles directions
     yz_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Zeros_G)]))
     yp_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Poles_G)]))
 
     for i in range(len(Zeros_G)):
-
         [U, S, V] = np.linalg.svd(G(Zeros_G[i]+error_poles_direction))
         yz_direction[:, i] = U[:, -1]
 
@@ -108,7 +108,7 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
 
     Qzp = yz_direction.H * yp_direction / (yzp_mat1 - yzp_mat2)
 
-    if deadtime_if == 0:
+    if usedeadtime:
         # This matrix is the matrix from which the SVD is going to be done
         # to determine the final minimum peak
         pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz))) * Qzp *
@@ -124,7 +124,7 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     # Skogestad eq 6-16 pg 226 using maximum deadtime per output channel to
     # give tightest lowest bounds.
 
-    if deadtime_if == 1:
+    if usedeadtime:
         # Create vector to be used for the diagonal deadtime matrix containing
         # each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S.
@@ -175,19 +175,21 @@ def Equation_6_8_output(error_poles_direction, deadtime_if=0):
     return Ms_min
 
 
-def Equation_6_8_input(error_poles_direction, deadtime_if=0):
-    # This function will calculate the minimum peak values of S and T if the
-    # system has zeros and poles for the input.
-    # Could also be specified for a system with deadtime.
-
-    [Zeros_G, Poles_G, Zeros_Gd, Poles_Gd] = Zeros_Poles_RHP()
+def Equation_6_8_input(error_poles_direction, usedeadtime=False):
+    """
+    This function will calculate the minimum peak values of S and T if the
+    system has zeros and poles for the input.
+    Could also be specified for a system with deadtime.
+    """
+    #TODO: This function should be merged with the one above.
+    
+    Zeros_G, Poles_G = Zeros_Poles_RHP()
 
     # Two matrices to save all the RHP zeros and poles directions
     uz_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Zeros_G)]))
     up_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Poles_G)]))
 
     for i in range(len(Zeros_G)):
-
         [U, S, V] = np.linalg.svd(G(Zeros_G[i] + error_poles_direction))
         uz_direction[:, i] = V[:, -1]
 
@@ -216,7 +218,7 @@ def Equation_6_8_input(error_poles_direction, deadtime_if=0):
 
     Qzp = uz_direction.H * up_direction / (yzp_mat1 - yzp_mat2)
 
-    if deadtime_if == 0:
+    if usedeadtime:
         # This matrix is the matrix from which the SVD is going to be done
         # to determine the final minimum peak.
         pre_mat = (sc_lin.sqrtm((np.linalg.inv(Qz))) * Qzp *
@@ -231,7 +233,7 @@ def Equation_6_8_input(error_poles_direction, deadtime_if=0):
 
     # Skogestad eq 6-16 pg 226 using maximum deadtime per output channel
     # to give tightest lowest bounds.
-    if deadtime_if == 1:
+    if usedeadtime:
         # Create vector to be used for the diagonal deadtime matrix containing
         # each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S.
@@ -451,7 +453,7 @@ def Equation_6_55(w_start, w_end):
             for i in range(len(w)):
                 lhs_eq[i, :] = (np.abs(np.linalg.svd(
                                 G(1j * w[i]))[2][:, column_G].H *
-                                Gd(1j*w[i])[:, column])-1
+                                Gd(1j*w[i])[:, column])-1)
                 rhs_eq[i, :] = np.linalg.svd(G(1j*w[i]))[1][column_G]
 
             count_G = count_G + 1
