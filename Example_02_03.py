@@ -1,40 +1,42 @@
 import numpy as np
+import scipy as sp
 import matplotlib.pyplot as plt
 
 # TODO: This should be reworked!
 # This version is not really a rework, but provides clearer output
+# Calculation reworked for transfer functions of any order
 
+# Input transfer function and Proportional controller range
+Gk = 3.0
+Gz = [[-2, 1]]
+Gp = [[10, 1], [5, 1]]
+Krange = np.linspace(-2, 3, 1000)
 
-def Stability(Poles_poly):
-    """
-    Determine if the characteristic equation of a transfer function is stable
-    Poles_poly is a polynomial expansion of the characteristic equation
-    """
-    return any(np.real(r) > 0 for r in np.roots(Poles_poly))
+# Check for stability over given range
+poly_zeros = 1
+for i in Gz:
+    poly_zeros *= sp.poly1d(i) 
+poly_poles = 1
+for i in Gp:
+    poly_poles *= sp.poly1d(i) 
 
+unstable_vec = []
+for K in Krange:
+    poly_char = float(K)*Gk*poly_zeros + poly_poles
+    unstable_vec.append(any(np.real(r) > 0 for r in np.roots(poly_char.coeffs)))
 
-def System(KC):
-    # Gives the characteristic equation in terms of the Kc value
-    Poles_poly = [50, 15 - 6 * KC, 1 + 3 * KC]
-    return Poles_poly
-
-Kc = np.linspace(-2, 3, 1000)
-
-# Creates a plot to indicate over what range of Kc the system would be stable
-
-vec = [Stability(System(K)) for K in Kc]
-
+# Output stability margin
 trigger = 0
-for i in range(0, len(Kc) - 1):
-    if vec[i] == 1:
-        if vec[i] != vec[i - 1]:
-            print 'Change from stable to unstable at Kc = ' + '%.2f' % Kc[i]
-            Limit1 = Kc[i]
+for i in range(0, len(Krange) - 1):
+    if unstable_vec[i]:
+        if unstable_vec[i] != unstable_vec[i - 1]:
+            print 'Change from stable to unstable at Kc = ' + '%.2f' % Krange[i]
+            Limit1 = Krange[i]
             trigger = 1
-    elif vec[i] == 0:
-        if vec[i] != vec[i - 1]:
-            print 'Change from unstable to stable at Kc = ' + '%.2f' % Kc[i]
-            Limit2 = Kc[i]
+    else:
+        if unstable_vec[i] != unstable_vec[i - 1]:
+            print 'Change from unstable to stable at Kc = ' + '%.2f' % Krange[i]
+            Limit2 = Krange[i]
             trigger = 1
 
 if trigger == 0:
@@ -43,5 +45,5 @@ else:
     print 'Stable between Kc = ' + '%.2f' % Limit1 \
           + ' and Kc = ' + '%.2f' % Limit2
 
-plt.plot(Kc, vec, 'rD')
+plt.plot(Krange, unstable_vec, 'rD')
 plt.show()
