@@ -6,7 +6,8 @@ from utils import phase, tf
 
 G = tf(8, [1, 8]) * tf(1, [1, 1])
 
-# freq(G) returns a frequency response function given a laplace function
+# freq(G) returns a frequency response function given a Laplace function
+
 def freq(G):
     def Gw(w):
         return G(1j*w)
