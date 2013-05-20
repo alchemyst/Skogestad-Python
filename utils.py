@@ -233,26 +233,81 @@ class tf(object):
     def __neg__(self):
         return tf(-self.numerator, self.denominator, self.deadtime)
 
+
 def sigmas(A):
     """ Return the singular values of A
     
     This is a convenience wrapper to enable easy calculation of singular values over frequency
     
     Example:
-    >> A = numpy.array([[1, 2],
-                        [3, 4]])
-    >> sigmas(A)
+    >>> A = numpy.array([[1, 2], [3, 4]])
+    >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
     
     """
     #TODO: This should probably be created with functools.partial
     return numpy.linalg.svd(A, compute_uv=False)
 
+
 def feedback(forward, backward):
     """ Calculate the feedback equivalent transfer function """
     #TODO: This should be made MIMO-aware
     return forward/(1 + forward*backward)
 
+
+def sszeros(A, B, C, D, directions=False):
+    """
+    Calculate the zeros of a system in state space form
+
+    Arguments:
+      A, B, C, D : state space matrices
+      directions : return direction vectors as well
+
+    Outputs:
+      z : a list containing the zeros
+      xz, uz : arrays contiaining the corresponding zero directions 
+               in the corresponding columns
+
+    Note: This assumes a minimal realisation
+
+    Example:
+    >>> A = numpy.mat("[-2, -2; 0, -4]")
+    >>> B = numpy.mat("[1; 1]")
+    >>> C = numpy.mat("[1, 0]")
+    >>> D = numpy.mat("0")
+    >>> sszeros(A, B, C, D)
+    array([-2.+0.j])
+
+    >>> sszeros(A, B, C, D, directions=True)
+    (array([-2.+0.j]), array([[ 0.0+0.j],
+           [ 0.5+0.j]]), array([[ 1.+0.j]]))
+
+    """
+    A, B, C, D = [numpy.asmatrix(m) for m in [A, B, C, D]]
+
+    # We proceed as in Skogestad, by solving
+    #
+    # (z Ig - M)v_z = 0, (with v_z = [x_z; u_z] ) (1)
+    # first we calculate M and Ig
+    M = numpy.bmat([[A, B], [C, D]])
+    Ig = numpy.zeros_like(M)
+    Ig[:A.shape[0], :A.shape[1]] = numpy.eye(*A.shape)
+
+    #Now, scipy.linalg.eig solves
+    # a   vr[:,i] = w[i]        b   vr[:,i] (2)
+    # according to the docs.
+    #
+    # A little rearranging of (1) results in the form of (2):
+    # z Ig v_z = M v_z
+    # -> M v_z = z Ig v_z -> a=M, b=Ig, v_z=vr
+    # so
+    z, vz = scipy.linalg.eig(M, Ig)
+    goodvalues = numpy.isfinite(z)
+    if directions:
+        xz, uz = numpy.split(vz, [A.shape[1]])
+        return z[goodvalues], xz[:, goodvalues], uz[:, goodvalues]
+    else:
+        return z[goodvalues]
 
 if __name__ == '__main__':
     import doctest
