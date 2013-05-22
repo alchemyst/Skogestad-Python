@@ -8,6 +8,7 @@ Created on 27 Mar 2013
 import control as cn
 import numpy as np
 import scipy.linalg as spla
+import sympy as sm
 
 """
 This toolbox assumes you have the control toolbox at your
@@ -123,3 +124,37 @@ def zero_directions(zero_vec, tf, e=0.0001):
         uz = np.hsplit(V, v_cols)[-1]
         zero_dir.append((z, uz, yz))
     return zero_dir
+
+def zero(A, B, C, D):
+    """
+    Computes the zeros of a transfer function in state space form.
+    Parameters: A, B, C, D state space matrices
+    Returns: zero vector (which you may use in my other functions)
+    """
+    z = sm.Symbol('z')
+    top = np.hstack((A,B))
+    bot = np.hstack((C,D))
+    m = np.vstack((top, bot))
+    M = sm.Matrix(m)
+    [rowsA, colsA] = np.shape(A)
+    [rowsB, colsB] = np.shape(B)
+    [rowsC, colsC] = np.shape(C)
+    [rowsD, colsD] = np.shape(D)
+    p1 = np.eye(rowsA)
+    p2 = np.zeros((rowsB, colsB))
+    p3 = np.zeros((rowsC, colsC))
+    p4 = np.zeros((rowsD, colsD))
+    top = np.hstack((p1,p2))
+    bot = np.hstack((p3,p4))
+    p = np.vstack((top, bot))
+    Ig = sm.Matrix(p)
+    zIg = z*Ig
+    f = zIg-M
+    zf = f.det()
+    zs = sm.solve(zf, z)
+    print "The zeros of the system are: "
+    for z in zs:
+        print z
+    return zs
+    
+    
