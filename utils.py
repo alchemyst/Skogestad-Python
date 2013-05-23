@@ -49,8 +49,8 @@ def findst(G, K):
 
 
 def phase(G, deg=False):
-    return numpy.unwrap(numpy.angle(G, deg=deg), discont=180 if deg
-    else numpy.pi)
+    return numpy.unwrap(numpy.angle(G, deg=deg), 
+                        discont=180 if deg else numpy.pi)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
