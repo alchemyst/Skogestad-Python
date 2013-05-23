@@ -18,15 +18,18 @@ disposal... And all the imports above...
 
 def state_controllability(A, B):
     """
-    Parameters: A => state space representation of matrix A
-                B => state space representation of matrix B
+    Parameters: A => matrix A of state space representation
+                B => matrix B of state space representation 
 
     Returns: state_control (Bool) => True if state controllable
              in_pole_vec          => Input pole vectors for the states u_p_i
              control_matrix       => State Controllability Matrix
 
-    This method checks of the state space description of the system
+    This method checks if the state space description of the system
     is state controllable according to Skogestad section 4.2.
+    
+    Note: This does not check for state controllability for systems with 
+    repeated poles
 
     Note: The Gramian matrix type of solution has already been implemented by
     the Control Toolbox folks.
@@ -35,18 +38,20 @@ def state_controllability(A, B):
 
     A = np.asmatrix(A)
     B = np.asmatrix(B)
-
-    # compute all input pole vectors.
+        
+    # Compute all input pole vectors.
     ev, vl = spla.eig(A, left=True, right=False)
-    in_pole_vec = [np.around(B.conj().T.dot(x)) for x in vl.T]
-    # TODO: is this calculation correct?
-    state_control = not any(np.sum(x) == 0.0 for x in in_pole_vec)
+    u_p = []
+    for i in range(vl.shape[1]):
+        vli = np.asmatrix(vl[:,i]) 
+        u_p.append(B.H*vli.T) 
+    state_control = not any(np.linalg.norm(x) == 0.0 for x in u_p)
 
     # compute the controllability matrix
     c_plus = [A**n*B for n in range(A.shape[1])]
     control_matrix = np.hstack(c_plus)
 
-    return state_control, in_pole_vec, control_matrix
+    return state_control, u_p, control_matrix
 
 
 def state_observability(A, C):
