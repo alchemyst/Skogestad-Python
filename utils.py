@@ -6,6 +6,7 @@ Created on Jan 27, 2012
 
 import numpy
 import scipy.signal
+import matplotlib.pyplot as plt
 
 
 #import control
@@ -23,7 +24,6 @@ def arrayfun(f, A):
     """
     Recurses down to scalar elements in A, then applies f, returning lists
     containing the result.
-
     """
     if len(A.shape) == 0:
         return f(A)
@@ -37,13 +37,14 @@ def listify(A):
 
 def gaintf(K):
     r = tf(arrayfun(listify, K), arrayfun(listify, numpy.ones_like(K)))
+    return r
 
 
 def findst(G, K):
     """ Find S and T given a value for G and K """
     L = G*K
     I = numpy.eye(G.outputs, G.inputs)
-    S = inv(I + L)
+    S = numpy.linalg.inv(I + L)
     T = S*L
     return S, T
 
@@ -54,14 +55,18 @@ def phase(G, deg=False):
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
-    """ Kz & Gz is the polynomial constants in the numerator
-    Kp & Gp is the polynomial constants in the denominator """
+    """
+    Kz & Gz is the polynomial constants in the numerator
+    Kp & Gp is the polynomial constants in the denominator
+    """
 
-    # calculating the product of the two polynomials in the numerator and denominator of transfer function GK
+    # calculating the product of the two polynomials in the numerator
+    # and denominator of transfer function GK
     Z_GK = numpy.polymul(Kz, Gz)
     P_GK = numpy.polymul(Kp, Gp)
 
-    #calculating the polynomial of closed loop sensitivity function s = 1/(1+GK)
+    # calculating the polynomial of closed loop
+    # sensitivity function s = 1/(1+GK)
     Zeros_poly = Z_GK
     Poles_poly = numpy.polyadd(Z_GK, P_GK)
     return Zeros_poly, Poles_poly
@@ -86,7 +91,9 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
 
 
 def polygcd(a, b):
-    """ Find the Greatest Common Divisor of two polynomials using Euclid's algorithm:
+    """
+    Find the Greatest Common Divisor of two polynomials
+    using Euclid's algorithm:
     http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
 
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
@@ -107,9 +114,10 @@ def polygcd(a, b):
 
 
 class tf(object):
-    """ Very basic transfer function object
+    """
+    Very basic transfer function object
 
-    Construct with a numerator and denominator.
+    Construct with a numerator and denominator:
 
     >>> G = tf(1, [1, 1])
     >>> G
@@ -117,7 +125,9 @@ class tf(object):
 
     >>> G2 = tf(1, [2, 1])
 
-    The object knows how to do addition:
+    The object knows how to do:
+
+    addition
     >>> G + G2
     tf([ 3.  2.], [ 2.  3.  1.])
     >>> G + G # check for simplification
@@ -151,35 +161,53 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
-    def __init__(self, numerator, denominator=1, deadtime=0):
-        """ Initialize the transfer function from a numerator and denominator polynomial """
+    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y=''):
+        """
+        Initialize the transfer function from a
+        numerator and denominator polynomial
+        """
         self.numerator = numpy.poly1d(numerator)
         self.denominator = numpy.poly1d(denominator)
         self.simplify()
         self.deadtime = deadtime
+        self.name = name
+        self.u = u
+        self.y = y
 
     def inverse(self):
-        """ inverse of the transfer function """
+        """
+        Inverse of the transfer function
+        """
         return tf(self.denominator, self.numerator, -self.deadtime)
 
     def step(self, *args):
+        
         return scipy.signal.lti(self.numerator, self.denominator).step(*args)
 
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
         self.denominator, remainder = self.denominator/g
-
+    
     def __repr__(self):
-        r = "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
+        if self.name != '':
+            r = str(self.name) + "\n"
+        else:
+            r = ''
+        r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
         if self.deadtime != 0:
             r += ", deadtime=" + str(self.deadtime)
         r += ")"
+        if self.u != '' and self.y != '':  
+            r += "\ninput name: " + self.u
+            r += "\noutput name: " + self.y
         return r
 
     def __call__(self, s):
-        """ This allows the transfer function to be evaluated at particular values of s
-        Effectively, this makes a tf object behave just like a function of s
+        """
+        This allows the transfer function to be evaluated at
+        particular values of s.
+        Effectively, this makes a tf object behave just like a function of s.
 
         >>> G = tf(1, [1, 1])
         >>> G(0)
@@ -228,82 +256,108 @@ class tf(object):
     def __neg__(self):
         return tf(-self.numerator, self.denominator, self.deadtime)
 
+    def __pow__(self, other):
+        r = self
+        for k in range(other-1):
+            r = r * self
+        return r
+
+def tf_feedback(forward, backward='undefined', positive=False):
+    """
+    Defined for use in connect function
+    Calculates a feedback loop
+    This version is for trasnfer function objects
+    Negative feedback is assumed, use positive=True for positive feedback
+    Forward refers to the function that goes out of the comparator
+    Backward refers to the function that goes into the comparator
+    """
+
+    # Create identity tf if no backward defined
+    if backward == 'undefined':
+        backward = tf(1)
+    I = tf(1)
+    if not positive:
+        r = forward * tf.inverse((I + backward * forward))
+    else:
+        r = forward * tf.inverse((I - backward * forward))
+    return r
+
+
+def tf_step(tf, t_final=10, initial_val=0, steps=100):
+    """
+    Prints the step response of a transfer function
+    """
+    # See the following docs for meaning of *args
+    # http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.step.html
+    
+    # Surpress the complex casting error
+    import warnings
+    warnings.simplefilter("ignore")
+    # TODO: Make more specific
+    
+    tspace = numpy.linspace(0, t_final, steps)
+    foo = numpy.real(tf.step(initial_val, tspace))
+    plt.plot(foo[0], foo[1])
+    plt.show()
+
+# TODO: Concatenate tf objects into MIMO structure
+
 
 def sigmas(A):
-    """ Return the singular values of A
-    
-    This is a convenience wrapper to enable easy calculation of singular values over frequency
-    
+    """
+    Return the singular values of A
+
+    This is a convenience wrapper to enable easy calculation of
+    singular values over frequency
+
     Example:
-    >>> A = numpy.array([[1, 2], [3, 4]])
-    >>> sigmas(A)
+    >> A = numpy.array([[1, 2],
+                        [3, 4]])
+    >> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
-    
+
     """
     #TODO: This should probably be created with functools.partial
     return numpy.linalg.svd(A, compute_uv=False)
 
 
-def feedback(forward, backward):
-    """ Calculate the feedback equivalent transfer function """
-    #TODO: This should be made MIMO-aware
-    return forward/(1 + forward*backward)
-
-
-def sszeros(A, B, C, D, directions=False):
+def feedback(forward, backward='undefined', positive=False):
     """
-    Calculate the zeros of a system in state space form
-
-    Arguments:
-      A, B, C, D : state space matrices
-      directions : return direction vectors as well
-
-    Outputs:
-      z : a list containing the zeros
-      xz, uz : arrays contiaining the corresponding zero directions 
-               in the corresponding columns
-
-    Note: This assumes a minimal realisation
-
-    Example:
-    >>> A = numpy.mat("[-2, -2; 0, -4]")
-    >>> B = numpy.mat("[1; 1]")
-    >>> C = numpy.mat("[1, 0]")
-    >>> D = numpy.mat("0")
-    >>> sszeros(A, B, C, D)
-    array([-2.+0.j])
-
-    >>> sszeros(A, B, C, D, directions=True)
-    (array([-2.+0.j]), array([[ 0.0+0.j],
-           [ 0.5+0.j]]), array([[ 1.+0.j]]))
-
+    Calculates a feedback loop
+    This version is for matrices
+    Negative feedback is assumed, use positive=True for positive feedback
+    Forward refers to the function that goes out of the comparator
+    Backward refers to the function that goes into the comparator
     """
-    A, B, C, D = [numpy.asmatrix(m) for m in [A, B, C, D]]
 
-    # We proceed as in Skogestad, by solving
-    #
-    # (z Ig - M)v_z = 0, (with v_z = [x_z; u_z] ) (1)
-    # first we calculate M and Ig
-    M = numpy.bmat([[A, B], [C, D]])
-    Ig = numpy.zeros_like(M)
-    Ig[:A.shape[0], :A.shape[1]] = numpy.eye(*A.shape)
-
-    #Now, scipy.linalg.eig solves
-    # a   vr[:,i] = w[i]        b   vr[:,i] (2)
-    # according to the docs.
-    #
-    # A little rearranging of (1) results in the form of (2):
-    # z Ig v_z = M v_z
-    # -> M v_z = z Ig v_z -> a=M, b=Ig, v_z=vr
-    # so
-    z, vz = scipy.linalg.eig(M, Ig)
-    goodvalues = numpy.isfinite(z)
-    if directions:
-        xz, uz = numpy.split(vz, [A.shape[1]])
-        return z[goodvalues], xz[:, goodvalues], uz[:, goodvalues]
+    # Create identity matrix if no backward matrix is specified
+    if backward == 'undefined':
+        backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
+                                  numpy.shape(forward)[1]))
+    # Check the dimensions of the input matrices
+    if numpy.shape(backward)[1] != numpy.shape(forward)[0]:
+        raise ValueError("The column dimension of backward matrix must equal row dimension of forward matrix")
+    forward = numpy.asmatrix(forward)
+    backward = numpy.asmatrix(backward)
+    I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
+                                 numpy.shape(forward)[1]))
+    if not positive:
+        r = forward * numpy.linalg.inv((I + backward * forward))
     else:
-        return z[goodvalues]
+        r = forward * numpy.linalg.inv((I - backward * forward))
+    return r
+
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+
+
+def omega(w_start, w_end):
+    """
+    Convenience wrapper
+    Defines the frequency range for calculation of frequency response
+    Frequency in rad/time were time is the time unit used in model
+    """
+    omega = numpy.logspace(w_start, w_end, 1000)
+    return omega
