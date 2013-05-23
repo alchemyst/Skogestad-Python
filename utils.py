@@ -262,7 +262,7 @@ class tf(object):
             r = r * self
         return r
 
-def tf_feedback(forward, backward='undefined', positive=False):
+def tf_feedback(forward, backward=None, positive=False):
     """
     Defined for use in connect function
     Calculates a feedback loop
@@ -273,7 +273,7 @@ def tf_feedback(forward, backward='undefined', positive=False):
     """
 
     # Create identity tf if no backward defined
-    if backward == 'undefined':
+    if backward is None:
         backward = tf(1)
     I = tf(1)
     if not positive:
@@ -321,7 +321,7 @@ def sigmas(A):
     return numpy.linalg.svd(A, compute_uv=False)
 
 
-def feedback(forward, backward='undefined', positive=False):
+def feedback(forward, backward=None, positive=False):
     """
     Calculates a feedback loop
     This version is for matrices
@@ -331,7 +331,7 @@ def feedback(forward, backward='undefined', positive=False):
     """
 
     # Create identity matrix if no backward matrix is specified
-    if backward == 'undefined':
+    if backward is None:
         backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
                                   numpy.shape(forward)[1]))
     # Check the dimensions of the input matrices
@@ -348,11 +348,6 @@ def feedback(forward, backward='undefined', positive=False):
     return r
 
 
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-
-
 def omega(w_start, w_end):
     """
     Convenience wrapper
@@ -361,3 +356,8 @@ def omega(w_start, w_end):
     """
     omega = numpy.logspace(w_start, w_end, 1000)
     return omega
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
