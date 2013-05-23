@@ -19,11 +19,6 @@ def circle(cx, cy, r):
     return x, y
 
 
-def distance_from_nominal(w, k, tau, theta, nom_response):
-    r = k/(tau*w*i + 1)*numpy.exp(-theta*w*i)
-    return numpy.abs(r - nom_response)
-
-
 def arrayfun(f, A):
     """
     Recurses down to scalar elements in A, then applies f, returning lists
