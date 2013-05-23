@@ -13,7 +13,7 @@ http://www.mathworks.com/help/control/examples/connecting-models.html
 The example used here is the same as in the reference
 """
 
-from utils import tf, tf_feedback, tf_step
+from utils import tf, feedback, tf_step
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,7 +28,7 @@ G = tf(100, [1, 5, 100])
 C = 20*(s**2 + s + 60) / s / (s**2 + 40*s + 400)
 S = tf(10, [1, 10])
 
-T = F * tf_feedback(G*C, S)
+T = F * feedback(G*C, S)
 
 # This is the same figure as in the reference
 

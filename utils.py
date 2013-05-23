@@ -262,7 +262,7 @@ class tf(object):
             r = r * self
         return r
 
-def tf_feedback(forward, backward=None, positive=False):
+def feedback(forward, backward=None, positive=False):
     """
     Defined for use in connect function
     Calculates a feedback loop
@@ -274,13 +274,10 @@ def tf_feedback(forward, backward=None, positive=False):
 
     # Create identity tf if no backward defined
     if backward is None:
-        backward = tf(1)
-    I = tf(1)
-    if not positive:
-        r = forward * tf.inverse((I + backward * forward))
-    else:
-        r = forward * tf.inverse((I - backward * forward))
-    return r
+        backward = 1
+    if positive:
+        backward = -backward
+    return  forward * 1/(1 + backward * forward)
 
 
 def tf_step(tf, t_final=10, initial_val=0, steps=100):
@@ -321,7 +318,7 @@ def sigmas(A):
     return numpy.linalg.svd(A, compute_uv=False)
 
 
-def feedback(forward, backward=None, positive=False):
+def feedback_mimo(forward, backward=None, positive=False):
     """
     Calculates a feedback loop
     This version is for matrices
