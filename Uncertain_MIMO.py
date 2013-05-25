@@ -25,9 +25,6 @@ def bound_SISO_wi(w_start, w_end, vec, G, Gp, steps):
 #    Gp_i = np.zeros((vec.shape[0], len(w), 1))
     Gp_i_max = np.zeros((len(w)))
 
-    # TODO: Calculate w_i for spesific plant with a set amount of perturbations
-    #       for multiplicative uncertainty
-
     # Plotting the multiplicative relative uncertianty as a function of w
 
     # Calculate sequences to plot all perturbations
@@ -35,6 +32,8 @@ def bound_SISO_wi(w_start, w_end, vec, G, Gp, steps):
 #        Gp_i = [(Gp(w_i * 1j, vec, i) - G(w_i * 1j)) / (G(w_i * 1j))
 #                for w_i in w]
 #        plt.loglog(w, np.abs(Gp_i), 'b+')
+#        plt.ylabel('Deviation due to uncertainty')
+#        plt.xlabel('Frequency (rad/min)')
 #
     # Calculate the vales by frequency and store the highest
     # value at each frequency
@@ -42,15 +41,45 @@ def bound_SISO_wi(w_start, w_end, vec, G, Gp, steps):
 
     for k in range(len(w)):
         w_i = w[k]
-        Gp_i = [(Gp(w_i * 1j, vec, i) - G(w_i*1j)) / (G(w_i * 1j))
+        Gp_i = [(Gp(w_i * 1j, vec, i) - G(w_i * 1j)) / (G(w_i * 1j))
                 for i in range(vec.shape[0])]
         Gp_i_max[k] = np.max(np.abs(Gp_i))
+
+#    plt.loglog(w, Gp_i_max, 'b+')
+    return Gp_i_max
+
+
+def bound_MIMO_wi(w_start, w_end, vec, G, Gp, steps):
+
+    w = np.logspace(w_start, w_end, steps)
+
+#    Gp_i = np.zeros((vec.shape[0], len(w), 1))
+    Gp_i_max = np.zeros((len(w)))
+
+    # Plotting the multiplicative output relative uncertianty
+    # as a function of w
+
+    # Calculate the vales by frequency and store the highest
+    # value at each frequency
+    # Plotting only the maximum value evaluated at each frequency
+
+    for k in range(len(w)):
+        w_i = w[k]
+        # Calculate all perturbations at a specific frequency
+        Gp_i = [np.linalg.svd((Gp(w_i * 1j, vec, i) - G(w_i * 1j))
+                * np.linalg.pinv(G(w_i * 1j)), compute_uv=False)[0]
+                for i in range(vec.shape[0])]
+        # Calculate the maximum of the maximum singular values
+        # at each frequency
+        Gp_i_max[k] = np.max(Gp_i)
 #    plt.loglog(w, Gp_i_max, 'b+')
     return Gp_i_max
 
 
 def weight_calc(w_start, w_end, li, weight_i, steps):
-    """Calculates a simple third-order weight"""
+    """Calculates a simple third-order weight
+    Accommodates situations were the weight increases with frequency
+    """
 
     w = np.logspace(w_start, w_end, steps)
 
@@ -60,27 +89,74 @@ def weight_calc(w_start, w_end, li, weight_i, steps):
     # weight is to be fitted
 
     init_old = 0
-    for k in range(steps):
-        init = li[k]
+    found = False
+    safety_fac = 10  # amount of initial indexes to ignore
+    for k in range(steps - safety_fac):
+        init = li[k + safety_fac]
         if init < init_old:
-            index = k
+            index = k + safety_fac
+            found = True
+            print index
             break
         else:
             init_old = init
-    max_val = np.max(li[index:-1])
-
-    # Write the maximum value over the rest of the range
+    l_org = np.copy(li)
     l_mod = li
-    z = 0  # margin on turn
-    for k in range(steps - index - z):
-        i = k + z + index
-        l_mod[i] = max_val
+    if found:
+        max_val = np.max(li[index:-1])
+        # Write the maximum value over the rest of the range
+        z = 0  # margin on turn
+        for k in range(steps - index - z):
+            i = k + z + index
+            l_mod[i] = max_val
 
     # Must change a, b, and c in weight to fit to l_mod
 
-    popt, pcov = op.curve_fit(weight_i, w, l_mod)
+    popt, pcov = op.curve_fit(weight_i, w * 1j, l_mod, [0.5, 0.5, 0.5])
 
-    return popt, l_mod, w
+    return popt, l_mod, l_org, w
+
+
+def weight_calc_dec(w_start, w_end, li, weight_i, steps):
+    """Calculates a simple third-order weight
+    Accommodates situations were the weight decreases with frequency
+    """
+
+    w = np.logspace(w_start, w_end, steps)
+
+    # Search for the first index where the next value is lower
+    # than the previous
+    # Only works if no peaks are present and a low order
+    # weight is to be fitted
+
+#    init_old = 0
+#    found = False
+#    safety_fac = 10  # amount of initial indexes to ignore
+#    for k in range(steps - safety_fac):
+#        init = li[k + safety_fac]
+#        if init > init_old:
+#            index = k + safety_fac
+#            found = True
+#            print index
+#            break
+#        else:
+#            init_old = init
+    l_org = np.copy(li)
+    l_mod = li
+#    if found:
+#        max_val = np.max(li[index:-1])
+#        # Write the maximum value over the rest of the range
+#        z = 0  # margin on turn
+#        for k in range(steps - index - z):
+#            i = k + z + index
+#            l_mod[i] = max_val
+
+
+    # Must change a, b, and c in weight to fit to l_mod
+
+    popt, pcov = op.curve_fit(weight_i, w * 1j, l_mod, [0.5, 0.5, 0.5])
+
+    return popt, l_mod, l_org, w
 
     # TODO: The following is a list of possible expansions
     # Calculate upper bounds on S'
