@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-w = np.logspace(-2,1,100)
+w = np.logspace(-2, 1, 100)
 s = w * 1j
 
 plt.figure('Figure 7.6')
@@ -15,7 +15,7 @@ plt.loglog(w, np.abs(wI2), "m--")
 
 k = 2.5
 tau = 2.5
-Gp0 = Gp = k / (tau * s + 1) 
+Gp0 = Gp = k / (tau * s + 1)
 
 pars = [2, 2.5, 3]
 for p1 in range(0, 3):
@@ -25,13 +25,13 @@ for p1 in range(0, 3):
         for p3 in range(0, 3):
             tau = pars[p3]
             Gp = k / (tau * s + 1) * np.exp(-theta * s)
-            lI = np.abs((Gp - Gp0) / Gp0)                     
-            plt.loglog(w, lI, "b-.") 
+            lI = np.abs((Gp - Gp0) / Gp0)
+            plt.loglog(w, lI, "b-.")
 
 
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency')
-plt.legend([r'$W_I1$', r'$W_I2$', 'Perturbed plants'],
+plt.legend([r'$W_{I1}$', r'$W_{I2}$', 'Perturbed plants'],
            bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
 
 plt.show()
