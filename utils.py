@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 def circle(cx, cy, r):
     npoints = 100
     theta = numpy.linspace(0, 2*numpy.pi, npoints)
-    y = cy + numpy.sin(theta)*r
+    y = cx + numpy.sin(theta)*r
     x = cx + numpy.cos(theta)*r
     return x, y
 
