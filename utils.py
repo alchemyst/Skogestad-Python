@@ -166,6 +166,7 @@ class tf(object):
         Initialize the transfer function from a
         numerator and denominator polynomial
         """
+        # TODO: poly1d should be replaced by numpy.polynomial.Polynomial
         self.numerator = numpy.poly1d(numerator)
         self.denominator = numpy.poly1d(denominator)
         self.simplify()
@@ -181,7 +182,7 @@ class tf(object):
         return tf(self.denominator, self.numerator, -self.deadtime)
 
     def step(self, *args):
-        
+        """ Step response """ 
         return scipy.signal.lti(self.numerator, self.denominator).step(*args)
 
     def simplify(self):
@@ -190,17 +191,18 @@ class tf(object):
         self.denominator, remainder = self.denominator/g
     
     def __repr__(self):
-        if self.name != '':
+        if self.name:
             r = str(self.name) + "\n"
         else:
             r = ''
         r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
         if self.deadtime != 0:
             r += ", deadtime=" + str(self.deadtime)
+        if self.u: 
+            r += ", u='" + self.u + "'"
+        if self.y: 
+            r += ", y=': " + self.y + "'"
         r += ")"
-        if self.u != '' and self.y != '':  
-            r += "\ninput name: " + self.u
-            r += "\noutput name: " + self.y
         return r
 
     def __call__(self, s):
@@ -332,17 +334,15 @@ def feedback_mimo(forward, backward=None, positive=False):
         backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
                                   numpy.shape(forward)[1]))
     # Check the dimensions of the input matrices
-    if numpy.shape(backward)[1] != numpy.shape(forward)[0]:
+    if backward.shape[1] != forward.shape[0]:
         raise ValueError("The column dimension of backward matrix must equal row dimension of forward matrix")
     forward = numpy.asmatrix(forward)
     backward = numpy.asmatrix(backward)
     I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
                                  numpy.shape(forward)[1]))
-    if not positive:
-        r = forward * numpy.linalg.inv((I + backward * forward))
-    else:
-        r = forward * numpy.linalg.inv((I - backward * forward))
-    return r
+    if positive:
+        backward = -backward
+    return forward * (I + backward * forward).I
 
 
 def omega(w_start, w_end):
