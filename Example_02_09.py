@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import tf
-import scipy.signal as sc
 
 
 def funG(s):
@@ -39,9 +38,8 @@ T = 1 - S
 Sd = S * Gd
 
 t = np.linspace(0, 3)
-u = np.ones(np.size(t))
-[t, yr, x] = sc.lsim((T.numerator, T.denominator), u, t)
-[t, yd, x] = sc.lsim((Sd.numerator, Sd.denominator), u, t)
+[t, yr] = T.step(0, t)
+[t, yd] = Sd.step(0, t)
 
 plt.figure('Figure 2.22')
 plt.subplot(1, 2, 1)
