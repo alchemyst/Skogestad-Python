@@ -61,6 +61,7 @@ def connect(blocks, line_in, line_out):
     blocks is a list of tf and sumblk objects
     line_in and line_out are line objects
     """
+    pass
 
 
 class sumblk(object):

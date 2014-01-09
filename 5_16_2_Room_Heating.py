@@ -6,7 +6,6 @@ Created on 24 Mar 2013
 import control as cn
 import matplotlib.pyplot as plt
 import numpy as np
-import control_add_on as cadd
 import siso_controllability as scont
 
 
