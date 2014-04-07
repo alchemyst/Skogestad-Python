@@ -16,5 +16,5 @@ for K in Ks:
     plt.plot(t, y)
 
 plt.legend(["Kc = %1.1f" % K for K in Ks])
-plt.xlabel('Time / s')
+plt.xlabel('Time [sec]')
 plt.show()
