@@ -19,7 +19,7 @@ plt.plot(t, y)
 [t, y] = S.step(0, tspan)
 plt.plot(t, y)
 plt.plot([0, 4], np.ones(2))
-plt.xlabel('Time [sec]')
+plt.xlabel('Time [s]')
 plt.legend(['y(t)','u(t)'])
 #TODO there is a descrepancy with the u(t) plot
 

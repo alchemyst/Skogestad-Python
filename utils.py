@@ -4,24 +4,16 @@ Created on Jan 27, 2012
 @author: Carl Sandrock
 '''
 
-import numpy as np
+import numpy #do not abbreviate this module numpy in utilis.py
 import matplotlib.pyplot as plt
 from scipy import optimize, signal
 
 
-#import control
-#tf = control.TransferFunction
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-    
-
 def circle(cx, cy, r):
     npoints = 100
-    theta = np.linspace(0, 2*np.pi, npoints)
-    y = cy + np.sin(theta)*r
-    x = cx + np.cos(theta)*r
+    theta = numpy.linspace(0, 2*numpy.pi, npoints)
+    y = cy + numpy.sin(theta)*r
+    x = cx + numpy.cos(theta)*r
     return x, y
 
 
@@ -41,22 +33,22 @@ def listify(A):
 
 
 def gaintf(K):
-    r = tf(arrayfun(listify, K), arrayfun(listify, np.ones_like(K)))
+    r = tf(arrayfun(listify, K), arrayfun(listify, numpy.ones_like(K)))
     return r
 
 
 def findst(G, K):
     """ Find S and T given a value for G and K """
     L = G*K
-    I = np.eye(G.outputs, G.inputs)
-    S = np.linalg.inv(I + L)
+    I = numpy.eye(G.outputs, G.inputs)
+    S = numpy.linalg.inv(I + L)
     T = S*L
     return S, T
 
 
 def phase(G, deg=False):
-    return np.unwrap(np.angle(G, deg=deg), 
-                        discont=180 if deg else np.pi)
+    return numpy.unwrap(numpy.angle(G, deg=deg), 
+                        discont=180 if deg else numpy.pi)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
@@ -67,20 +59,20 @@ def Closed_loop(Kz, Kp, Gz, Gp):
 
     # calculating the product of the two polynomials in the numerator
     # and denominator of transfer function GK
-    Z_GK = np.polymul(Kz, Gz)
-    P_GK = np.polymul(Kp, Gp)
+    Z_GK = numpy.polymul(Kz, Gz)
+    P_GK = numpy.polymul(Kp, Gp)
 
     # calculating the polynomial of closed loop
     # sensitivity function s = 1/(1+GK)
     Zeros_poly = Z_GK
-    Poles_poly = np.polyadd(Z_GK, P_GK)
+    Poles_poly = numpy.polyadd(Z_GK, P_GK)
     return Zeros_poly, Poles_poly
 
 
 def RGA(Gin):
     """ Calculate the Relative Gain Array of a matrix """
-    G = np.asarray(Gin)
-    Ginv = np.linalg.pinv(G)
+    G = numpy.asarray(Gin)
+    Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
 
 
@@ -101,12 +93,12 @@ def polygcd(a, b):
     using Euclid's algorithm:
     http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
 
-    >>> a = np.poly1d([1, 1]) * np.poly1d([1, 2])
-    >>> b = np.poly1d([1, 1]) * np.poly1d([1, 3])
+    >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
+    >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
     >>> polygcd(a, b)
     poly1d([ 1.,  1.])
 
-    >>> polygcd(np.poly1d([1, 1]), np.poly1d([1]))
+    >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
     poly1d([ 1.])
     """
     if len(a) > len(b):
@@ -172,8 +164,8 @@ class tf(object):
         numerator and denominator polynomial
         """
         # TODO: poly1d should be replaced by np.polynomial.Polynomial
-        self.numerator = np.poly1d(numerator)
-        self.denominator = np.poly1d(denominator)
+        self.numerator = numpy.poly1d(numerator)
+        self.denominator = numpy.poly1d(denominator)
         self.simplify()
         self.deadtime = deadtime
         self.name = name
@@ -220,9 +212,9 @@ class tf(object):
         >>> G(0)
         1.0
         """
-        return (np.polyval(self.numerator, s) /
-                np.polyval(self.denominator, s) *
-                np.exp(-s * self.deadtime))
+        return (numpy.polyval(self.numerator, s) /
+                numpy.polyval(self.denominator, s) *
+                numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
         if not isinstance(other, tf):
@@ -299,8 +291,8 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
     warnings.simplefilter("ignore")
     # TODO: Make more specific
     
-    tspace = np.linspace(0, t_final, steps)
-    foo = np.real(tf.step(initial_val, tspace))
+    tspace = numpy.linspace(0, t_final, steps)
+    foo = numpy.real(tf.step(initial_val, tspace))
     plt.plot(foo[0], foo[1])
     plt.show()
 
@@ -315,14 +307,14 @@ def sigmas(A):
     singular values over frequency
 
     Example:
-    >> A = np.array([[1, 2],
+    >> A = numpy.array([[1, 2],
                         [3, 4]])
     >> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
 
     """
     #TODO: This should probably be created with functools.partial
-    return np.linalg.svd(A, compute_uv=False)
+    return numpy.linalg.svd(A, compute_uv=False)
 
 
 def feedback_mimo(forward, backward=None, positive=False):
@@ -336,15 +328,15 @@ def feedback_mimo(forward, backward=None, positive=False):
 
     # Create identity matrix if no backward matrix is specified
     if backward is None:
-        backward = np.asmatrix(np.eye(np.shape(forward)[0],
-                                  np.shape(forward)[1]))
+        backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
+                                  numpy.shape(forward)[1]))
     # Check the dimensions of the input matrices
     if backward.shape[1] != forward.shape[0]:
         raise ValueError("The column dimension of backward matrix must equal row dimension of forward matrix")
-    forward = np.asmatrix(forward)
-    backward = np.asmatrix(backward)
-    I = np.asmatrix(np.eye(np.shape(backward)[0],
-                                 np.shape(forward)[1]))
+    forward = numpy.asmatrix(forward)
+    backward = numpy.asmatrix(backward)
+    I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
+                                 numpy.shape(forward)[1]))
     if positive:
         backward = -backward
     return forward * (I + backward * forward).I
@@ -356,7 +348,7 @@ def omega(w_start, w_end):
     Defines the frequency range for calculation of frequency response
     Frequency in rad/time were time is the time unit used in model
     """
-    omega = np.logspace(w_start, w_end, 1000)
+    omega = numpy.logspace(w_start, w_end, 1000)
     return omega
     
     
@@ -401,8 +393,8 @@ def ZeiglerNichols(G):
    
     """    
     GM, PM, wc, w_180 = margins(G)  
-    Ku = np.abs(1 / G(1j * w_180))
-    Pu = np.abs(2 * np.pi / w_180)
+    Ku = numpy.abs(1 / G(1j * w_180))
+    Pu = numpy.abs(2 * numpy.pi / w_180)
     Kc = Ku / 2.2
     Taui = Pu / 1.2
 
@@ -437,20 +429,20 @@ def margins(G):
 
     def mod(x):
         """to give the function to calculate |G(jw)| = 1"""
-        return np.abs(Gw(x)) - 1
+        return numpy.abs(Gw(x)) - 1
 
     # how to calculate the freqeuncy at which |G(jw)| = 1
     wc = optimize.fsolve(mod, 0.1)
 
     def arg(w):
         """function to calculate the phase angle at -180 deg"""
-        return np.angle(Gw(w)) + np.pi
+        return numpy.angle(Gw(w)) + numpy.pi
 
     # where the freqeuncy is calculated where arg G(jw) = -180 deg
     w_180 = optimize.fsolve(arg, -1)
 
-    PM = np.angle(Gw(wc), deg=True) + 180
-    GM = 1/(np.abs(Gw(w_180)))
+    PM = numpy.angle(Gw(wc), deg=True) + 180
+    GM = 1/(numpy.abs(Gw(w_180)))
 
     return GM, PM, wc, w_180
 
@@ -483,10 +475,10 @@ def marginsclosedloop(L):
     Tw = freq(T)
     
     def modS(x):
-        return np.abs(Sw(x)) - 1/np.sqrt(2)
+        return numpy.abs(Sw(x)) - 1/numpy.sqrt(2)
         
     def modT(x):
-        return np.abs(Tw(x)) - 1/np.sqrt(2)        
+        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)        
 
     # calculate the freqeuncy at |S(jw)| = 0.707 from below
     wb = optimize.fsolve(modS, 0.1)  
@@ -518,20 +510,20 @@ def bode(G, w1, w2, label='Figure', margin=False):
     GM, PM, wc, w_180 = margins(G)
 
     # plotting of Bode plot and with corresponding frequencies for PM and GM
-#    if ((w2 < np.log(w_180)) and margin):
-#        w2 = np.log(w_180)  
-    w = np.logspace(w1, w2, 1000)
+#    if ((w2 < numpy.log(w_180)) and margin):
+#        w2 = numpy.log(w_180)  
+    w = numpy.logspace(w1, w2, 1000)
     s = 1j*w
 
     plt.figure(label)
     plt.subplot(211)
-    gains = np.abs(G(s))
+    gains = numpy.abs(G(s))
     plt.loglog(w, gains)
     if margin:
-        plt.loglog(wc*np.ones(2), [np.max(gains), np.min(gains)])
-        plt.text(1, np.average([np.max(gains), np.min(gains)]), 'G(jw) = -180^o')
-#        plt.loglog(w_180*np.ones(2), [np.max(gains), np.min(gains)])
-    plt.loglog(w, 1 * np.ones(len(w)))
+        plt.loglog(wc*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
+        plt.text(1, numpy.average([numpy.max(gains), numpy.min(gains)]), 'G(jw) = -180^o')
+#        plt.loglog(w_180*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
+    plt.loglog(w, 1 * numpy.ones(len(w)))
     plt.ylabel('Magnitude')
 
     # argument of G
@@ -539,8 +531,8 @@ def bode(G, w1, w2, label='Figure', margin=False):
     phaseangle = phase(G(s), deg=True)
     plt.semilogx(w, phaseangle)
     if margin:
-        plt.semilogx(wc*np.ones(2), [np.max(phaseangle), np.min(phaseangle)])
-#        plt.semilogx(w_180*np.ones(2), [-180, 0])
+        plt.semilogx(wc*numpy.ones(2), [numpy.max(phaseangle), numpy.min(phaseangle)])
+#        plt.semilogx(w_180*numpy.ones(2), [-180, 0])
     plt.ylabel('Phase')
     plt.xlabel('Frequency [rad/s]')
 
@@ -560,7 +552,7 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
         margin      show the cross over frequencies on the plot (optional)
         =========   =======================================================    
     """
-    w = np.logspace(w1, w2, 1000)    
+    w = numpy.logspace(w1, w2, 1000)    
     L = G(1j*w) * K(1j*w)
     S = feedback(1, L)
     T = feedback(L, 1)
@@ -575,7 +567,7 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
                bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
     
     if margin:        
-        plt.plot(w, 1/np.sqrt(2) * np.ones(len(w)), linestyle='dotted')
+        plt.plot(w, 1/numpy.sqrt(2) * numpy.ones(len(w)), linestyle='dotted')
         
     plt.subplot(2, 1, 2)
     plt.semilogx(w, phase(L, deg=True))
@@ -584,3 +576,8 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     plt.ylabel("Phase")
     plt.xlabel("Frequency [rad/s]")    
        
+
+# according to convention this procedure should stay at the bottom       
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()       

@@ -15,7 +15,7 @@ y = GM * np.sin(w*t + PM)
 plt.figure('Figure 2.1')
 plt.plot(t,u)
 plt.plot(t,y)
-plt.xlabel('Time (s)')
+plt.xlabel('Time [s]')
 plt.legend(['u(t)','y(t)'])
 
 plt.show()
