@@ -4,13 +4,10 @@ Created on Jan 27, 2012
 @author: Carl Sandrock
 '''
 
-import numpy
-import scipy.signal
+import numpy #do not abbreviate this module numpy in utilis.py
 import matplotlib.pyplot as plt
+from scipy import optimize, signal
 
-
-#import control
-#tf = control.TransferFunction
 
 def circle(cx, cy, r):
     npoints = 100
@@ -166,7 +163,7 @@ class tf(object):
         Initialize the transfer function from a
         numerator and denominator polynomial
         """
-        # TODO: poly1d should be replaced by numpy.polynomial.Polynomial
+        # TODO: poly1d should be replaced by np.polynomial.Polynomial
         self.numerator = numpy.poly1d(numerator)
         self.denominator = numpy.poly1d(denominator)
         self.simplify()
@@ -183,7 +180,7 @@ class tf(object):
 
     def step(self, *args):
         """ Step response """ 
-        return scipy.signal.lti(self.numerator, self.denominator).step(*args)
+        return signal.lti(self.numerator, self.denominator).step(*args)
 
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
@@ -353,8 +350,234 @@ def omega(w_start, w_end):
     """
     omega = numpy.logspace(w_start, w_end, 1000)
     return omega
+    
+    
+def freq(G):
+    """ Calculate the frequency response for an optimisation problem
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        G           plant transfer function
+        =========   =======================================================  
+        
+        =========   =======================================================
+        Returns     Description
+        =========   =======================================================
+        Gw          frequency response function
+        =========   =======================================================  
+   
+    """
+    def Gw(w):
+        return G(1j * w)
+    return Gw
 
 
+def ZeiglerNichols(G):
+    """ Calculate the gain margin and phase margin of a system
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        G           plant transfer function
+        =========   =======================================================  
+        
+        =========   =======================================================
+        Returns     Description
+        =========   =======================================================
+        Kc          proportional gain
+        Tauc        integral gain
+        Ku          ultimate P controller gain
+        Pu          corresponding period of oscillations
+        =========   =======================================================  
+   
+    """    
+    GM, PM, wc, w_180 = margins(G)  
+    Ku = numpy.abs(1 / G(1j * w_180))
+    Pu = numpy.abs(2 * numpy.pi / w_180)
+    Kc = Ku / 2.2
+    Taui = Pu / 1.2
+
+    return Kc, Taui, Ku, Pu
+
+
+def margins(G):
+    """ Calculate the gain margin and phase margin of a system
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        G           plant transfer function
+        w1          start frequency
+        w2          end frequency
+        label       title for the figure (optional)
+        margin      show the cross over frequencies on the plot (optional)
+        =========   =======================================================  
+        
+        =========   =======================================================
+        Returns     Description
+        =========   =======================================================
+        GM          gain margin
+        PM          phase margin
+        wc          gain crossover frequency
+        w_180       phase crossover frequency
+        =========   =======================================================  
+   
+    """
+
+    Gw = freq(G)
+
+    def mod(x):
+        """to give the function to calculate |G(jw)| = 1"""
+        return numpy.abs(Gw(x)) - 1
+
+    # how to calculate the freqeuncy at which |G(jw)| = 1
+    wc = optimize.fsolve(mod, 0.1)
+
+    def arg(w):
+        """function to calculate the phase angle at -180 deg"""
+        return numpy.angle(Gw(w)) + numpy.pi
+
+    # where the freqeuncy is calculated where arg G(jw) = -180 deg
+    w_180 = optimize.fsolve(arg, -1)
+
+    PM = numpy.angle(Gw(wc), deg=True) + 180
+    GM = 1/(numpy.abs(Gw(w_180)))
+
+    return GM, PM, wc, w_180
+
+
+def marginsclosedloop(L):
+    """ Calculate the margins of a closed loop system
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        L           loop transfer function
+        =========   =======================================================  
+    
+        =========   =======================================================
+        Returns     Description
+        =========   =======================================================
+        GM          gain margin
+        PM          phase margin
+        wc          gain crossover frequency for L
+        wb          closed loop bandwidth for S
+        wbt         closed loop bandwidth for T
+        =========   ======================================================= 
+    
+    """
+    GM, PM, wc, w_180 = margins(L)      
+    S = feedback(1, L)
+    T = feedback(L, 1)   
+        
+    Sw = freq(S)
+    Tw = freq(T)
+    
+    def modS(x):
+        return numpy.abs(Sw(x)) - 1/numpy.sqrt(2)
+        
+    def modT(x):
+        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)        
+
+    # calculate the freqeuncy at |S(jw)| = 0.707 from below
+    wb = optimize.fsolve(modS, 0.1)  
+    # calculate the freqeuncy at |T(jw)| = 0.707 from above
+    wbt = optimize.fsolve(modT, 0.1) 
+
+    #"Frequency range wb < wc < wbt    
+    if (PM < 90) and (wb < wc) and (wc < wbt):
+        valid = True
+    else: valid = False
+    return GM, PM, wc, wb, wbt, valid
+
+
+def bode(G, w1, w2, label='Figure', margin=False):
+    """Give the Bode plot along with GM (gain margin) and PM (phase margin)
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        G           plant transfer function
+        w1          start frequency
+        w2          end frequency
+        label       title for the figure (optional)
+        margin      show the cross over frequencies on the plot (optional)
+        =========   =======================================================    
+    
+    """
+
+    GM, PM, wc, w_180 = margins(G)
+
+    # plotting of Bode plot and with corresponding frequencies for PM and GM
+#    if ((w2 < numpy.log(w_180)) and margin):
+#        w2 = numpy.log(w_180)  
+    w = numpy.logspace(w1, w2, 1000)
+    s = 1j*w
+
+    plt.figure(label)
+    plt.subplot(211)
+    gains = numpy.abs(G(s))
+    plt.loglog(w, gains)
+    if margin:
+        plt.loglog(wc*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
+        plt.text(1, numpy.average([numpy.max(gains), numpy.min(gains)]), 'G(jw) = -180^o')
+#        plt.loglog(w_180*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
+    plt.loglog(w, 1 * numpy.ones(len(w)))
+    plt.ylabel('Magnitude')
+
+    # argument of G
+    plt.subplot(212)
+    phaseangle = phase(G(s), deg=True)
+    plt.semilogx(w, phaseangle)
+    if margin:
+        plt.semilogx(wc*numpy.ones(2), [numpy.max(phaseangle), numpy.min(phaseangle)])
+#        plt.semilogx(w_180*numpy.ones(2), [-180, 0])
+    plt.ylabel('Phase')
+    plt.xlabel('Frequency [rad/s]')
+
+    return GM, PM
+    
+def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
+    """Give the Bode plot of the closed loop function (L, S, T)
+    
+        =========   =======================================================
+        Arguments   Description
+        =========   =======================================================
+        G           plant transfer function
+        K           controller transfer function
+        w1          start frequency
+        w2          end frequency
+        label       title for the figure (optional)
+        margin      show the cross over frequencies on the plot (optional)
+        =========   =======================================================    
+    """
+    w = numpy.logspace(w1, w2, 1000)    
+    L = G(1j*w) * K(1j*w)
+    S = feedback(1, L)
+    T = feedback(L, 1)
+    
+    plt.figure(label)
+    plt.subplot(2, 1, 1)
+    plt.loglog(w, abs(L))
+    plt.loglog(w, abs(S))
+    plt.loglog(w, abs(T))
+    plt.ylabel("Magnitude")
+    plt.legend(["L", "S", "T"],
+               bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+    
+    if margin:        
+        plt.plot(w, 1/numpy.sqrt(2) * numpy.ones(len(w)), linestyle='dotted')
+        
+    plt.subplot(2, 1, 2)
+    plt.semilogx(w, phase(L, deg=True))
+    plt.semilogx(w, phase(S, deg=True))
+    plt.semilogx(w, phase(T, deg=True))
+    plt.ylabel("Phase")
+    plt.xlabel("Frequency [rad/s]")    
+       
+
+# according to convention this procedure should stay at the bottom       
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
+    doctest.testmod()       
