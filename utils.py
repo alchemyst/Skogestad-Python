@@ -8,7 +8,6 @@ import numpy #do not abbreviate this module as np in utilis.py
 import matplotlib.pyplot as plt
 from scipy import optimize, signal
 
-
 def circle(cx, cy, r):
     npoints = 100
     theta = numpy.linspace(0, 2*numpy.pi, npoints)
