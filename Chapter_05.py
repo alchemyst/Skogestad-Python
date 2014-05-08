@@ -1,235 +1,479 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.optimize as sc_opt
-import scipy.signal as scs
-from utils import phase
+from utils import tf, margins
+
+#Example plant
+s = tf([1, 0], 1)
+
+# Example plant based on Example 2.9 and Example 2.16
+G = (s + 200) / ((10 * s + 1) * (0.05 * s + 1)**2)
+#G.deadtime = 0.002
+Gd = 33 / (10 * s + 1)
+K = 0.4 * ((s + 2) / s) * (0.075 * s + 1)
+R = 3.0
+wr = 10
+
+''' 
+All of the below function are from pages 206-207 and the associated rules that 
+analyse the controllability of SISO problems
+'''
 
 
-def G():
-    """
-    Polynomial coefficients in the denominator and numerator
-    """
-    Pz = [40]
-    Pp = [1, 2, 1]
-    return Pz, Pp
+def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
+    '''
+    This is rule one of chapter five
+    
+    Calculates the speed of response to reject distrurbances. Condition require
+    |S(jw)| <= |1/Gd(jw)|
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+    
+    Gd : tf
+        plant distrubance model
+        
+    K : tf
+        control model
+    
+    message : boolean 
+        show the rule message (optional)
+        
+    plot : boolean
+        show the bode plot with constraints (optional)
+        
+    w1 : integer
+        start frequency, 10^w1 (optional)        
+    
+    w2 : integer
+        end frequency, 10^w2 (optional)        
+    
+    Returns
+    -------
+    valid1 : boolean
+        value if rule conditions was met
+    
+    wc : real
+        crossover frequency where | G(jwc) | = 1
+    
+    wd : real
+        crossover frequency where | Gd(jwd) | = 1         
+    '''
+
+    GM, PM, wc, wu = margins(G)
+    GM, PM, wd, w_180 = margins(Gd)
+    
+    valid1 = wc > wd
+
+    if message:
+        print 'Rule 1: Speed of response to reject distrubances'
+        if valid1:
+            print 'First condition met, wc > wd'               
+        else: 
+            print 'First condition no met, wc < wd'
+        print 'Seconds conditions requires |S(jw)| <= |1/Gd(jw)|'
+        
+    if plot:
+        plt.figure('Rule 1')
+        
+        w = np.logspace(w1, w2, 1000)
+        s = 1j * w   
+        
+        S = 1 / (1 + G*K)
+        mag_s = np.abs(S(s))        
+                    
+        inv_gd = 1 / Gd        
+        mag_i = np.abs(inv_gd(s))
+        
+        plt.loglog(w, mag_s)
+        plt.loglog(w, mag_i, ls = '--')
+        plt.legend(['|S|', '1/|Gd|'],
+                   bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+        plt.grid()
+        plt.xlabel('Frequency [rad/s]')
+        plt.ylabel('Magnitude')  
+        plt.show()
+        
+    return valid1, wc, wd
+
+#rule1(G, Gd, K, True, True)
 
 
-def R():
-    # R is the inv(De) * Dr
-    # therefore r_max/e_max
-    R = 3.0000000
-    return R
+def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
+    '''
+    This is rule two of chapter five
+    
+    Calculates speed of response to track reference changes. Conditions require
+    |S(jw)| <= 1/R
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+        
+    R : real
+        reference change 
+        
+    K : tf
+        control model  
+    
+    wr : real
+        reference frequency where tracking is required
+    
+    message : boolean 
+        show the rule message (optional)
+        
+    plot : boolean
+        show the bode plot with constraints (optional)
+        
+    w1 : integer
+        start frequency, 10^w1 (optional)        
+    
+    w2 : integer
+        end frequency, 10^w2 (optional)   
+    
+    Returns
+    -------
+    invref : real
+       1 / R                
+                             
+    '''
+    
+    invref = 1/R   
+    
+    if message:
+        print 'Conditions requires |S(jw)| <= ', invref
+        
+    if plot:
+        plt.figure('Rule 2')
+        
+        w = np.logspace(w1, w2, 1000)
+        s = 1j * w   
+    
+        S = 1 / (1 + G*K)
+        mag_s = np.abs(S(s)) 
+        
+        plt.loglog(w, mag_s)
+        plt.loglog(w,  invref * np.ones(len(w)), ls = '--')
+        plt.loglog(wr * np.ones(2), [np.max(mag_s), np.min(mag_s)], ls=':')
+        plt.legend(['|S|', '1/R', '$w_r$'],
+                   bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+        plt.grid()
+        plt.xlabel('Frequency [rad/s]')
+        plt.ylabel('Magnitude')
+        plt.show()
+    
+    return invref
+
+#rule2(G, R, K, 50, True, True)
 
 
-def Gm():
-    """
-    Measuring elements dynamics
-    """
-    Pz = [1]
-    Pp = [1, 1]
-    return Pz, Pp
+def rule3(G, Gd, message=False, w1=-4, w2=2):
+    '''
+    This is rule three of chapter five
+    
+    Calculates input constraints arising from disturbance rejection
+    
+    Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1'
+    at frequencies where |Gd(jw) > 1|'
+    
+    Perfect control conditions require |G(jw)| > |Gd(jw)|'    
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+    
+    Gd : tf
+        plant distrubance model
+    
+    message : boolean 
+        show the rule message (optional)
+        
+    w1 : integer
+        start frequency, 10^w1 (optional)        
+    
+    w2 : integer
+        end frequency, 10^w2 (optional) 
+                
+    '''
+        
+    w = np.logspace(w1, w2, 1000)        
+    s = 1j * w
+        
+    mag_g = np.abs(G(s))
+    mag_gd = np.abs(G(s))
+    
+    if message:
+        print 'Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|'            
+        print 'Perfect control conditions require |G(jw)| > |Gd(jw)|'
+        
+    plt.figure('Rule 3')
+    plt.subplot(211)
+    plt.title('Acceptable control')
+    plt.loglog(w, mag_g, label = '|G|')
+    plt.loglog(w, mag_gd - 1, label = '|Gd - 1|', ls = '--')
+    plt.loglog(w,  1 * np.ones(len(w)))
+    plt.legend(loc = 3)
+    plt.grid()
+    plt.ylabel('Magnitude')
+    
+    plt.subplot(212)
+    plt.title('Perfect control')
+    plt.loglog(w, mag_g, label = '|G|')
+    plt.loglog(w, mag_gd, label = '|Gd|', ls = '--')
+    plt.legend(loc = 3)
+    plt.grid()
+    plt.xlabel('Frequency [rad/s]')
+    plt.ylabel('Magnitude')
+    plt.show()    
+
+#rule3(G, Gd)
 
 
-def Time_Delay():
-    """
-    Matrix with theta values, combined time delay of system
-    and measuring element
-    """
-    Delay = [-1]
-    return Delay
+def rule4(G, R, wr, w1=-4, w2=2):
+    '''
+    This is rule four of chapter five
+    
+    Calculates input constraints arising from setpoints
+    
+    Conditions require |G(jw)| > R - 1 up to frequency wr
+    
+    Parameters
+    ----------
+    G : tf
+        plant model  
+        
+    R : real
+        reference change  
+    
+    wr : real
+        reference frequency where tracking is required
+        
+    w1 : integer
+        start frequency, 10^w1 (optional)        
+    
+    w2 : integer
+        end frequency, 10^w2 (optional)     
+                  
+    '''
 
-
-def Gd():
-    """
-    Polynomial coefficients in the denominator and numerator
-    """
-    Pz = [8]
-    Pp = [1, 1]
-    return Pz, Pp
-
-# All of the below function are from pages 206-207 and the associated rules
-# that analyse the controllability of SISO problems
-
-
-def Rule_1():
-    # This is rule one
-    # This function calculates the frequency where |Gd| crosses 1
-
-    def Gd_mod_1(w):
-        return np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1]) - 1
-
-    wd = sc_opt.fsolve(Gd_mod_1, 10)
-    wc_min_1 = wd
-
-    print 'wc > wd = ', wc_min_1
-    print 'This should be the critical freqeuncy of S for the system\
-           to be controllable'
-
-    return wc_min_1
-
-
-def Rule_2(wr):
-
-    # This function is for Rule 2 of the controllability analysis on pg-206
-    # This function gives values for which S needs to be smaller than up to
-    # a frequency of wr
-    #|S(jw)|<=1/R
-
-    print '|S(jw)|<= ', 1/R()
-    print 'This should be up to a freqeuncy w<= ', wr
-
-    return 1/R()
-
-#Rule_2(0.1)
-
-
-def Rule_3(w_start, w_end):
-    # This function is for Rule 3 of the controllability analysis on pg 207
-    # Checks input constraints for disturbance rejection
-
-    def G_Gd_1(w):
-        f = scs.freqs(G()[0], G()[1], w)[1]
-        g = scs.freqs(Gd()[0], Gd()[1], w)[1]
-        return np.abs(f)-np.abs(g)
-
-    w_G_Gd = sc_opt.fsolve(G_Gd_1, 0.001)
-
-    plt.figure(1)
-    if (np.abs(scs.freqs(G()[0], G()[1], [w_G_Gd + 0.0001])[1]) >
-            np.abs(scs.freqs(Gd()[0], Gd()[1], [w_G_Gd + 0.0001])[1])):
-
-        print "Acceptable control"
-        print "control only at high frequencies", w_G_Gd, "< w < inf"
-
-        w = np.logspace(w_start, np.log10(w_G_Gd), 100)
-        plt.loglog(w, np.abs(scs.freqs(G()[0], G()[1], w)[1]), 'r')
-        plt.loglog(w, np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1]), 'r.')
-
-        max_p = np.max([np.abs(scs.freqs(G()[0], G()[1], w)[1]),
-                        np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1])])
-
-        w = np.logspace(np.log10(w_G_Gd), w_end, 100)
-        plt.loglog(w, np.abs(scs.freqs(G()[0], G()[1], w)[1]), 'b')
-        plt.loglog(w, np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1]), 'b.')
-
-        min_p = np.min([np.abs(scs.freqs(G()[0], G()[1], w)[1]),
-                        np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1])])
-
-    if (np.abs(scs.freqs(G()[0], G()[1], [w_G_Gd-0.0001])[1]) >=
-            np.abs(scs.freqs(Gd()[0], Gd()[1], [w_G_Gd-0.0001])[1])):
-
-        print "Acceptable control"
-        print "control up to frequency 0 < w < ", w_G_Gd
-
-        w = np.logspace(w_start, np.log10(w_G_Gd), 100)
-        plt.loglog(w, np.abs(scs.freqs(G()[0], G()[1], w)[1]), 'b')
-        plt.loglog(w, np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1]), 'b.')
-
-        max_p = np.max([np.abs(scs.freqs(G()[0], G()[1], w)[1]),
-                        np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1])])
-
-        w = np.logspace(np.log10(w_G_Gd), w_end, 100)
-        plt.loglog(w, np.abs(scs.freqs(G()[0], G()[1], w)[1]), 'r')
-        plt.loglog(w, np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1]), 'r.')
-
-        min_p = np.min([np.abs(scs.freqs(G()[0], G()[1], w)[1]),
-                        np.abs(scs.freqs(Gd()[0], Gd()[1], w)[1])])
-
-    print 'The dotted line is for Gd and the straight line for G'
-    plt.loglog(w_G_Gd*np.ones(2), [max_p, min_p], 'g')
+    w = np.logspace(w1, w2, 1000)
+    s = 1j * w
+    
+    mag_g = np.abs(G(s)) 
+    mag_rr = (R - 1) * np.ones(len(w))
+    
+    plt.loglog(w, mag_g)
+    plt.loglog(w,  mag_rr, ls = '--')
+    plt.loglog(wr * np.ones(2), [np.max(mag_g), np.min(mag_g)], ls=':')
+    plt.legend(['|G|', 'R - 1', '$w_r$'],
+               bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+    plt.grid()
+    plt.xlabel('Frequency [rad/s]')
+    plt.ylabel('Magnitude')     
     plt.show()
 
-
-#Rule_3(-4, 6)
-
-def Rule_4(w_star, w_end, wr):
-    # This is rule 4 on page 207 for input constraint check towards
-    # reference changes
-    wr = 10 ** wr
-    w = np.logspace(w_star, w_end, 1000)
-
-    [w, h] = scs.freqs(G()[0], G()[1], w)
-
-    plt.loglog(w, abs(h), 'b')
-    plt.loglog([w[0], w[-1]], [(R()-1), (R()-1)], 'r')
-    plt.loglog([wr, wr], [0.8*np.min([(R()-1), np.min(abs(h))]),
-               1.2*np.max([(R()-1), np.max(abs(h))])], 'g')
-
-    print 'The blue line needs to be larger than the red line up to the\
-           freqeuncy where control is needed'
-    print 'This plot is done up to the wr'
-    print 'The green vertical line is the wr'
-
-    plt.show()
-
-#Rule_4(-4, 5, 0.0001)
+#rule4(G, R, wr)
 
 
-def Rule_5():
-    # This is rule 5 on page 207 for determining the wc for S
+def rule5(G, Gm=1, message=False):
+    '''
+    This is rule five of chapter five
+    
+    Calculates constraints for time delay, wc < 1 / theta
+    
+    Parameters
+    ----------
+    G : tf
+        plant model  
+        
+    Gm : tf
+        measurement model
+            
+    message : boolean 
+        show the rule message (optional)
+    
+    Returns
+    -------
+    valid5 : boolean 
+        value if rule conditions was met
+    
+    wtd: real
+        time delay frequency                  
+    '''
 
-    print 'The is calculated with respect to the amount of deadtime\
-           in the system'
+    GGm = G * Gm
+    TimeDelay = GGm.deadtime
+    GM, PM, wc, w_180 = margins(G) 
+    
+    valid5 = False
+    if TimeDelay == 0:
+        wtd = 0
+    else:     
+        wtd = 1 / TimeDelay     
+        valid5 = wc < wtd 
+    
+    if message:
+        if TimeDelay == 0:
+            print 'There isn t any deadtime in the system'
+        if valid5:
+            print 'wc < 1 / theta :', wc , '<' , wtd
+        else:
+            print 'wc > 1 / theta :', wc , '>' , wtd
+            
+    return valid5, wtd
 
-    if Time_Delay() == 0:
-        print 'there isn t any deadtime in the system'
-    else:
-        print 'wc < ', 1/Time_Delay()
-
-    return 1/Time_Delay()
+#rule5(G, Gm, True)
 
 
-def Rule_6():
-    # Rule 6 on page 270
-    # Peak value of wc for S in the case of RHP-Zeros
+def rule6(G, Gm, message=False):
+    '''
+    This is rule six of chapter five
+    
+    Calculates if tight control at low frequencies with ZHP-zeros is possible
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+    
+    Gd : tf
+        plant distrubance model
+    
+    message : boolean 
+        show the rule message (optional)
+    
+    Returns
+    -------
+    valid6 : boolean value if rule conditions was met
+    
+    wc : crossover frequency where | G(jwc) | = 1
+    
+    wd : crossover frequency where | Gd(jwd) | = 1     
+            
+    '''
 
-    Pz_G_Gm = np.polymul(G()[0], Gm()[0])
+    GGm = G * Gm
+    zeros = np.roots(GGm.numerator)
+    GM, PM, wc, w_180 = margins(GGm)
 
-    print 'These are the roots of the transfer function matrix GGm '
-
-    Pz_roots = np.roots(Pz_G_Gm)
-    print Pz_roots
-    print ''
-
-    if np.real(np.max(Pz_roots)) > 0:
-
-        if np.imag(np.min(Pz_roots)) == 0:
+    wz = 0
+    if len(zeros) > 0:
+        if np.imag(np.min(zeros)) == 0:
             # If the roots aren't imaginary.
             # Looking for the minimum values of the zeros = > results
             # in the tightest control.
-            wc_6 = (np.min(np.abs(Pz_roots)))/2.000
+            wz = (np.min(np.abs(zeros)))/2.000
+            valid6 = wc < 0.86 * np.abs(wz)
         else:
-            wc_6 = 0.8600*np.abs(np.min(Pz_roots))
-    return wc_6
+            wz = 0.8600*np.abs(np.min(zeros))
+            valid6 = wc < wz /2
+    else: valid6 = False
+    
+    if message:
+        if (wz <> 0):
+            print 'These are the roots of the transfer function matrix GGm' , zeros
+        if valid6:    
+            print 'The critical frequency of S for the system to be controllable is' , wz
+        else: print 'No zeros in the system to evaluate'
+    return valid6, wz
+    
+#rule6(G, Gm, message=True)
 
 
-def Rule_7(w_start, w_end):
+def rule7(G, Gm, message=False):
+    '''
+    This is rule one of chapter five
+    
+    Calculates the phase lag constraints
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+    
+    Gd : tf
+        plant distrubance model
+    
+    message : boolean 
+        show the rule message (optional)
+    
+    Returns
+    -------
+    valid1 : boolean
+        value if rule conditions was met
+    
+    wc : real
+        crossover frequency where | G(jwc) | = 1
+    
+    wd : real
+        crossover frequency where | Gd(jwd) | = 1    
+            
+    '''
     # Rule 7 determining the phase of GGm at -180 deg.
     # This is solved visually from a plot.
+    
+    GGm = G * Gm
+    GM, PM, wc, w_180 = margins(GGm)
+    
+    valid7 = wc < w_180   
+    
+    if message: 
+        if valid7:
+            print 'wc < wu :' , wc , '<' , w_180
+        else:
+            print 'wc > wu :' , wc , '>' , w_180
+    
+    return valid7
+    
+#rule7(G, Gm, True)
 
-    w = np.logspace(w_start, w_end, 1000)
 
-    Pz = np.polymul(G()[0], Gm()[0])
-    Pp = np.polymul(G()[1], Gm()[1])
-    [w, h] = scs.freqs(Pz, Pp, w)
+def rule8(G, message=False):
+    '''
+    This is rule one of chapter five
+    
+    This function determines if the plant is open-loop stable at its poles
+    
+    Parameters
+    ----------
+    G : tf
+        plant model   
+    
+    Gd : tf
+        plant distrubance model
+    
+    message : boolean 
+        show the rule message (optional)
+    
+    Returns
+    -------
+    valid1 : boolean 
+        value if rule conditions was met
+    
+    wc : real
+        crossover frequency where | G(jwc) | = 1            
+    '''
+    #Rule 8 for critical frequency min value due to poles
 
-    plt.semilogx(w, (180/np.pi)*(phase(h)+w*Time_Delay()))
-    plt.show()
+    poles = np.roots(G.denominator)
+    GM, PM, wc, w_180 = margins(G)
 
-#Rule_7(-4, -2)
+    wp = 0
+    if np.max(poles) < 0:
+        wp = 2 * np.max(np.abs(poles))
+        valid8 = wc > wp
+    else: valid8 = False
+        
+    if message:
+        if valid8:
+            print 'wc > 2p :', wc , '>' , wp
+        else:
+            print 'wc < 2p :', wc , '<' , wp
 
+    return valid8, wp
 
-def Rule_8():
-    #Rule 8 on pg-207 for critical frequency min value due to poles
-
-    Poles = np.roots(G()[1])
-
-    if np.max(Poles) < 0:
-        wc = 2 * np.max(np.abs(Poles))
-        print 'The minimum critical frequency wc> ', wc
-    else:
-        print 'Check Equation 5-86 for eniquality check for unstable plants'
-
-    return wc
-
-#Rule_8()
+#rule8(G, True)
