@@ -46,7 +46,7 @@ def findst(G, K):
 
 
 def phase(G, deg=False):
-    return numpy.unwrap(numpy.angle(G, deg=deg), 
+    return numpy.unwrap(numpy.angle(G, deg=deg),
                         discont=180 if deg else numpy.pi)
 
 
@@ -177,15 +177,33 @@ class tf(object):
         """
         return tf(self.denominator, self.numerator, -self.deadtime)
 
-    def step(self, *args):
-        """ Step response """ 
-        return signal.lti(self.numerator, self.denominator).step(*args)
+    def step(self, X0=None, T=None, N=None):
+        """
+        Step response of the transfer function.
+        """
+        numerator = self.numerator
+        denominator = self.denominator
+        inputdelay = self.deadtime
+        sys = signal.lti(numerator, denominator)
+        if N is None:
+            N = 1000
+        if T is None:
+            T = signal.ltisys._default_response_times(sys.A, N)
+        else:
+            T = numpy.asarray(T)
+        U = numpy.linspace(0., 0., numpy.asarray(T.shape))
+        delay_index = numpy.zeros(2, dtype=float)
+        delay_index[0] = max(numpy.around(inputdelay/(max(T)/(T.size-1)) - 1, 0), 0)
+        delay_index[1] = T.size
+        U[delay_index[0]:delay_index[1]] = 1
+        vals = signal.ltisys.lsim(sys, U, T, X0=X0)
+        return vals[0], vals[1]
 
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
         self.denominator, remainder = self.denominator/g
-    
+
     def __repr__(self):
         if self.name:
             r = str(self.name) + "\n"
@@ -194,9 +212,9 @@ class tf(object):
         r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
         if self.deadtime != 0:
             r += ", deadtime=" + str(self.deadtime)
-        if self.u: 
+        if self.u:
             r += ", u='" + self.u + "'"
-        if self.y: 
+        if self.y:
             r += ", y=': " + self.y + "'"
         r += ")"
         return r
@@ -284,12 +302,12 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
     """
     # See the following docs for meaning of *args
     # http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.step.html
-    
+
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
     # TODO: Make more specific
-    
+
     tspace = numpy.linspace(0, t_final, steps)
     foo = numpy.real(tf.step(initial_val, tspace))
     plt.plot(foo[0], foo[1])
@@ -341,7 +359,7 @@ def feedback_mimo(forward, backward=None, positive=False):
     return forward * (I + backward * forward).I
 
 
-def omega(w_start, w_end):  
+def omega(w_start, w_end):
     """
     Convenience wrapper
     Defines the frequency range for calculation of frequency response
@@ -349,21 +367,21 @@ def omega(w_start, w_end):
     """
     omega = numpy.logspace(w_start, w_end, 1000)
     return omega
-    
-    
+
+
 def freq(G):
-    """ 
+    """
     Calculate the frequency response for an optimisation problem
-    
+
     Parameters
     ----------
     G : tf
-        plant model 
-          
+        plant model
+
     Returns
     -------
-    Gw : frequency response function           
-    """ 
+    Gw : frequency response function
+    """
 
     def Gw(w):
         return G(1j * w)
@@ -371,30 +389,30 @@ def freq(G):
 
 
 def ZeiglerNichols(G):
-    """ 
+    """
     Calculates the Ziegler Nichols tuning parameters for a PI controller
-    
+
     Parameters
     ----------
     G : tf
-        plant model   
-          
+        plant model
+
     Returns
     -------
     var : type
         description
 
-    Kc : real         
+    Kc : real
         proportional gain
     Tauc : real
         integral gain
     Ku : real
         ultimate P controller gain
     Pu : real
-        corresponding period of oscillations                   
-    """  
-    
-    GM, PM, wc, w_180 = margins(G)  
+        corresponding period of oscillations
+    """
+
+    GM, PM, wc, w_180 = margins(G)
     Ku = numpy.abs(1 / G(1j * w_180))
     Pu = numpy.abs(2 * numpy.pi / w_180)
     Kc = Ku / 2.2
@@ -404,17 +422,17 @@ def ZeiglerNichols(G):
 
 
 def margins(G):
-    """ 
+    """
     Calculates the gain and phase margins, together with the gain and phase
     crossover frequency for a plant model
-    
+
     Parameters
     ----------
     G : tf
-        plant model         
-          
+        plant model
+
     Returns
-    -------    
+    -------
     GM : real
         gain margin
     PM : real
@@ -448,48 +466,48 @@ def margins(G):
 
 
 def marginsclosedloop(L):
-    """ 
+    """
     Calculates the gain and phase margins, together with the gain and phase
     crossover frequency for a control model
-    
+
     Parameters
     ----------
     L : tf
-        loop transfer function        
-          
+        loop transfer function
+
     Returns
     -------
-    GM : real      
+    GM : real
         gain margin
-    PM : real           
+    PM : real
         phase margin
-    wc : real           
+    wc : real
         gain crossover frequency for L
-    wb : real           
+    wb : real
         closed loop bandwidth for S
-    wbt : real 
-        closed loop bandwidth for T                  
+    wbt : real
+        closed loop bandwidth for T
     """
-    
-    GM, PM, wc, w_180 = margins(L)      
+
+    GM, PM, wc, w_180 = margins(L)
     S = feedback(1, L)
-    T = feedback(L, 1)   
-        
+    T = feedback(L, 1)
+
     Sw = freq(S)
     Tw = freq(T)
-    
+
     def modS(x):
         return numpy.abs(Sw(x)) - 1/numpy.sqrt(2)
-        
+
     def modT(x):
-        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)        
+        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)
 
     # calculate the freqeuncy at |S(jw)| = 0.707 from below (start searching from 0)
-    wb = optimize.fsolve(modS, 0)  
+    wb = optimize.fsolve(modS, 0)
     # calculate the freqeuncy at |T(jw)| = 0.707 from above (start searching from 1)
-    wbt = optimize.fsolve(modT, 1) 
+    wbt = optimize.fsolve(modT, 1)
 
-    #"Frequency range wb < wc < wbt    
+    #"Frequency range wb < wc < wbt
     if (PM < 90) and (wb < wc) and (wc < wbt):
         valid = True
     else: valid = False
@@ -497,9 +515,9 @@ def marginsclosedloop(L):
 
 
 def bode(G, w1, w2, label='Figure', margin=False):
-    """ 
+    """
     Shows the bode plot for a plant model
-    
+
     Parameters
     ----------
     G : tf
@@ -511,21 +529,21 @@ def bode(G, w1, w2, label='Figure', margin=False):
     label : string
         title for the figure (optional)
     margin : boolean
-        show the cross over frequencies on the plot (optional)        
-          
+        show the cross over frequencies on the plot (optional)
+
     Returns
     -------
-    GM : real      
+    GM : real
         gain margin
-    PM : real           
-        phase margin         
+    PM : real
+        phase margin
     """
 
     GM, PM, wc, w_180 = margins(G)
 
     # plotting of Bode plot and with corresponding frequencies for PM and GM
 #    if ((w2 < numpy.log(w_180)) and margin):
-#        w2 = numpy.log(w_180)  
+#        w2 = numpy.log(w_180)
     w = numpy.logspace(w1, w2, 1000)
     s = 1j*w
 
@@ -551,15 +569,15 @@ def bode(G, w1, w2, label='Figure', margin=False):
     plt.grid()
     plt.ylabel('Phase')
     plt.xlabel('Frequency [rad/s]')
-    
+
     plt.show()
 
     return GM, PM
-    
+
 def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
-    """ 
+    """
     Shows the bode plot for a controller model
-    
+
     Parameters
     ----------
     G : tf
@@ -573,14 +591,14 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     label : string
         title for the figure (optional)
     margin : boolean
-        show the cross over frequencies on the plot (optional)             
+        show the cross over frequencies on the plot (optional)
     """
-    
-    w = numpy.logspace(w1, w2, 1000)    
+
+    w = numpy.logspace(w1, w2, 1000)
     L = G(1j*w) * K(1j*w)
     S = feedback(1, L)
     T = feedback(L, 1)
-    
+
     plt.figure(label)
     plt.subplot(2, 1, 1)
     plt.loglog(w, abs(L))
@@ -590,23 +608,23 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     plt.ylabel("Magnitude")
     plt.legend(["L", "S", "T"],
                bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
-    
-    if margin:        
+
+    if margin:
         plt.plot(w, 1/numpy.sqrt(2) * numpy.ones(len(w)), linestyle='dotted')
-        
+
     plt.subplot(2, 1, 2)
     plt.semilogx(w, phase(L, deg=True))
     plt.semilogx(w, phase(S, deg=True))
     plt.semilogx(w, phase(T, deg=True))
     plt.grid()
     plt.ylabel("Phase")
-    plt.xlabel("Frequency [rad/s]")  
-    
-    plt.show()
-    
-       
+    plt.xlabel("Frequency [rad/s]")
 
-# according to convention this procedure should stay at the bottom       
+    plt.show()
+
+
+
+# according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()       
+    doctest.testmod()
