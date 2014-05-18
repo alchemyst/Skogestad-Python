@@ -290,8 +290,13 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
     warnings.simplefilter("ignore")
     # TODO: Make more specific
     
+    deadtime = tf.deadtime
     tspace = numpy.linspace(0, t_final, steps)
     foo = numpy.real(tf.step(initial_val, tspace))
+    t_stepsize = max(foo[0])/(foo[0].size-1)
+    t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
+    foo[1] = numpy.roll(foo[1], t_startindex)
+    foo[1,0:t_startindex] = initial_val
     plt.plot(foo[0], foo[1])
     plt.show()
 
