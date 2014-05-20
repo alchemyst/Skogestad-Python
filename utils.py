@@ -350,7 +350,7 @@ def omega(w_start, w_end):
     """
     Convenience wrapper
     Defines the frequency range for calculation of frequency response
-    Frequency in rad/time were time is the time unit used in model
+    Frequency in rad/time where time is the time unit used in the model.
     """
     omega = numpy.logspace(w_start, w_end, 1000)
     return omega
