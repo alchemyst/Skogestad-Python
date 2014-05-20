@@ -4,7 +4,7 @@ Created on Jan 27, 2012
 @author: Carl Sandrock
 '''
 
-import numpy #do not abbreviate this module as np in utilis.py
+import numpy #do not abbreviate this module as np in utils.py
 import matplotlib.pyplot as plt
 from scipy import optimize, signal
 
@@ -305,7 +305,7 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
 
 def sigmas(A):
     """
-    Return the singular values of A
+    Returns the singular values of A
 
     This is a convenience wrapper to enable easy calculation of
     singular values over frequency
@@ -320,6 +320,22 @@ def sigmas(A):
     #TODO: This should probably be created with functools.partial
     return numpy.linalg.svd(A, compute_uv=False)
 
+
+def SVD(Gin):
+    """
+    Returns the singular values (Sv) as well as the input and output
+    singular vectors (V and U respectively).   
+    
+    SVD(G) = U Sv VH  where VH is the complex conjugate transpose of V.
+    Here we will return V and not VH.
+
+    This is a convenience wrapper to enable easy calculation of
+    singular values and their associated singular vectors as in Skogestad.
+    """
+    U, Sv, VH = numpy.linalg.svd(Gin)
+    V = numpy.conj(numpy.transpose(VH))
+    return(U, Sv, V)
+    
 
 def feedback_mimo(forward, backward=None, positive=False):
     """
