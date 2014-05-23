@@ -335,7 +335,21 @@ def SVD(Gin):
     U, Sv, VH = numpy.linalg.svd(Gin)
     V = numpy.conj(numpy.transpose(VH))
     return(U, Sv, V)
+ 
+
+def Wp(wB, A, s):
+    """
+    Returns the magnitude of the performance weighting function 
+    as a function of s => |Wp(s)|
     
+        wB  =>  minimum bandwidth frequency requirment.         
+        A   =>  Maximum steady state tracking error.            
+        s   =>  Typically w*1j              
+    """
+    M = 2
+    return(numpy.abs((s/M + wB) / (s + wB*A)))     
+
+   
 
 def feedback_mimo(forward, backward=None, positive=False):
     """
