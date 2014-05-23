@@ -342,6 +342,9 @@ def Wp(wB, A, s):
     Returns the magnitude of the performance weighting function 
     as a function of s => |Wp(s)|
     
+    NOTE:  This is based on Skogestad eq 2.105 and is just one example
+            of a performance weighting function.
+    
         wB  =>  minimum bandwidth frequency requirment.         
         A   =>  Maximum steady state tracking error.            
         s   =>  Typically w*1j              
