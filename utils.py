@@ -345,15 +345,30 @@ def Wp(wB, A, s):
     NOTE:  This is based on Skogestad eq 2.105 and is just one example
             of a performance weighting function.
     
-        wB  =>  minimum bandwidth frequency requirment.         
-        A   =>  Maximum steady state tracking error.            
-        s   =>  Typically w*1j              
+        wB  =>  minimum bandwidth frequency requirment       
+        A   =>  maximum steady state tracking error    
+        s   =>  typically w*1j
+
     """
     M = 2
     return(numpy.abs((s/M + wB) / (s + wB*A)))     
 
-   
 
+def distRej(G, gd):
+    """
+    Convenience wrapper for calculation of ||gd||2, and the 
+    disturbace condition number for each disturbance in your Gd matrix.
+    
+        G   =>  system transfer function matrix
+        gd  =>  single disturbance vector (gdi) from your disturbance matrix Gd
+    """
+    
+    gd1 = 1/numpy.linalg.norm((gd),2)   #Returns largest sing value of gd(wj)
+    yd = gd1*gd
+    distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
+    return(gd1, distCondNum)
+
+   
 def feedback_mimo(forward, backward=None, positive=False):
     """
     Calculates a feedback loop
