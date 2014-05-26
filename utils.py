@@ -68,8 +68,29 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
-def RGA(Gin):
-    """ Calculate the Relative Gain Array of a matrix """
+def RGA(Gin, ):
+    """ 
+    Computes the Relative Gain Array of a matrix.
+    
+    
+    Parameters
+    ==========
+    Gin : numpy array
+        Transfer function matrix.
+        
+    Returns
+    =======
+    RGA matrix : matrix
+        RGA matrix of complex numbers.
+    
+    Example
+    =======
+    >>> G = numpy.array([[1, 2],[3, 4]])
+    >>> RGA(G)
+    array([[-2.,  3.],
+           [ 3., -2.]])
+
+    """
     G = numpy.asarray(Gin)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
@@ -322,10 +343,8 @@ def sigmas(A):
 
     Example
     -------
-    
-    >>> A = numpy.array([[1, 2],
-                         [3, 4]])
-    >>> sigmas(A)
+    >>> G = numpy.array([[1, 2],[3, 4]])
+    >>> sigmas(G)
     array([ 5.4649857 ,  0.36596619])
 
     """
@@ -473,7 +492,8 @@ def freq(G):
           
     Returns
     -------
-    Gw : frequency response function           
+    Gw : frequency response function
+    
     """ 
 
     def Gw(w):
@@ -502,7 +522,8 @@ def ZeiglerNichols(G):
     Ku : real
         ultimate P controller gain
     Pu : real
-        corresponding period of oscillations                   
+        corresponding period of oscillations
+        
     """  
     
     GM, PM, wc, w_180 = margins(G)  
@@ -534,6 +555,7 @@ def margins(G):
         gain crossover frequency where |G(jwc)| = 1
     w_180 : real
         phase crossover frequency where angle[G(jw_180] = -180 deg
+        
     """
 
     Gw = freq(G)
@@ -579,7 +601,8 @@ def marginsclosedloop(L):
     wb : real           
         closed loop bandwidth for S
     wbt : real 
-        closed loop bandwidth for T                  
+        closed loop bandwidth for T
+        
     """
     
     GM, PM, wc, w_180 = margins(L)      
@@ -629,7 +652,8 @@ def bode(G, w1, w2, label='Figure', margin=False):
     GM : real      
         gain margin
     PM : real           
-        phase margin         
+        phase margin
+        
     """
 
     GM, PM, wc, w_180 = margins(G)
@@ -684,7 +708,8 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     label : string
         title for the figure (optional)
     margin : boolean
-        show the cross over frequencies on the plot (optional)             
+        show the cross over frequencies on the plot (optional)
+        
     """
     
     w = numpy.logspace(w1, w2, 1000)    
