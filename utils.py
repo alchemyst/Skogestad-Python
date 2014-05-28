@@ -37,7 +37,24 @@ def gaintf(K):
 
 
 def findst(G, K):
-    """ Find S and T given a value for G and K """
+    """ 
+    Find S and T given a value for G and K.
+    
+    Parameters
+    ----------
+    G : numpy array
+        Matrix of transfer functions.
+    K : numpy array
+        Matrix of controller functions.
+    
+    Returns
+    -------
+    S : numpy array
+        Matrix of sensitivities.
+    T : numpy array
+        Matrix of complementary sensitivities.
+    
+   """
     L = G*K
     I = numpy.eye(G.outputs, G.inputs)
     S = numpy.linalg.inv(I + L)
