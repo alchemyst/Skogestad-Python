@@ -2,6 +2,8 @@
 Created on Jan 27, 2012
 
 @author: Carl Sandrock
+
+adding a bunch if lines to test github.....
 '''
 
 import numpy #do not abbreviate this module as np in utils.py
