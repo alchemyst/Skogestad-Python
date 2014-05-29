@@ -321,18 +321,18 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
 # TODO: Concatenate tf objects into MIMO structure
 
 
-def sigmas(A):
+def sigmas(G):
     """
-    Returns the singular values of A
+    Returns the singular values of G
     
     Parameters
     ----------
-    A : array
+    G : array
         Transfer function matrix.
         
     Returns
     -------
-    :math:`\sigma` (A) : array
+    :math:`\sigma` (G) : array
         Singular values of A arranged in decending order.
 
     This is a convenience wrapper to enable easy calculation of
@@ -341,25 +341,87 @@ def sigmas(A):
     Example
     -------
     
-    >>> A = numpy.array([[1, 2],
+    >>> G = numpy.array([[1, 2],
                          [3, 4]])
-    >>> sigmas(A)
+    >>> sigmas(G)
     array([ 5.4649857 ,  0.36596619])
 
     """
     #TODO: This should probably be created with functools.partial
     sigma = functools.partial(numpy.linalg.svd, compute_uv=False)
-    return sigma(A)
+    return sigma(G)
 
 
-def SVD(Gin):
+def maxSV_dir(G):
+    """
+    Returns the input and output singular vectors associated with the
+    maximum singular value.
+       
+    Parameters
+    ----------
+    G : matrix of complex numbers
+        Transfer function matrix.
+    
+    Returns
+    -------
+    U : Column matrix of complex numbers
+        Output directions associated with the maximum singular value.
+    
+    V : Column matrix of complex numbers
+        Input directions associated with the maximum singular value.
+    
+    Note
+    ----
+    If G is evaluated at a pole, the function returns the input and output
+    directions associated with that pole.
+    """
+    
+    U, Sv, V = SVD(G)
+    
+    u = U[:, 0]
+    v = V[:, 0] 
+    return(u, v)
+    
+
+def minSV_dir(G):
+    """
+    Returns the input and output singular vectors associated with the
+    minimum singular value.
+       
+    Parameters
+    ----------
+    G : matrix of complex numbers
+        Transfer function matrix.
+    
+    Returns
+    -------
+    U : matrix of complex numbers
+        Output directions associated with the minimum singular value.
+    
+    V : matrix of complex numbers
+        Input directions associated with the minimum singular value.
+    
+    Note
+    ----
+    If G is evaluated at a zero, the function returns the input and output
+    directions associated with that zero.
+    """
+    
+    U, Sv, V = SVD(G)
+    
+    u = U[:, -1]
+    v = V[:, -1] 
+    return(u, v)    
+
+
+def SVD(G):
     """
     Returns the singular values (Sv) as well as the input and output
     singular vectors (V and U respectively).   
     
     Parameters
     ----------
-    Gin : matrix of complex numbers
+    G : matrix of complex numbers
         Transfer function matrix.
     
     Returns
@@ -382,7 +444,7 @@ def SVD(Gin):
     singular values and their associated singular vectors as in Skogestad.
     
     """
-    U, Sv, VH = numpy.linalg.svd(Gin)
+    U, Sv, VH = numpy.linalg.svd(G)
     V = numpy.conj(numpy.transpose(VH))
     return(U, Sv, V)
  
