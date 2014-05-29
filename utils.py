@@ -350,6 +350,45 @@ def sigmas(A):
     return numpy.linalg.svd(A, compute_uv=False)
 
 
+def sv_dir(G):
+    """
+    Returns the input and output singular vectors associated with the
+    minimum and maximum singular values.
+       
+    Parameters
+    ----------
+    G : array of complex numbers
+        Transfer function matrix.
+    
+    Returns
+    -------
+    u : array of complex numbers
+        Output vector associated with the maximum and minium singular
+        values. The maximum singular output vector is the first entry u[0] and
+        the minimum is the second u[1].
+    
+    v : array of complex numbers
+        Input vector associated with the maximum and minium singular
+        values. The maximum singular intput vector is the first entry u[0] and
+        the minimum is the second u[1].
+        
+    NOTE
+    ----
+    If G is evaluated at a pole, u[0] is the input and v[0] is the output
+    directions associated with that pole, respectively.
+    
+    If G is evaluated at a zero, u[1] is the input and v[0] is the output
+    directions associated with that zero.    
+    
+    """
+    
+    U, Sv, V = SVD(G)
+    
+    u = [U[:, 0]] + [U[:, -1]]
+    v = [V[:, 0]] + [V[:, -1]] 
+    return(u, v)
+
+
 def SVD(Gin):
     """
     Returns the singular values (Sv) as well as the input and output

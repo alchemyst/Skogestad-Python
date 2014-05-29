@@ -51,8 +51,9 @@ def MIMOnyqPlot(L):
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
     plt.plot(0, 0, 'r*', ms = 10)
     plt.grid(True)
-    n = 2                               #Sets axis limits
-    plt.axis([-n,n,-n,n])
+    n = 2               # Sets x-axis limits
+    plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
+    plt.xlim(-n, n)
     fig = plt.gcf()
     BG = fig.patch
     BG.set_facecolor('white')
