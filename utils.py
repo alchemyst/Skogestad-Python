@@ -7,6 +7,7 @@ Created on Jan 27, 2012
 import numpy #do not abbreviate this module as np in utils.py
 import matplotlib.pyplot as plt
 from scipy import optimize, signal
+import functools
 
 def circle(cx, cy, r):
     npoints = 100
@@ -347,7 +348,8 @@ def sigmas(A):
 
     """
     #TODO: This should probably be created with functools.partial
-    return numpy.linalg.svd(A, compute_uv=False)
+    sigma = functools.partial(numpy.linalg.svd, compute_uv=False)
+    return sigma(A)
 
 
 def SVD(Gin):
