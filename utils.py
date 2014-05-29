@@ -7,7 +7,6 @@ Created on Jan 27, 2012
 import numpy #do not abbreviate this module as np in utils.py
 import matplotlib.pyplot as plt
 from scipy import optimize, signal
-import functools
 
 def circle(cx, cy, r):
     npoints = 100
@@ -321,18 +320,18 @@ def tf_step(tf, t_final=10, initial_val=0, steps=100):
 # TODO: Concatenate tf objects into MIMO structure
 
 
-def sigmas(G):
+def sigmas(A):
     """
-    Returns the singular values of G
+    Returns the singular values of A
     
     Parameters
     ----------
-    G : array
+    A : array
         Transfer function matrix.
         
     Returns
     -------
-    :math:`\sigma` (G) : array
+    :math:`\sigma` (A) : array
         Singular values of A arranged in decending order.
 
     This is a convenience wrapper to enable easy calculation of
@@ -341,87 +340,63 @@ def sigmas(G):
     Example
     -------
     
-    >>> G = numpy.array([[1, 2],
+    >>> A = numpy.array([[1, 2],
                          [3, 4]])
-    >>> sigmas(G)
+    >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
 
     """
     #TODO: This should probably be created with functools.partial
-    sigma = functools.partial(numpy.linalg.svd, compute_uv=False)
-    return sigma(G)
+    return numpy.linalg.svd(A, compute_uv=False)
 
 
-def maxSV_dir(G):
+def sv_dir(G):
     """
     Returns the input and output singular vectors associated with the
-    maximum singular value.
+    minimum and maximum singular values.
        
     Parameters
     ----------
-    G : matrix of complex numbers
+    G : array of complex numbers
         Transfer function matrix.
     
     Returns
     -------
-    U : Column matrix of complex numbers
-        Output directions associated with the maximum singular value.
+    u : array of complex numbers
+        Output vector associated with the maximum and minium singular
+        values. The maximum singular output vector is the first entry u[0] and
+        the minimum is the second u[1].
     
-    V : Column matrix of complex numbers
-        Input directions associated with the maximum singular value.
-    
-    Note
+    v : array of complex numbers
+        Input vector associated with the maximum and minium singular
+        values. The maximum singular intput vector is the first entry u[0] and
+        the minimum is the second u[1].
+        
+    NOTE
     ----
-    If G is evaluated at a pole, the function returns the input and output
-    directions associated with that pole.
+    If G is evaluated at a pole, u[0] is the input and v[0] is the output
+    directions associated with that pole, respectively.
+    
+    If G is evaluated at a zero, u[1] is the input and v[0] is the output
+    directions associated with that zero.    
+    
     """
     
     U, Sv, V = SVD(G)
     
-    u = U[:, 0]
-    v = V[:, 0] 
+    u = [U[:, 0]] + [U[:, -1]]
+    v = [V[:, 0]] + [V[:, -1]] 
     return(u, v)
-    
-
-def minSV_dir(G):
-    """
-    Returns the input and output singular vectors associated with the
-    minimum singular value.
-       
-    Parameters
-    ----------
-    G : matrix of complex numbers
-        Transfer function matrix.
-    
-    Returns
-    -------
-    U : matrix of complex numbers
-        Output directions associated with the minimum singular value.
-    
-    V : matrix of complex numbers
-        Input directions associated with the minimum singular value.
-    
-    Note
-    ----
-    If G is evaluated at a zero, the function returns the input and output
-    directions associated with that zero.
-    """
-    
-    U, Sv, V = SVD(G)
-    
-    u = U[:, -1]
-    v = V[:, -1] 
-    return(u, v)    
 
 
-def SVD(G):
+def SVD(Gin):
     """
     Returns the singular values (Sv) as well as the input and output
     singular vectors (V and U respectively).   
     
     Parameters
     ----------
-    G : matrix of complex numbers
+    Gin : matrix of complex numbers
         Transfer function matrix.
     
     Returns
@@ -444,7 +419,7 @@ def SVD(G):
     singular values and their associated singular vectors as in Skogestad.
     
     """
-    U, Sv, VH = numpy.linalg.svd(G)
+    U, Sv, VH = numpy.linalg.svd(Gin)
     V = numpy.conj(numpy.transpose(VH))
     return(U, Sv, V)
  
