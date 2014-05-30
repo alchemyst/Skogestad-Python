@@ -350,7 +350,7 @@ def sigmas(A):
     return numpy.linalg.svd(A, compute_uv=False)
 
 
-def sv_dir(G):
+def sv_dir(G, table=False):
     """
     Returns the input and output singular vectors associated with the
     minimum and maximum singular values.
@@ -360,6 +360,9 @@ def sv_dir(G):
     G : array of complex numbers
         Transfer function matrix.
     
+    table : True of False boolean
+            Default set to False.
+            
     Returns
     -------
     u : list of arrays containing complex numbers
@@ -371,6 +374,10 @@ def sv_dir(G):
         Input vector associated with the maximum and minium singular
         values. The maximum singular intput vector is the first entry u[0] and
         the minimum is the second u[1].
+    
+    table : If table is True then the output and input vectors are summarised
+            and returned as a table in the command window. Values are reported
+            to five significant figures.
         
     NOTE
     ----
@@ -381,11 +388,29 @@ def sv_dir(G):
     directions associated with that zero.    
     
     """
-    
     U, Sv, V = SVD(G)
     
     u = [U[:, 0]] + [U[:, -1]]
-    v = [V[:, 0]] + [V[:, -1]] 
+    v = [V[:, 0]] + [V[:, -1]]
+
+
+    if table == True:
+        Headings = ['Maximum', 'Minimum']
+
+        for i in range(2):
+            print(' ')
+            print('Directions of %s SV' % Headings[i])
+            print '-' * 24
+            
+            print('Output vector')
+            for k in range(len(u[i])):  #change to len of u[i]
+                print('%.5f %+.5fi' % (u[i][k].real, u[i][k].imag))
+            print('Input vector')
+            for k in range(len(v[i])):
+                print('%.5f %+.5fi' % (v[i][k].real, v[i][k].imag))
+                
+            print(' ')
+    
     return(u, v)
 
 
