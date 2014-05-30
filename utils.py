@@ -362,12 +362,12 @@ def sv_dir(G):
     
     Returns
     -------
-    u : array of complex numbers
+    u : list of arrays containing complex numbers
         Output vector associated with the maximum and minium singular
         values. The maximum singular output vector is the first entry u[0] and
         the minimum is the second u[1].
     
-    v : array of complex numbers
+    v : list of arrays containing complex numbers
         Input vector associated with the maximum and minium singular
         values. The maximum singular intput vector is the first entry u[0] and
         the minimum is the second u[1].
@@ -377,7 +377,7 @@ def sv_dir(G):
     If G is evaluated at a pole, u[0] is the input and v[0] is the output
     directions associated with that pole, respectively.
     
-    If G is evaluated at a zero, u[1] is the input and v[0] is the output
+    If G is evaluated at a zero, u[1] is the input and v[1] is the output
     directions associated with that zero.    
     
     """
