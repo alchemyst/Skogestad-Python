@@ -531,7 +531,7 @@ def distRej(G, gd):
 
 def MIMOnyqPlot(L):
     """
-    Nyquist stabillity plot for MIMO system.
+    Nyquist stability plot for MIMO system.
     
     Parameters
     ----------
@@ -540,7 +540,7 @@ def MIMOnyqPlot(L):
         
     Returns
     -------
-    Nyquist stabillity plot.
+    Nyquist stability plot.
     
     Example
     -------
