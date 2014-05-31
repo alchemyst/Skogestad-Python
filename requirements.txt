@@ -1,0 +1,8 @@
+control
+matplotlib
+matplotlib.pyplot
+numpy
+scipy
+sympy
+mock
+numpydoc
