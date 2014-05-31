@@ -566,7 +566,7 @@ def MIMOnyqPlot(L):
     Lin = numpy.zeros((len(w)), dtype=complex)
     x = numpy.zeros((len(w)))
     y = numpy.zeros((len(w)))
-    dim = numpy.shape(L(0))
+    dim = numpy.shape(L(0.1))
     for i in range(len(w)):        
         Lin[i] = numpy.linalg.det(numpy.eye(dim[0]) + L(w[i]*1j))
         x[i] = numpy.real(Lin[i])
