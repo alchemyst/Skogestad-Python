@@ -141,31 +141,37 @@ class tf(object):
     The object knows how to do:
 
     addition
+
     >>> G + G2
     tf([ 3.  2.], [ 2.  3.  1.])
     >>> G + G # check for simplification
     tf([ 2.], [ 1.  1.])
 
     multiplication
+
     >>> G * G2
     tf([ 1.], [ 2.  3.  1.])
 
     division
+
     >>> G / G2
     tf([ 2.  1.], [ 1.  1.])
 
     Deadtime is supported:
+
     >>> G3 = tf(1, [1, 1], deadtime=2)
     >>> G3
     tf([ 1.], [ 1.  1.], deadtime=2)
 
     Note we can't add transfer functions with different deadtime:
+
     >>> G2 + G3
     Traceback (most recent call last):
         ...
     ValueError: Transfer functions can only be added if their deadtimes are the same
 
     It is sometimes useful to define
+
     >>> s = tf([1, 0])
     >>> 1 + s
     tf([ 1.  1.], [ 1.])
