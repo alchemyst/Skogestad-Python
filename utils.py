@@ -85,7 +85,7 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
-def RGA(Gin, ):
+def RGA(Gin):
     """ 
     Computes the Relative Gain Array of a matrix.
     
