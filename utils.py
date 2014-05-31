@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Jan 27, 2012
 
@@ -722,27 +723,32 @@ def bode(G, w1, w2, label='Figure', margin=False):
     s = 1j*w
 
     plt.figure(label)
+    # Magnitude of G(jw)
     plt.subplot(211)
     gains = numpy.abs(G(s))
     plt.loglog(w, gains)
     if margin:
-        plt.loglog(wc*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
-        plt.text(1, numpy.average([numpy.max(gains), numpy.min(gains)]), 'G(jw) = -180^o')
-#        plt.loglog(w_180*numpy.ones(2), [numpy.max(gains), numpy.min(gains)])
-    plt.loglog(w, 1 * numpy.ones(len(w)))
+        plt.axvline(w_180, color='black')
+        plt.text(w_180, numpy.average([numpy.max(gains), numpy.min(gains)]), r'$\angle$G(jw) = -180$\degree$')
+    plt.axhline(1., color='red')
     plt.grid()
     plt.ylabel('Magnitude')
 
-    # argument of G
+    # Phase of G(jw)
     plt.subplot(212)
     phaseangle = phase(G(s), deg=True)
     plt.semilogx(w, phaseangle)
     if margin:
-        plt.semilogx(wc*numpy.ones(2), [numpy.max(phaseangle), numpy.min(phaseangle)])
+        plt.axvline(wc, color='black')
 #        plt.semilogx(w_180*numpy.ones(2), [-180, 0])
+        plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
+# the output w_180 from margins(G) is giving an error and effecting bode and ZeiglerNichols(G)
+# the plot should be the one below:
+        #plt.text(w_180, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
+    plt.axhline(-180., color='red')
     plt.grid()
     plt.ylabel('Phase')
-    plt.xlabel('Frequency [rad/s]')
+    plt.xlabel('Frequency [rad/unit time]')
     
     plt.show()
 
