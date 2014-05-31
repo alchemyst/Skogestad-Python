@@ -632,7 +632,7 @@ def margins(G):
         return numpy.angle(Gw(w)) + numpy.pi
 
     # where the freqeuncy is calculated where arg G(jw) = -180 deg
-    w_180 = optimize.fsolve(arg, -1)
+    w_180 = optimize.fsolve(arg, wc)
 
     PM = numpy.angle(Gw(wc), deg=True) + 180
     GM = 1/(numpy.abs(Gw(w_180)))
@@ -752,7 +752,7 @@ def bode(G, w1, w2, label='Figure', margin=False):
     
     plt.show()
 
-    return GM, PM
+    return GM, PM, wc, w_180
     
 def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     """ 
