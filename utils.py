@@ -500,6 +500,112 @@ def Wp(wB, A, s):
     return(numpy.abs((s/M + wB) / (s + wB*A)))     
 
 
+def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
+    """
+    MIMO sensitivity S and performance weight Wp plotting funtion.
+    
+    Parameters
+    ----------
+    S : numpy array
+        Sensitivity transfer function matrix as function of s => S(s)
+        
+    wB_req : float
+        The design or require bandwidth of the plant in rad/time.
+        1/time eg: wB_req = 1/20sec = 0.05rad/s
+        
+    maxSSerror : float
+        The maximum stead state tracking error required of the plant.
+        
+    wStart : float
+        Minimum power of w for the frequency range in rad/time. 
+        eg: for w startig at 10e-3, wStart = -3
+        
+    wEnd : float
+        Maximum value of w for the frequency range in rad/time. 
+        eg: for w ending at 10e3, wStart = 3
+
+    Returns
+    -------
+    wB : float
+        The actualy plant bandwidth in rad/time given the specified controller 
+        used to generate the sensitivity matrix S(s).
+    
+    Plot : matplotlib figure
+        A plot of the sensitivity function and the performance weight across the
+        frequency range specified.
+        
+    Example
+    -------
+    >>> K = numpy.array([[1., 2.],
+    ...                  [3., 4.]])
+    >>> t1 = numpy.array([[5., 5.],
+    ...                  [5., 5.]])
+    >>> t2 = numpy.array([[5., 6.],
+    ...                [7., 8.]])
+    >>> Kc = numpy.array([[0.1, 0.],
+    ...                [0., 0.1]])*10
+    >>> 
+    >>> def G(s):
+    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
+    ... 
+    >>> def L(s):
+    ...     return(Kc*G(s))
+    ... 
+    >>> def S(s):
+    ...     return(numpy.linalg.inv((numpy.eye(2) + L(s))))      #SVD of S = 1/(I + L)
+    ... 
+    >>> #utils.perf_Wp(S, 0.05, 0.2, -3, 1)
+    
+    """
+    w = numpy.logspace(wStart, wEnd, 1000)
+    s = w*1j
+    magPlotS1 = numpy.zeros((len(w)))
+    magPlotS3 = numpy.zeros((len(w)))
+    Wpi = numpy.zeros((len(w)))
+    f = 0                                    #f for flag
+    for i in range(len(w)):
+        U, Sv, V = SVD(S(s[i]))
+        magPlotS1[i] = Sv[0]
+        magPlotS3[i] = Sv[-1]
+        if (f < 1 and magPlotS1[i] > 0.707):
+            wB = w[i]
+            f = 1
+    for i in range(len(w)):
+        Wpi[i] = Wp(wB_req, maxSSerror, s[i])                                      
+    plt.figure('MIMO sensitivity S and performance weight Wp')
+    plt.clf()
+    plt.subplot(211)
+    plt.loglog(w, magPlotS1, 'r-', label = 'Max $\sigma$(S)')
+    plt.loglog(w, 1./Wpi, 'k:', label = '|1/W$_P$|', lw=2.)
+    plt.axhline(0.707, color='green', ls=':', lw=2, label = '|S| = 0.707')
+    plt.axvline(wB_req, color='blue', ls=':', lw=2)
+    plt.text(wB_req*1.1, 7, 'req wB', color='blue', fontsize=10)
+    plt.axvline(wB, color='green')
+    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
+    plt.xlabel('Frequency [rad/s]')
+    plt.ylabel('Magnitude')
+    plt.axis([None,None,0.1,10])
+    plt.legend(loc='upper left', fontsize=10, ncol=1)
+    plt.grid(True)
+    plt.subplot(212)
+    plt.semilogx(w, magPlotS1*Wpi, 'r-', label = '|W$_P$S|')
+    plt.axhline(1, color='blue', ls=':', lw=2)
+    plt.axvline(wB_req, color='blue', ls=':', lw=2, label = '|W$_P$S| = 1')
+    plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95, 'req wB', color='blue', fontsize=10)
+    plt.axvline(wB, color='green')
+    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
+    plt.xlabel('Frequency [rad/s]')
+    plt.ylabel('Magnitude')
+    plt.legend(loc='upper right', fontsize=10, ncol=1)
+    fig = plt.gcf()
+    BG = fig.patch
+    BG.set_facecolor('white')
+    plt.grid(True)
+    plt.show()
+    return(wB)   
+    
+    
+
 def distRej(G, gd):
     """
     Convenience wrapper for calculation of ||gd||2, and the 
@@ -529,7 +635,7 @@ def distRej(G, gd):
     return(gd1, distCondNum)
 
 
-def MIMOnyqPlot(L):
+def MIMOnyqPlot(L, axLim):
     """
     Nyquist stability plot for MIMO system.
     
@@ -537,6 +643,9 @@ def MIMOnyqPlot(L):
     ----------
     L : numpy array
         Closed loop transfer function matrix as a function of s, i.e. def L(s).
+    
+    axLim : float
+        Axis limit for square axis.  axis will run from -axLim to +axLim.
         
     Returns
     -------
@@ -559,7 +668,7 @@ def MIMOnyqPlot(L):
     >>> def L(s):
     ...     return(Kc*G(s))
     ... 
-    >>> #MIMOnyqPlot(L)
+    >>> #MIMOnyqPlot(L, 2)
     
     """
     w = numpy.logspace(-3, 3, 1000)    
@@ -583,7 +692,7 @@ def MIMOnyqPlot(L):
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
     plt.plot(0, 0, 'r*', ms = 10)
     plt.grid(True)
-    n = 2               # Sets x-axis limits
+    n = axLim               # Sets x-axis limits
     plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
     plt.axis([-n, n, -n, n])
     fig = plt.gcf()
