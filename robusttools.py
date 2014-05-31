@@ -24,7 +24,6 @@ def UnstructuredDelta(M, DeltaStructure):
     
     if (DeltaStructure == "Full"):
         [U, s, V] = utils.SVD(M)
-        #S = np.zeros((2,2))
         S = np.diag(s)
         delta = 1/s[0] * V[:,0] * U[:,0].H  
     elif (DeltaStructure == 'Diagonal'):
