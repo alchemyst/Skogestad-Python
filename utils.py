@@ -85,8 +85,29 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
-def RGA(Gin):
-    """ Calculate the Relative Gain Array of a matrix """
+def RGA(Gin, ):
+    """ 
+    Computes the Relative Gain Array of a matrix.
+    
+    
+    Parameters
+    ==========
+    Gin : numpy array
+        Transfer function matrix.
+        
+    Returns
+    =======
+    RGA matrix : matrix
+        RGA matrix of complex numbers.
+    
+    Example
+    =======
+    >>> G = numpy.array([[1, 2],[3, 4]])
+    >>> RGA(G)
+    array([[-2.,  3.],
+           [ 3., -2.]])
+
+    """
     G = numpy.asarray(Gin)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
@@ -341,7 +362,7 @@ def sigmas(A):
     -------
     
     >>> A = numpy.array([[1, 2],
-                         [3, 4]])
+    ...                 [3, 4]])
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
 
@@ -506,6 +527,70 @@ def distRej(G, gd):
     yd = gd1*gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
     return(gd1, distCondNum)
+
+
+def MIMOnyqPlot(L):
+    """
+    Nyquist stability plot for MIMO system.
+    
+    Parameters
+    ----------
+    L : numpy array
+        Closed loop transfer function matrix as a function of s, i.e. def L(s).
+        
+    Returns
+    -------
+    Nyquist stability plot.
+    
+    Example
+    -------
+    >>> K = numpy.array([[1., 2.],
+    ...                  [3., 4.]])
+    >>> t1 = numpy.array([[5., 5.],
+    ...                  [5., 5.]])
+    >>> t2 = numpy.array([[5., 6.],
+    ...                [7., 8.]]) 
+    >>> Kc = numpy.array([[0.1, 0.], 
+    ...                [0., 0.1]])*6
+    >>> 
+    >>> def G(s):
+    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
+    ... 
+    >>> def L(s):
+    ...     return(Kc*G(s))
+    ... 
+    >>> #MIMOnyqPlot(L)
+    
+    """
+    w = numpy.logspace(-3, 3, 1000)    
+    Lin = numpy.zeros((len(w)), dtype=complex)
+    x = numpy.zeros((len(w)))
+    y = numpy.zeros((len(w)))
+    dim = numpy.shape(L(0.1))
+    for i in range(len(w)):        
+        Lin[i] = numpy.linalg.det(numpy.eye(dim[0]) + L(w[i]*1j))
+        x[i] = numpy.real(Lin[i])
+        y[i] = numpy.imag(Lin[i])        
+    plt.figure('MIMO Nyquist Plot')
+    plt.clf()
+    plt.plot(x, y, 'k-', lw=1)
+    plt.xlabel('Re G(wj)')
+    plt.ylabel('Im G(wj)')
+    # plotting a unit circle
+    x = numpy.linspace(-1, 1, 200)
+    y_up = numpy.sqrt(1-(x)**2)
+    y_down = -1*numpy.sqrt(1-(x)**2)
+    plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
+    plt.plot(0, 0, 'r*', ms = 10)
+    plt.grid(True)
+    n = 2               # Sets x-axis limits
+    plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
+    plt.axis([-n, n, -n, n])
+    fig = plt.gcf()
+    BG = fig.patch
+    BG.set_facecolor('white')
+    plt.show()
+
 
    
 def feedback_mimo(forward, backward=None, positive=False):
