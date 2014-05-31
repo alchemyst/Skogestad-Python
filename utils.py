@@ -85,8 +85,29 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
-def RGA(Gin):
-    """ Calculate the Relative Gain Array of a matrix """
+def RGA(Gin, ):
+    """ 
+    Computes the Relative Gain Array of a matrix.
+    
+    
+    Parameters
+    ==========
+    Gin : numpy array
+        Transfer function matrix.
+        
+    Returns
+    =======
+    RGA matrix : matrix
+        RGA matrix of complex numbers.
+    
+    Example
+    =======
+    >>> G = numpy.array([[1, 2],[3, 4]])
+    >>> RGA(G)
+    array([[-2.,  3.],
+           [ 3., -2.]])
+
+    """
     G = numpy.asarray(Gin)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
