@@ -1,4 +1,5 @@
 import numpy as np
+import utils
 
 '''Use this file to add more MIMO functions for robust stability and performance'''
 
@@ -22,11 +23,10 @@ def UnstructuredDelta(M, DeltaStructure):
     '''
     
     if (DeltaStructure == "Full"):
-        [U, s, V] = np.linalg.svd(M)
-        S = np.zeros((2,2))
-        S[0,0] = s[0]
-        S[1,1] = s[1]
-        delta = 1/S[0,0] * V[:,0] * U[:,0].H  
+        [U, s, V] = utils.SVD(M)
+        #S = np.zeros((2,2))
+        S = np.diag(s)
+        delta = 1/s[0] * V[:,0] * U[:,0].H  
     elif (DeltaStructure == 'Diagonal'):
 # TODO: complete
         delta = 'NA'
