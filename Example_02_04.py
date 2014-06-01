@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import feedback, tf, bodeclosedloop, marginsclosedloop, ZeiglerNichols
+from utils import feedback, tf, bodeclosedloop, marginsclosedloop, ControllerTuning
 
 s = tf([1, 0], 1)
 G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
 
 
-[Kc, Taui, Ku, Pu] = ZeiglerNichols(G) 
+[Kc, Taui, Ku, Pu] = ControllerTuning(G, method='ZN') 
 print 'Kc:', np.round(Ku, 3)
 print 'Taui:', np.round(Pu, 3)
 print 'Ku:', np.round(Ku, 3)
