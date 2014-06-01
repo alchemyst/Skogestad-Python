@@ -22,6 +22,32 @@ w_end : float
 points : float
          The number of data points to be used in generating the plot.
 
+Plots
+-----
+Bode_Plot :
+    (Can bring across from utils.py)
+    
+Nyquist Plot:
+    (Can bring across from utils.py)
+    
+SV_Plot : Maximum and minimum singular values of a matirix
+    (Can remove SVD_over_frequency.py, SVD_Total_Analysis.py and SVD_w.py)
+    
+Condtn_ No_Plot : A plot of the condition number for a specified diagonal
+    
+RGA_Plot: A plot of the relative gain interactions for a matrix over a given frequency
+    (Can remove RGA.py script)
+
+RGA_Number_Plot: A plot of the RGA number for a given pairing
+
+Weighted_Sensitivity_Plot :
+    (Can bring across from utils.py)
+    
+Performance_Weight_Plot :
+    (Can bring across from utils.py)
+    
+Disturbance_Rejection_Plot :
+
 """
 
 import numpy
@@ -33,6 +59,86 @@ def G(s):   # Example 3.11 transfer function to test RGA_Plot
     '''The transfer function model of the system, as a function of s'''
     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     return G
+
+
+def SV_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+    '''
+    Plot of Maximum and minimum singular values of a matirix
+    
+    Parameters
+    ----------
+    G : numpy array
+        plant model or sensitivity function
+              
+    Returns
+    -------
+    fig(Max Min SV) : figure
+        A figure of the maximum and minimum singular values of the matrix G
+    
+    Note
+    ----
+    Can be used with the plant matrix G and the sensitivity function S
+    for controlability analysis
+    '''
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j    
+    
+    freqresp = map(G, s)
+    
+    plt.figure('Min Max SV')
+    plt.clf()
+    plt.gcf().set_facecolor('white')
+    
+    plt.semilogx(w, [utils.sigmas(Gfr)[0] for Gfr in freqresp], label=('$\sigma$$_{MAX}$'), color='blue')
+    plt.semilogx(w, [utils.sigmas(Gfr)[-1] for Gfr in freqresp], label=('$\sigma$$_{MIN}$'), color='blue', alpha=0.5)
+    plt.xlabel('Frequency (rad/unit time)')
+    
+    plt.axhline(1., color='red', ls=':')
+    plt.legend()  
+    plt.show()
+    return
+
+
+def Condtn_No_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+    '''
+    Plot of the condition number, the maximum over the minimum singular value
+    
+    Parameters
+    ----------
+    G : numpy array
+        plant model
+              
+    Returns
+    -------
+    fig(Condition number) : figure
+        A figure of the Condition number.
+    
+    Note
+    ----
+    A condition number over 10 may indicate sensitivity to uncertainty and
+    control problems
+    '''
+    
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j    
+    
+    def Cndtn_Nm(G):
+        return(utils.sigmas(G)[0]/utils.sigmas(G)[-1])
+    
+    freqresp = map(G, s)
+    
+    plt.figure('Condition number')
+    plt.clf()
+    plt.gcf().set_facecolor('white')
+    
+    plt.semilogx(w, [Cndtn_Nm(Gfr) for Gfr in freqresp], label=('$\sigma$$_{MAX}$/$\sigma$$_{MIN}$'))
+    plt.axis(axlim)
+    plt.ylabel('$\gamma$(G)', fontsize = 15)
+    plt.xlabel('Frequency (rad/unit time)')
+    plt.axhline(10., color='red', ls=':', label=('$\gamma$(G) > 10'))
+    plt.legend()
+    plt.show()
+    return
 
 
 def RGA_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
@@ -47,8 +153,8 @@ def RGA_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100)
     Returns
     -------
     fig(RGA) : figure
-               A figure of subplots for each interaction between an output and
-               an input.
+        A figure of subplots for each interaction between an output and
+        an input.
     
     Example
     -------
@@ -110,14 +216,14 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
         plant model
     
     pairing : sparse numpy array of the same shape as G
-              An array of zeros with a 1. at each required output-input pairing
-              The default is a diagonal pairing with 1.'s on the diagonal
+        An array of zeros with a 1. at each required output-input pairing
+        The default is a diagonal pairing with 1.'s on the diagonal
               
     Returns
     -------
     fig(RGA Number) : figure
-              A figure of the RGA number for a specified pairing over
-              a given frequency range
+        A figure of the RGA number for a specified pairing over
+        a given frequency range
     
     Example
     -------
