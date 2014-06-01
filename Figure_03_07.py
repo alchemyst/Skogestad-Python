@@ -1,6 +1,5 @@
 import numpy as np
-import numpy.linalg as la
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 import utils
 
 
@@ -21,7 +20,7 @@ def condition_number(G):
     return max(sig) / min(sig)
 
 
-pyplot.rc('text', usetex=True)
+plt.rc('text', usetex=True)
 
 processes = [[G1, 'Distillation process 3.7(a)', -4, 1],
              [G2, 'Spinning satellite 3.7(b)', -2, 2]]
@@ -32,15 +31,15 @@ for i, [G, title, minw, maxw] in enumerate(processes):
     omega = np.logspace(minw, maxw, 1000)
     s = 1j * omega
     Gw = map(G, s)
-    pyplot.subplot(2, 2, i + 1)
-    pyplot.loglog(omega, map(utils.sigmas, Gw))
-    pyplot.ylabel(r'Singular value magnitude')
-    pyplot.title(title)
-    pyplot.legend([r'$\bar \sigma$(G)',
+    plt.subplot(2, 2, i + 1)
+    plt.loglog(omega, map(utils.sigmas, Gw))
+    plt.ylabel(r'Singular value magnitude')
+    plt.title(title)
+    plt.legend([r'$\bar \sigma$(G)',
                    r'$\underline\sigma$(G)'], 'best')
-    pyplot.subplot(2, 2, 3 + i)
-    pyplot.semilogx(omega, map(condition_number, Gw))
-    pyplot.ylabel('Condition number')
-    pyplot.xlabel(r'Frequency [rad/s]')
+    plt.subplot(2, 2, 3 + i)
+    plt.semilogx(omega, map(condition_number, Gw))
+    plt.ylabel('Condition number')
+    plt.xlabel(r'Frequency [rad/s]')
 
-pyplot.show()
+plt.show()
