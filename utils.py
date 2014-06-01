@@ -547,11 +547,11 @@ def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
     >>> K = numpy.array([[1., 2.],
     ...                  [3., 4.]])
     >>> t1 = numpy.array([[5., 5.],
-    ...                  [5., 5.]])
+    ...                   [5., 5.]])
     >>> t2 = numpy.array([[5., 6.],
-    ...                [7., 8.]])
+    ...                   [7., 8.]])
     >>> Kc = numpy.array([[0.1, 0.],
-    ...                [0., 0.1]])*10
+    ...                   [0., 0.1]])*10
     >>> 
     >>> def G(s):
     ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
@@ -583,22 +583,22 @@ def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
     plt.figure('MIMO sensitivity S and performance weight Wp')
     plt.clf()
     plt.subplot(211)
-    plt.loglog(w, magPlotS1, 'r-', label = 'Max $\sigma$(S)')
-    plt.loglog(w, 1./Wpi, 'k:', label = '|1/W$_P$|', lw=2.)
-    plt.axhline(0.707, color='green', ls=':', lw=2, label = '|S| = 0.707')
+    plt.loglog(w, magPlotS1, 'r-', label='Max $\sigma$(S)')
+    plt.loglog(w, 1./Wpi, 'k:', label='|1/W$_P$|', lw=2.)
+    plt.axhline(0.707, color='green', ls=':', lw=2, label='|S| = 0.707')
     plt.axvline(wB_req, color='blue', ls=':', lw=2)
     plt.text(wB_req*1.1, 7, 'req wB', color='blue', fontsize=10)
     plt.axvline(wB, color='green')
     plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')
-    plt.axis([None,None,0.1,10])
+    plt.axis([None, None, 0.1, 10])
     plt.legend(loc='upper left', fontsize=10, ncol=1)
     plt.grid(True)
     plt.subplot(212)
-    plt.semilogx(w, magPlotS1*Wpi, 'r-', label = '|W$_P$S|')
+    plt.semilogx(w, magPlotS1*Wpi, 'r-', label='|W$_P$S|')
     plt.axhline(1, color='blue', ls=':', lw=2)
-    plt.axvline(wB_req, color='blue', ls=':', lw=2, label = '|W$_P$S| = 1')
+    plt.axvline(wB_req, color='blue', ls=':', lw=2, label='|W$_P$S| = 1')
     plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95, 'req wB', color='blue', fontsize=10)
     plt.axvline(wB, color='green')
     plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
@@ -637,7 +637,7 @@ def distRej(G, gd):
     
     """
     
-    gd1 = 1/numpy.linalg.norm((gd),2)   #Returns largest sing value of gd(wj)
+    gd1 = 1/numpy.linalg.norm((gd), 2)   #Returns largest sing value of gd(wj)
     yd = gd1*gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
     return(gd1, distCondNum)
@@ -665,11 +665,11 @@ def MIMOnyqPlot(L, axLim):
     >>> K = numpy.array([[1., 2.],
     ...                  [3., 4.]])
     >>> t1 = numpy.array([[5., 5.],
-    ...                  [5., 5.]])
+    ...                   [5., 5.]])
     >>> t2 = numpy.array([[5., 6.],
-    ...                [7., 8.]]) 
+    ...                   [7., 8.]]) 
     >>> Kc = numpy.array([[0.1, 0.], 
-    ...                [0., 0.1]])*6
+    ...                   [0., 0.1]])*6
     >>> 
     >>> def G(s):
     ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
@@ -697,11 +697,11 @@ def MIMOnyqPlot(L, axLim):
     # plotting a unit circle
     x = numpy.linspace(-1, 1, 200)
     y_up = numpy.sqrt(1-(x)**2)
-    y_down = -1*numpy.sqrt(1-(x)**2)
+    y_down = -1*numpy.sqrt(1 - (x)**2)
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
-    plt.plot(0, 0, 'r*', ms = 10)
+    plt.plot(0, 0, 'r*', ms=10)
     plt.grid(True)
-    n = axLim               # Sets x-axis limits
+    n = axLim           # Sets x-axis limits
     plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
     plt.axis([-n, n, -n, n])
     fig = plt.gcf()
@@ -761,7 +761,7 @@ def freq(G):
     """ 
 
     def Gw(w):
-        return G(1j * w)
+        return G(1j*w)
     return Gw
 
 
