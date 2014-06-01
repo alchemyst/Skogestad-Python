@@ -92,17 +92,17 @@ def RGA(Gin):
     
     
     Parameters
-    ==========
+    ----------
     Gin : numpy array
         Transfer function matrix.
         
     Returns
-    =======
+    -------
     RGA matrix : matrix
         RGA matrix of complex numbers.
     
     Example
-    =======
+    -------
     >>> G = numpy.array([[1, 2],[3, 4]])
     >>> RGA(G)
     array([[-2.,  3.],
@@ -947,11 +947,7 @@ def bode(G, w1, w2, label='Figure', margin=False):
     plt.semilogx(w, phaseangle)
     if margin:
         plt.axvline(wc, color='black')
-#        plt.semilogx(w_180*numpy.ones(2), [-180, 0])
         plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
-# the output w_180 from margins(G) is giving an error and effecting bode and ZeiglerNichols(G)
-# the plot should be the one below:
-        #plt.text(w_180, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
     plt.axhline(-180., color='red')
     plt.grid()
     plt.ylabel('Phase')
