@@ -92,17 +92,17 @@ def RGA(Gin):
     
     
     Parameters
-    ==========
+    ----------
     Gin : numpy array
         Transfer function matrix.
         
     Returns
-    =======
+    -------
     RGA matrix : matrix
         RGA matrix of complex numbers.
     
     Example
-    =======
+    -------
     >>> G = numpy.array([[1, 2],[3, 4]])
     >>> RGA(G)
     array([[-2.,  3.],
@@ -765,35 +765,40 @@ def freq(G):
     return Gw
 
 
-def ZeiglerNichols(G):
+def ControllerTuning(G, method='ZN'):
     """ 
-    Calculates the Ziegler Nichols tuning parameters for a PI controller
+    Calculates either the Ziegler-Nichols or Tyreus-Luyben
+    tuning parameters for a PI controller based on the continuous
+    cycling method.
     
     Parameters
     ----------
     G : tf
-        plant model   
+        plant model
+    
+    method : Use 'ZN' for Ziegler-Nichols tuning parameters and
+             'TT' for Tyreus-Luyben parameters. The default is to
+             return Ziegler-Nichols tuning parameters.
           
     Returns
     -------
-    var : type
-        description
-
-    Kc : real         
+    Kc : array containing a real number         
         proportional gain
-    Tauc : real
+    Taui : array containing a real number
         integral gain
-    Ku : real
+    Ku : array containing a real number
         ultimate P controller gain
-    Pu : real
+    Pu : array containing a real number
         corresponding period of oscillations                   
     """  
+    
+    settings = {'ZN' : [0.45, 0.83], 'TT' : [0.31, 2.2]}   
     
     GM, PM, wc, w_180 = margins(G)  
     Ku = numpy.abs(1 / G(1j * w_180))
     Pu = numpy.abs(2 * numpy.pi / w_180)
-    Kc = Ku / 2.2
-    Taui = Pu / 1.2
+    Kc = Ku * settings.get(method)[0]
+    Taui = Pu * settings.get(method)[1]
 
     return Kc, Taui, Ku, Pu
 
@@ -810,13 +815,13 @@ def margins(G):
           
     Returns
     -------    
-    GM : real
+    GM : array containing a real number
         gain margin
-    PM : real
+    PM : array containing a real number
         phase margin
-    wc : real
+    wc : array containing a real number
         gain crossover frequency where |G(jwc)| = 1
-    w_180 : real
+    w_180 : array containing a real number
         phase crossover frequency where angle[G(jw_180] = -180 deg
     """
 
@@ -910,9 +915,9 @@ def bode(G, w1, w2, label='Figure', margin=False):
           
     Returns
     -------
-    GM : real      
+    GM : array containing a real number      
         gain margin
-    PM : real           
+    PM : array containing a real number           
         phase margin         
     """
 
@@ -942,11 +947,7 @@ def bode(G, w1, w2, label='Figure', margin=False):
     plt.semilogx(w, phaseangle)
     if margin:
         plt.axvline(wc, color='black')
-#        plt.semilogx(w_180*numpy.ones(2), [-180, 0])
         plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
-# the output w_180 from margins(G) is giving an error and effecting bode and ZeiglerNichols(G)
-# the plot should be the one below:
-        #plt.text(w_180, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
     plt.axhline(-180., color='red')
     plt.grid()
     plt.ylabel('Phase')
@@ -954,7 +955,7 @@ def bode(G, w1, w2, label='Figure', margin=False):
     
     plt.show()
 
-    return GM, PM, wc, w_180
+    return GM, PM
     
 def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     """ 
