@@ -54,12 +54,6 @@ import numpy
 import utils
 import matplotlib.pyplot as plt
            
-                
-def G(s):   # Example 3.11 transfer function to test RGA_Plot
-    '''The transfer function model of the system, as a function of s'''
-    G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
-    return G
-
 
 def SV_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
@@ -262,6 +256,47 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
     plt.axis(axlim)
     plt.ylabel('||$\Lambda$(G) - I||$_{sum}$', fontsize = 15)
     plt.xlabel('Frequency (rad/unit time)')
+    
+    plt.show()
+    return
+    
+
+def Dis_Rejctn_Plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j
+    
+    dim = numpy.shape(G(0))    
+    inv_norm_gd = numpy.zeros((dim[1],points))
+    Condtn_No_gd = numpy.zeros((dim[1],points))
+    for i in range(dim[1]):
+        for k in range(points):
+            inv_norm_gd[i,k], Condtn_No_gd[i,k] = utils.distRej(G(s[k]), Gd(s[k])[:,i])
+                      
+    Smin = [utils.sigmas(S(s[i]))[-1] for i in range(points)]
+    Smax = [utils.sigmas(S(s[i]))[0] for i in range(points)]
+    
+    plt.figure('Condition number and performance objective')
+    plt.clf()
+    plt.gcf().set_facecolor('white')
+    
+    plt.subplot(2,1,1)
+    for i in range(dim[1]):
+        plt.loglog(w, Condtn_No_gd[i], label=('$\gamma$$_{d%s}$(G)' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))
+    plt.axhline(1., color='red', ls=':')  
+    plt.axis(axlim)
+    plt.ylabel('$\gamma$$_d$(G)')
+    plt.axhline(1., color='red', ls=':')
+    plt.legend()
+    
+    plt.subplot(2,1,2)
+    for i in range(dim[1]):
+        plt.loglog(w, inv_norm_gd[i], label=('1/||g$_{d%s}$||$_2$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))   
+    plt.loglog(w, Smin, label=('$\sigma$$_{MIN}$'), color='green')
+    plt.loglog(w, Smax, label=('$\sigma$$_{MAX}$'), color='green', alpha = 0.5)  
+    plt.xlabel('Frequency (rad/unit time)')
+    plt.ylabel('1/||g$_d$||$_2$')
+    plt.axhline(1., color='red', ls=':')
+    plt.legend()    
     
     plt.show()
     return
