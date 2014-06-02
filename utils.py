@@ -526,11 +526,11 @@ def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
         
     wStart : float
         Minimum power of w for the frequency range in rad/time. 
-        eg: for w startig at 10e-3, wStart = -3
+        eg: for w startig at 10e-3, wStart = -3.
         
     wEnd : float
         Maximum value of w for the frequency range in rad/time. 
-        eg: for w ending at 10e3, wStart = 3
+        eg: for w ending at 10e3, wStart = 3.
 
     Returns
     -------
@@ -644,7 +644,7 @@ def distRej(G, gd):
 
 
 
-def MIMOnyqPlot(L, axLim):
+def MIMOnyqPlot(L, axLim, wStart, wEnd):
     """
     Nyquist stability plot for MIMO system.
     
@@ -655,6 +655,14 @@ def MIMOnyqPlot(L, axLim):
     
     axLim : float
         Axis limit for square axis.  axis will run from -axLim to +axLim.
+    
+    wStart : float
+        Minimum power of w for the frequency range in rad/time. 
+        eg: for w startig at 10e-3, wStart = -3.
+        
+    wEnd : float
+        Maximum value of w for the frequency range in rad/time. 
+        eg: for w ending at 10e3, wStart = 3.
         
     Returns
     -------
@@ -680,7 +688,7 @@ def MIMOnyqPlot(L, axLim):
     >>> #MIMOnyqPlot(L, 2)
     
     """
-    w = numpy.logspace(-3, 3, 1000)    
+    w = numpy.logspace(wStart, wEnd, 1000)    
     Lin = numpy.zeros((len(w)), dtype=complex)
     x = numpy.zeros((len(w)))
     y = numpy.zeros((len(w)))
@@ -1004,7 +1012,136 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     plt.xlabel("Frequency [rad/s]")  
     
     plt.show()
+
+
+
+def mimoBode(Gin, wStart, wEnd, Kin=None): 
+    """
+    Plots the max and min singular values of G and computes the crossover freq.
     
+    If a controller is specified, the max and min singular values
+    of S are also plotted and the bandwidth freq computed.
+              
+    Parameters
+    ----------
+    Gin : numpy array
+        Matrix of plant transfer functions.
+    
+    wStart : float
+        Minimum power of w for the frequency range in rad/time. 
+        eg: for w startig at 10e-3, wStart = -3.
+        
+    wEnd : float
+        Maximum value of w for the frequency range in rad/time. 
+        eg: for w ending at 10e3, wStart = 3.
+    
+    Kin : numpy array
+        Controller matrix (optional).
+    
+    Returns
+    -------
+    wC : real
+        Crossover frequency.
+        
+    wB : real
+        Bandwidth frequency.
+        
+    Plot : matplotlib plot
+        Bode plot of singular values of G and S(optional).
+    
+    Example
+    -------
+    >>> K = numpy.array([[1., 2.],
+    ...                  [3., 4.]])*10
+    >>> t1 = numpy.array([[5., 5.],
+    ...                   [5., 5.]])
+    >>> t2 = numpy.array([[5., 6.],
+    ...                   [7., 8.]])
+    >>>                   
+    >>> def G(s):
+    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1.))
+    >>>
+    >>> def Kc(s):
+    ...     return(numpy.array([[0.1, 0.],
+    ...                         [0., 0.1]])*10.)
+    >>> mimoBode(G, -3, 3, Kc)
+    Bandwidth is a tuple of wC, wB
+    (0.55557762223988783, 1.3650078065460138)
+    
+    """
+    xmin = 10**wStart
+    xmax = 10**wEnd
+    w = numpy.logspace(wStart, wEnd, 1000)
+    s = w*1j
+    Sv1 = numpy.zeros(len(w), dtype=complex)
+    Sv2 = numpy.zeros(len(w), dtype=complex)
+    f = 0
+    wC = 0
+    for i in range(len(w)):
+        Sv1[i] = sigmas(Gin(s[i]))[0]
+        Sv2[i] = sigmas(Gin(s[i]))[-1]
+        if (f < 1 and Sv2[i] < 1):
+            wC = w[i]
+            f = 1
+    ymin = numpy.min(Sv2)
+    plt.figure('MIMO Bode')
+    plt.clf()
+    plt.loglog(w, Sv1, 'k-', label='Max $\sigma$(G)')
+    plt.loglog(w, Sv2, 'k-', alpha=0.5, label='Min $\sigma$(G)')
+    plt.axhline(1, ls=':', lw=2, color='blue')
+    plt.text(xmin, 1.1, 'Mag = 1', color='blue')
+    plt.axvline(wC, ls=':', lw=2, color='blue')
+    plt.text(wC*1.1, ymin*1.1, 'wC', color='blue')
+    plt.legend(loc='upper right', fontsize = 10, ncol=1)
+    plt.xlabel('Frequency [rad/time]')
+    plt.ylabel('Magnitude')
+    plt.axis([xmin, xmax, None, None])
+    plt.grid(True)
+    fig = plt.gcf()
+    BG = fig.patch
+    BG.set_facecolor('white')
+    plt.show()
+    
+    if Kin is None:
+        Bandwidth = wC
+        print('Bandwidth = wC')
+    else:
+        def S(s):
+            L = Kin(s)*Gin(s)
+            dim1, dim2 = numpy.shape(Gin(0))
+            return(numpy.linalg.inv(numpy.eye(dim1) + L))      #SVD of S = 1/(I + L)
+        w = numpy.logspace(wStart, wEnd, 1000)
+        s = w*1j
+        Sv1 = numpy.zeros(len(w), dtype=complex)
+        Sv2 = numpy.zeros(len(w), dtype=complex)
+        f = 0
+        wB = 0
+        for i in range(len(w)):
+            Sv1[i] = sigmas(S(s[i]))[0]
+            Sv2[i] = sigmas(S(s[i]))[-1]
+            if (f < 1 and Sv1[i] > 0.707):
+                wB = w[i]
+                f = 1
+        plt.figure('MIMO Bode')
+        plt.loglog(w, Sv1, 'r-', label='Max $\sigma$(S)')
+        plt.loglog(w, Sv2, 'r-', alpha=0.5, label='Min $\sigma$(S)')
+        plt.axhline(0.707, ls=':', lw=2, color='green')
+        plt.text(xmin, 0.5, 'Mag = 0.707', color='green')
+        plt.axvline(wB, ls=':', lw=2, color='green')
+        plt.text(wB*1.1, ymin*1.1, 'wB', color='green')
+        plt.legend(loc='upper right', fontsize = 10, ncol=1)
+        plt.xlabel('Frequency [rad/time]')
+        plt.ylabel('Magnitude')
+        plt.axis([xmin, xmax, None, None])
+        plt.grid(True)
+        fig = plt.gcf()
+        BG = fig.patch
+        BG.set_facecolor('white')
+        plt.show()
+        Bandwidth = wC, wB
+        print('Bandwidth is a tuple of wC, wB')
+    return(Bandwidth)
+
        
 
 # according to convention this procedure should stay at the bottom       
