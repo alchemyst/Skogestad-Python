@@ -24,29 +24,29 @@ points : float
 
 Plots
 -----
-Bode_Plot :
+bodePlot :
     (Can bring across from utils.py)
     
-Nyquist Plot:
+nyquistPlot:
     (Can bring across from utils.py)
     
-SV_Plot : Maximum and minimum singular values of a matirix
+svPlot : Maximum and minimum singular values of a matirix
     (Can remove SVD_over_frequency.py, SVD_Total_Analysis.py and SVD_w.py)
     
-Condtn_ No_Plot : A plot of the condition number for a specified diagonal
+condtnNoPlot : A plot of the condition number for a specified diagonal
     
-RGA_Plot: A plot of the relative gain interactions for a matrix over a given frequency
+rgaPlot: A plot of the relative gain interactions for a matrix over a given frequency
     (Can remove RGA.py script)
 
-RGA_Number_Plot: A plot of the RGA number for a given pairing
+rgaNoPlot: A plot of the RGA number for a given pairing
 
-Weighted_Sensitivity_Plot :
+wieghtdSensPlot :
     (Can bring across from utils.py)
     
-Performance_Weight_Plot :
+perfWtPlot :
     (Can bring across from utils.py)
     
-Dis_Rejctn_Plot : A plot of the disturbance condition number and the bounds imposed
+disRejctnPlot : A plot of the disturbance condition number and the bounds imposed
     by the singular values.
 """
 
@@ -55,7 +55,7 @@ import utils
 import matplotlib.pyplot as plt
            
 
-def SV_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def svPlot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
     Plot of Maximum and minimum singular values of a matirix
     
@@ -93,7 +93,7 @@ def SV_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     return
 
 
-def Condtn_No_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def condtnNoPlot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
     Plot of the condition number, the maximum over the minimum singular value
     
@@ -116,7 +116,7 @@ def Condtn_No_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, point
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j    
     
-    def Cndtn_Nm(G):
+    def cndtnNm(G):
         return(utils.sigmas(G)[0]/utils.sigmas(G)[-1])
     
     freqresp = map(G, s)
@@ -125,7 +125,7 @@ def Condtn_No_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, point
     plt.clf()
     plt.gcf().set_facecolor('white')
     
-    plt.semilogx(w, [Cndtn_Nm(Gfr) for Gfr in freqresp], label=('$\sigma$$_{MAX}$/$\sigma$$_{MIN}$'))
+    plt.semilogx(w, [cndtnNm(Gfr) for Gfr in freqresp], label=('$\sigma$$_{MAX}$/$\sigma$$_{MIN}$'))
     plt.axis(axlim)
     plt.ylabel('$\gamma$(G)', fontsize = 15)
     plt.xlabel('Frequency (rad/unit time)')
@@ -135,7 +135,7 @@ def Condtn_No_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, point
     return
 
 
-def RGA_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def rgaPlot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
     Plots the relative gain interaction between each output and input pairing
     
@@ -156,7 +156,7 @@ def RGA_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100)
     >>> def G(s):
     ...     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
-    >>> RGA_Plot(G, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
+    >>> rgaPlot(G, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
     
     
     Note
@@ -200,7 +200,7 @@ def RGA_Plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100)
     return
 
 
-def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def rgaNoPlot(G, pairing=numpy.array([]), axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
     Plots the RGA number for a specified pairing
     
@@ -226,7 +226,7 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
     ...     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> pairing = numpy.array([[1., 0.], [0., 1.]])
-    >>> RGA_Number_Plot(G, pairing, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
+    >>> rgaNoPlot(G, pairing, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
 
     Note
     ----
@@ -261,7 +261,7 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
     return
     
 
-def Dis_Rejctn_Plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def disRejctnPlot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     '''
     A subplot of disturbance conditition number to check for input saturation
     and a subplot of  to see if the disturbances fall withing the bounds on
