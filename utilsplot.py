@@ -283,6 +283,15 @@ def Dis_Rejctn_Plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=
     fig(Condition number and performance objective) : figure
         A figure of the disturbance condition number and the bounds imposed
         by the singular values.
+    
+    Note
+    ----
+    The disturbance condition number provides a measure of how a disturbance gd
+    is aligned with the plant G. Alignment can vary between 1 and the condition
+    number.
+    
+    For acceptable performance the singular values of S must fall below the
+    inverse 2-norm of gd.
     '''
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
