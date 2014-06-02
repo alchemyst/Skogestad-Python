@@ -40,7 +40,7 @@ rga_plot: A plot of the relative gain interactions for a matrix over a given fre
 
 rga_nm_plot: A plot of the RGA number for a given pairing
 
-wieghtd_sens_plot :
+weightd_sens_plot :
     (Can bring across from utils.py)
     
 perf_wt_plot :
