@@ -46,8 +46,8 @@ Weighted_Sensitivity_Plot :
 Performance_Weight_Plot :
     (Can bring across from utils.py)
     
-Disturbance_Rejection_Plot :
-
+Dis_Rejctn_Plot : A plot of the disturbance condition number and the bounds imposed
+    by the singular values.
 """
 
 import numpy
@@ -226,7 +226,7 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
     ...     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> pairing = numpy.array([[1., 0.], [0., 1.]])
-    >>> RGA_Plot(G, pairing, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
+    >>> RGA_Number_Plot(G, pairing, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
 
     Note
     ----
@@ -262,6 +262,28 @@ def RGA_Number_Plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], 
     
 
 def Dis_Rejctn_Plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+    '''
+    A subplot of disturbance conditition number to check for input saturation
+    and a subplot of  to see if the disturbances fall withing the bounds on
+    the singular values of S.
+    Parameters
+    ----------
+    G : numpy array
+        plant model
+    
+    Gd : numpy array
+        plant disturbance model
+
+    S : numpy array
+        Sensitivity function
+              
+              
+    Returns
+    -------
+    fig(Condition number and performance objective) : figure
+        A figure of the disturbance condition number and the bounds imposed
+        by the singular values.
+    '''
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
