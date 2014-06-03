@@ -7,7 +7,7 @@ Created on Tue Jun 04 13:03:43 2013
 
 import numpy as np
 import control
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 from utils import feedback
 
 w = np.logspace(-1, 2, 1000)

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from numpy import *
-from matplotlib.pyplot import *
+import numpy as np
+import matplotlib.pyplot as plt
 
 def G_P(k, tau, theta, s):
-    return k/(tau*s + 1)*exp(-theta*s)
+    return k/(tau*s + 1)*np.exp(-theta*s)
 
 def G(s):
     return G_P(2.5, 2.5, 2.5, s)
@@ -17,13 +17,13 @@ def w_A(s):
     return k*(tau1*s + 1)/(tau2*s + 1)/(tau3*s + 1)
 
 def circle(centerx, centery, radius):
-    angle = linspace(0, 2*pi)
-    x = centerx + cos(angle)*radius
-    y = centery + sin(angle)*radius
-    plot(x, y, 'r-')
+    angle = np.linspace(0, 2*np.pi)
+    x = centerx + np.cos(angle)*radius
+    y = centery + np.sin(angle)*radius
+    plt.plot(x, y, 'r-')
 
 def randomparameters():
-    return [2 + random.rand() for i in range(3)]
+    return [2 + np.random.rand() for i in range(3)]
 
 w = 0.2
 N = 1000
@@ -34,25 +34,25 @@ for w in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
         k, tau, theta = randomparameters()
         frp = G_P(k, tau, theta, s)
         frn = G(s)
-        plot(real(frp), imag(frp), 'b.')
-        plot(real(frn), imag(frn), 'ro')
+        plt.plot(np.real(frp), np.imag(frp), 'b.')
+        plt.plot(np.real(frn), np.imag(frn), 'ro')
         r = abs(w_A(s))
-        circle(real(frn), imag(frn), r)
+        circle(np.real(frn), np.imag(frn), r)
 
-w = logspace(-2, 2, 100)
+w = np.logspace(-2, 2, 100)
 s = w*1j
 fr = G_P(2.5, 2.5, 2.5, s)
-plot(real(fr), imag(fr), 'r-')
+plt.plot(np.real(fr), np.imag(fr), 'r-')
 
-figure(2)
+plt.figure(2)
 frn = G(s)
-distance = zeros_like(w)
+distance = np.zeros_like(w)
 for i in xrange(N):
     k, tau, theta = randomparameters()
     frp = G_P(k, tau, theta, s)
-    distance = maximum(abs(frp - frn), distance)
+    distance = np.maximum(abs(frp - frn), distance)
 
-loglog(w, distance, 'b--')
-loglog(w, map(abs, w_A(s)), 'r')
+plt.loglog(w, distance, 'b--')
+plt.loglog(w, map(abs, w_A(s)), 'r')
 
-show()
+plt.show()

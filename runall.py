@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
-import sys
 import glob
 import traceback
 from operator import itemgetter
 
 # disable show in figures
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 plt.show = lambda: None
-
 
 types = ['Figure', 'Example', 'Exercise']
 
