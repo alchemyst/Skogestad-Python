@@ -66,7 +66,7 @@ def connect(blocks, line_in, line_out):
 
 class sumblk(object):
     """
-    Summaiton block diagram object allowing blocks to be added together
+    Summation block diagram object allowing blocks to be added together
     based on input and output names
     """
 
