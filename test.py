@@ -14,5 +14,4 @@ class Test(unittest.TestCase):
         self.fail()
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testTest']
     unittest.main()

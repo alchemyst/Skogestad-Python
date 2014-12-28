@@ -22,3 +22,6 @@ Indices and tables
 
 .. automodule:: utils
     :members:
+
+.. automodule:: utilsplot
+    :members:
