@@ -55,7 +55,7 @@ import utils
 import matplotlib.pyplot as plt
            
 
-def sv_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def sv_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     '''
     Plot of Maximum and minimum singular values of a matirix
     
@@ -74,6 +74,10 @@ def sv_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     Can be used with the plant matrix G and the sensitivity function S
     for controlability analysis
     '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j    
     
@@ -93,7 +97,7 @@ def sv_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
     return
 
 
-def condtn_nm_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def condtn_nm_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     '''
     Plot of the condition number, the maximum over the minimum singular value
     
@@ -113,6 +117,9 @@ def condtn_nm_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, point
     control problems
     '''
     
+    if axlim is None:
+        axlim = [None, None, None, None]
+
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j    
     
@@ -135,7 +142,7 @@ def condtn_nm_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, point
     return
 
 
-def rga_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def rga_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     '''
     Plots the relative gain interaction between each output and input pairing
     
@@ -164,6 +171,10 @@ def rga_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100)
     This entry draws on and improves RGA.py.
     If accepted, then RGA.py could be removed from the repository
     '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
@@ -200,7 +211,7 @@ def rga_plot(G, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100)
     return
 
 
-def rga_nm_plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def rga_nm_plot(G, pairing=None, axlim=None, w_start=-2, w_end=2, points=100):
     '''
     Plots the RGA number for a specified pairing
     
@@ -232,16 +243,19 @@ def rga_nm_plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], w_st
     ----
     This plotting function can only be used on square systems
     '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
     freqresp = map(G, s)
     
-    if not pairing.size: # Setting a blank entry to the default of a diagonal comparison
+    if pairing is None: # Setting a blank entry to the default of a diagonal comparison
         diag = numpy.identity(dim[0])
         print('RGA number being calculated for a diagonal pairing')
-    elif numpy.shape(pairing)[0] != dim[0] or numpy.shape(pairing)[1] != dim[1]:
+    elif not all(pairing.shape == dim):
         print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
         pass
     else:
@@ -261,7 +275,7 @@ def rga_nm_plot(G, pairing=numpy.array([]), axlim=[None, None, None, None], w_st
     return
     
 
-def dis_rejctn_plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=2, points=100):
+def dis_rejctn_plot(G, Gd, S, axlim=None, w_start=-2, w_end=2, points=100):
     '''
     A subplot of disturbance conditition number to check for input saturation
     and a subplot of  to see if the disturbances fall withing the bounds on
@@ -293,6 +307,10 @@ def dis_rejctn_plot(G, Gd, S, axlim=[None, None, None, None], w_start=-2, w_end=
     For acceptable performance the singular values of S must fall below the
     inverse 2-norm of gd.
     '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
