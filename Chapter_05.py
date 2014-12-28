@@ -374,7 +374,7 @@ def rule6(G, Gm, message=False):
     else: valid6 = False
     
     if message:
-        if (wz <> 0):
+        if (wz != 0):
             print 'These are the roots of the transfer function matrix GGm' , zeros
         if valid6:    
             print 'The critical frequency of S for the system to be controllable is' , wz
