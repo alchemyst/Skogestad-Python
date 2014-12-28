@@ -9,16 +9,15 @@ import scipy.linalg as sc_lin
 import numpy as np
 import numpy.matlib
 
-"""
-Calculates the P, N and M matrices for the six different kinds
-of unstructured uncertainty in MIMO systems.
-"""
+# Calculates the P, N and M matrices for the six different kinds
+# of unstructured uncertainty in MIMO systems.
+
 
 # Approach: Use arrays for easy manipulation and convert to matrices
 # for linear algebra computations.
 
-#  TODO: Test accuracy with example as resiliency for handling
-#        arbitrary matrix dimensions unsure.
+# TODO: Test accuracy with example as resiliency for handling
+# arbitrary matrix dimensions unsure.
 
 
 def G(s):
@@ -89,19 +88,18 @@ def partP(Ps):
     return P11, P12, P21, P22
 
 
-"""
-Specify the form of the unstructured uncertainty by allocating a value to
-variable FORM as follows:
+# Specify the form of the unstructured uncertainty by allocating a value to
+# variable FORM as follows:
 
-(Cross reference Figure 8.5 on page 293 of the 3rd edition of Skogestad)
+# (Cross reference Figure 8.5 on page 293 of the 3rd edition of Skogestad)
 
-    1   -->     additive uncertainty
-    2   -->     multiplicative input uncertainty
-    3   -->     multiplicative output uncertainty
-    4   -->     inverse additive uncertainty
-    5   -->     inverse multiplicative input uncertainty
-    6   -->     inverse multiplicative output uncertainty
-"""
+#     1   -->     additive uncertainty
+#     2   -->     multiplicative input uncertainty
+#     3   -->     multiplicative output uncertainty
+#     4   -->     inverse additive uncertainty
+#     5   -->     inverse multiplicative input uncertainty
+#     6   -->     inverse multiplicative output uncertainty
+
 FORM = 1
 
 # Specify the range and resolution of frequency response
@@ -125,49 +123,43 @@ for k in range(len(omega)):
     s = 1j * omega[k]
 
     if FORM == 1:
-        """
-        Define matrix P for additive uncertainty form
-        """
+        # Define matrix P for additive uncertainty form
+        
         Ps = np.array([[Z, Z,  Wg(s)],
                        [Wp(s), Wp(s), Wp(s)*G(s)],
                        [-I, -I, -G(s)]])
 
     if FORM == 2:
-        """
-        Define matrix P for multiplicative input uncertainty form
-        """
+        # Define matrix P for multiplicative input uncertainty form
+        
         Ps = np.array([[Z, Z,  Wg(s)],
                        [Wp(s)*G(s), Wp(s), Wp(s)*G(s)],
                        [-G(s), -I, -G(s)]])
 
     if FORM == 3:
-        """
-        Define matrix P for multiplicative output uncertainty form
-        """
+        # Define matrix P for multiplicative output uncertainty form
+        
         Ps = np.array([[Z, Z,  Wg(s)*G(s)],
                        [Wp(s), Wp(s), Wp(s)*G(s)],
                        [-I, -I, -G(s)]])
 
     if FORM == 4:
-        """
-        Define matrix P for inverse additive uncertainty form
-        """
+        # Define matrix P for inverse additive uncertainty form
+        
         Ps = np.array([[G(s)*Wg(s), Z,  G(s)],
                        [Wp(s)*G(s)*Wg(s), Wp(s), Wp(s)*G(s)],
                        [-G(s)*Wg(s), -I, -G(s)]])
 
     if FORM == 5:
-        """
-        Define matrix P for inverse multiplicative uncertainty form
-        """
+        # Define matrix P for inverse multiplicative uncertainty form
+        
         Ps = np.array([[Wg(s), Z,  I],
                        [Wp(s)*G(s)*Wg(s), Wp(s), Wp(s)*G(s)],
                        [-G(s)*Wg(s), -I, -G(s)]])
 
     if FORM == 6:
-        """
-        Define matrix P for inverse multiplicative uncertainty form
-        """
+        # Define matrix P for inverse multiplicative uncertainty form
+        
         Ps = np.array([[Wg(s), Z,  G(s)],
                        [Wp(s)*Wg(s), Wp(s), Wp(s)*G(s)],
                        [-Wg(s), -I, -G(s)]])
