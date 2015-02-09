@@ -46,8 +46,8 @@ def step(model, t_final=100, steps=100, initial_val=0):
             ax = fig.add_subplot(rows + 1, columns, cnt)
             tf = system[i, k]
             if all(tf.numerator) != 0:
-                foo = np.real(tf.step(initial_val, tspace))
-                ax.plot(foo[0], foo[1])
+                realstep = np.real(tf.step(initial_val, tspace))
+                ax.plot(realstep[0], realstep[1])
             else:
                 ax.plot(tspace, nulspace)
             
