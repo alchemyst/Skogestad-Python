@@ -6,8 +6,6 @@ Adapt the already specified transfer funtion matrix to match your system.
 
 
 import numpy as np
-import numpy.linalg as la
-import matplotlib.pyplot as plt
 from utils import MIMOnyqPlot
 
 K = np.array([[1., 2.],
