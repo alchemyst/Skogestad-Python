@@ -7,9 +7,9 @@ I = np.asmatrix(np.identity(2))
 
 
 def G(s):
-        """process transfer matrix"""
-        return 1 / ((s ** 2) + a ** 2) * np.matrix([[s - a ** 2, a * (s + 1)],
-                                                    [-a * (s + 1), s - a ** 2]])
+    """process transfer matrix"""
+    return 1 / ((s ** 2) + a ** 2) * np.matrix([[s - a ** 2, a * (s + 1)],
+                                                [-a * (s + 1), s - a ** 2]])
 
 
 def K(s):
