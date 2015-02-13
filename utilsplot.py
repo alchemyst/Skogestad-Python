@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat May 31 20:50:02 2014
-
-@author: bmaas
-
 Inputs
 ------
 The default inputs to a plotting function in this script include:
@@ -48,12 +44,17 @@ perf_wt_plot :
     
 dis_rejctn_plot : A plot of the disturbance condition number and the bounds imposed
     by the singular values.
+    
+freq_step_response_plot: A subplot for both the frequnecy response and step
+    response for a controlled plant
+    
+    
 """
 
-import numpy
+import numpy #do not abbreviate this module as np in utilsplot.py
 import utils
 import matplotlib.pyplot as plt
-           
+      
 
 def sv_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     '''
@@ -280,6 +281,7 @@ def dis_rejctn_plot(G, Gd, S, axlim=None, w_start=-2, w_end=2, points=100):
     A subplot of disturbance conditition number to check for input saturation
     and a subplot of  to see if the disturbances fall withing the bounds on
     the singular values of S.
+    
     Parameters
     ----------
     G : numpy array
@@ -349,3 +351,80 @@ def dis_rejctn_plot(G, Gd, S, axlim=None, w_start=-2, w_end=2, points=100):
     
     plt.show()
     return
+
+
+def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', heading='', w_start=-2, w_end=2, points=1000, axlim=None):
+    '''
+    A subplot function for both the frequnecy response and step response for a
+    controlled plant
+    
+    Parameters
+    ----------
+    G : tf
+        plant transfer function
+    
+    K : tf
+        controller transfer function
+        
+    Kc : integer
+        controller constant 
+
+    freqtype : string (optional)
+        S = Sensitivity function; T = Complementary sensitivity function; L =
+        Loop function
+              
+    Returns
+    -------
+    fig(Frequency and step response) : figure
+        A subplot for both the frequnecy response and step response for a
+        controlled plant
+    
+    '''
+    import matplotlib.pyplot as plt
+    
+    if axlim is None:
+        axlim = [None, None, None, None]
+    
+    plt.figure(heading)
+    plt.subplot(1, 2, 1)  
+    
+    # Controllers transfer function with various controller gains
+    Ks = [(kc * K) for kc in Kc]
+    Ts = [utils.feedback(G * Kss, 1) for Kss in Ks]
+   
+    if (freqtype=='S'):
+        Fs = [(1 - Tss) for Tss in Ts]
+        plt.title('(a) Sensitivity function')
+        plt.ylabel('Magnitude $|S|$')
+    elif (freqtype=='T'):
+        Fs = Ts
+        plt.title('(a) Complementary sensitivity function')
+        plt.ylabel('Magnitude $|T|$')
+    else: #freqtype=='L'
+        Fs = [(G*Kss) for Kss in Ks]
+        plt.title('(a) Loop function')
+        plt.ylabel('Magnitude $|L|$')
+    
+    w = numpy.logspace(w_start, w_end, points)
+    wi = w * 1j
+    i = 0
+    for F in Fs:
+        plt.loglog(w, abs(F(wi)), label='Kc={d%s}=' % Kc[i])
+        i =+ 1
+    plt.axis(axlim)
+    plt.xlabel('Frequency [rad/s]')
+    plt.legend(["Kc=0.2", "Kc=0.5", "Kc=0.8"],loc=4)
+               
+    plt.subplot(1, 2, 2)
+    plt.title('(b) Response to step in reference')
+    tspan = numpy.linspace(0, t_end, t_points)
+    for T in Ts:
+        [t, y] = T.step(0, tspan)
+        plt.plot(t, y)
+    plt.plot(tspan, 0 * numpy.ones(t_points), ls='--')
+    plt.plot(tspan, 1 * numpy.ones(t_points), ls='--')
+    plt.axis(axlim)
+    plt.xlabel('Time [sec]')
+    plt.ylabel('$y(t)$')
+    
+    plt.show()

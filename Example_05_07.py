@@ -1,15 +1,18 @@
-import numpy as np
-import scipy as sc
-import matplotlib.pyplot as plt
+from utils import tf
+import utilsplot
 
-w = np.logspace(-2, 2, 1000)
-s = w*1j
-for kc in [0.2, 0.5, 0.8, 1]:
-    G = (-s+1)/(s+1)
-    k1 = kc*((s+1)/s)*(1/(0.05*s+1))
-    L = k1*G
-    T = L/(1+L)
-    S = 1-T
-    plt.loglog(w, abs(S))
+s = tf([1, 0])
 
-plt.show()
+#Figure 5.7
+G = (-s + 1)/(s + 1)
+Kc = [0.2, 0.5, 0.8]
+K = ((s + 1)/s) * (1 / (0.05 * s + 1))
+
+utilsplot.freq_step_response_plot(G, K, Kc, 5, 100, 'S', 'Figure 5.7')
+
+#Figure 5.8
+G = (-s + 1)/(s + 1)
+Kc = [0.1, 0.5, 0.9]
+K = -1*(s)/((1 + 0.02*s)*(1 + 0.05*s))
+
+utilsplot.freq_step_response_plot(G, K, Kc, 0.2, 1000, 'S', 'Figure 5.8')
