@@ -1,18 +1,16 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import tf, margins
 
-#Example plant
 s = tf([1, 0], 1)
 
 # Example plant based on Example 2.9 and Example 2.16
 G = (s + 200) / ((10 * s + 1) * (0.05 * s + 1)**2)
-#G.deadtime = 0.002
 Gd = 33 / (10 * s + 1)
 K = 0.4 * ((s + 2) / s) * (0.075 * s + 1)
 R = 3.0
 wr = 10
+Gm = 1 #Measurement model
 
 ''' 
 All of the below function are from pages 206-207 and the associated rules that 
@@ -62,8 +60,8 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         crossover frequency where | Gd(jwd) | = 1         
     '''
 
-    GM, PM, wc, wu = margins(G)
-    GM, PM, wd, w_180 = margins(Gd)
+    _,_,wc,_ = margins(G)
+    _,_,wd,_  = margins(Gd)
     
     valid1 = wc > wd
 
@@ -204,7 +202,7 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
     s = 1j * w
         
     mag_g = np.abs(G(s))
-    mag_gd = np.abs(G(s))
+    mag_gd = np.abs(Gd(s))
     
     if message:
         print 'Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|'            
@@ -307,7 +305,7 @@ def rule5(G, Gm=1, message=False):
 
     GGm = G * Gm
     TimeDelay = GGm.deadtime
-    GM, PM, wc, w_180 = margins(G) 
+    _,_,wc,_ = margins(GGm)
     
     valid5 = False
     if TimeDelay == 0:
@@ -326,6 +324,7 @@ def rule5(G, Gm=1, message=False):
             
     return valid5, wtd
 
+#G.deadtime = 0.002
 #rule5(G, Gm, True)
 
 
@@ -340,8 +339,8 @@ def rule6(G, Gm, message=False):
     G : tf
         plant model   
     
-    Gd : tf
-        plant distrubance model
+    Gm : tf
+        measurement model
     
     message : boolean 
         show the rule message (optional)
@@ -358,7 +357,8 @@ def rule6(G, Gm, message=False):
 
     GGm = G * Gm
     zeros = np.roots(GGm.numerator)
-    GM, PM, wc, w_180 = margins(GGm)
+
+    _,_,wc,_ = margins(GGm)
 
     wz = 0
     if len(zeros) > 0:
@@ -395,8 +395,8 @@ def rule7(G, Gm, message=False):
     G : tf
         plant model   
     
-    Gd : tf
-        plant distrubance model
+    Gm : tf
+        measurement model
     
     message : boolean 
         show the rule message (optional)
@@ -417,7 +417,7 @@ def rule7(G, Gm, message=False):
     # This is solved visually from a plot.
     
     GGm = G * Gm
-    GM, PM, wc, w_180 = margins(GGm)
+    _,_,wc,w_180 = margins(GGm)
     
     valid7 = wc < w_180   
     
@@ -460,7 +460,7 @@ def rule8(G, message=False):
     #Rule 8 for critical frequency min value due to poles
 
     poles = np.roots(G.denominator)
-    GM, PM, wc, w_180 = margins(G)
+    _,_,wc,_ = margins(G)
 
     wp = 0
     if np.max(poles) < 0:
