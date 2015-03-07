@@ -5,7 +5,7 @@ from utils import feedback, tf
 s = tf([1, 0], 1)
 
 G = 5/((10*s+1)*(s+1))
-Gd = 0.54/((s+1)*(0.2*s+1))
+Gd = 0.5/((s+1)*(0.2*s+1))
 K = 0.04 / s * ((10 * s + 1)**2)/((0.1 * s + 1)**2)
 
 L = G * K
@@ -35,6 +35,7 @@ plt.plot(t, y)
 plt.plot(t, u)
 plt.plot(tspan, 0 * np.ones(100), ls='--')
 plt.xlabel('Time [sec]')
+plt.legend(['$y(t)$','$u(t)$'])
 plt.title('(b) Response to step in disturbance ($k_d=0.5$)')
 
 plt.show()    
