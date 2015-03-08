@@ -95,17 +95,31 @@ def is_min_realisation(A, B, C):
     return state_control and state_obsr
 
 
-def zero_directions(zero_vec, tf, e=0.0001):
+def pole_zero_directions(vec, tf, e=0.0001):
+    """    
+    Parameters
+    ----------
+    vec : numpy array
+        A vector containing all the transmission poles or zeros of a system.
+    tf : tf
+        The transfer function G(s) of the system.
+    e : real
+        This avoids possible divide by zero errors in G(z).
+    
+    Returns
+    -------
+    pz_dir : numpy array
+        Pole or zero direction in the form - 
+        (pole/zero, input direction, output direction)
+        
+    Note
+    ----
+    This method is going to give dubious answers if the function G has pole
+    zero cancellation.
+        
     """
-    Parameters: zero_vec => a vector containing all the transmission zeros of a system
-                tf       => the transfer function G(s) of the system
-                e        => this avoids possible divide by zero errors in G(z)
-    Returns:    zero_dir => zero directions in the form:
-                            (zero, input direction, output direction)
-    Notes: this method is going to give dubious answers if the function G has pole zero cancellation...
-    """
-    zero_dir = []
-    for z in zero_vec:
+    pz_dir = []
+    for d in vec:
         num, den = cn.tfdata(tf)
         rows, cols = np.shape(num)
 
@@ -113,8 +127,8 @@ def zero_directions(zero_vec, tf, e=0.0001):
 
         for x in range(rows):
             for y in range(cols):
-                top = np.polyval(num[x][y], z)
-                bot = np.polyval(den[x][y], z)
+                top = np.polyval(num[x][y], d)
+                bot = np.polyval(den[x][y], d)
                 if bot == 0.0:
                     bot = e
 
@@ -127,8 +141,9 @@ def zero_directions(zero_vec, tf, e=0.0001):
         v_rows, v_cols = np.shape(V)
         yz = np.hsplit(U, u_cols)[-1]
         uz = np.hsplit(V, v_cols)[-1]
-        zero_dir.append((z, uz, yz))
-    return zero_dir
+        pz_dir.append((d, uz, yz))
+    return pz_dir
+
 
 def zero(A, B, C, D):
     """
@@ -161,5 +176,3 @@ def zero(A, B, C, D):
     for z in zs:
         print z
     return zs
-    
-    
