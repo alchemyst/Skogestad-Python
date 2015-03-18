@@ -1,30 +1,53 @@
 #!/usr/bin/env python
 
 import glob
+import os
 import traceback
 from operator import itemgetter
+import re
+from collections import Counter
 
 # disable show in figures
 import matplotlib.pyplot as plt
 plt.show = lambda: None
 
-types = ['Figure', 'Example', 'Exercise']
+statuscounter = Counter()
+
+itemparser = re.compile('(?P<kind>.*) (?P<chapter>.*)\.(?P<number>.*)')
+allitems = open('allitems.txt').read().splitlines()
+
+kinds = ['Figure', 'Example', 'Exercise']
 
 statustable = []
 
 if __name__ == "__main__":
-    for t in types:
-        files = glob.glob(t + "*.py")
-        print "Running", len(files), t + "s"
-        for f in files:
-            print " ", f
-            try:
-                execfile(f)
-                statustable.append([f, 'Success'])
-            except Exception, err:
-                print traceback.format_exc()
-                statustable.append([f, 'Failed'])
+    for item in allitems:
+        kind, chapter_c, number_c = itemparser.match(item).groups()
 
-    statustable.sort(key=itemgetter(1))
-    for filename, status in statustable:
-        print filename, status
+        number = int(number_c)
+
+        if chapter_c.isdigit():
+            chapter = int(chapter_c)
+            mask = '{}_{:02d}_{:02d}.py'
+        else:
+            chapter = chapter_c
+            mask = '{}_{}_{}.py'
+
+        filename = mask.format(kind, chapter, number)
+        if os.path.exists(filename):
+            try:
+                execfile(filename)
+                status= 'Success'
+            except Exception, err:
+                status = 'Failed'
+                message = traceback.format_exc()
+        else:
+            status = 'Not implemeted'
+
+        statuscounter[status] += 1
+
+        print kind, chapter, number, status
+        if status == 'Failed':
+            print message
+
+    print statuscounter

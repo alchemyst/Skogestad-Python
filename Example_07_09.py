@@ -19,8 +19,8 @@ def l(Gn, G):
 def T(G, K):
     return (G * K) / (1 + G * K)
 
-"""compute for additive parametric uncertainty"""
-"""The condition for robust stability is derived & gives: RS <==> K*S < 1/W_A
+""" Compute for additive parametric uncertainty
+    The condition for robust stability is derived & gives: RS <==> K*S < 1/W_A
     with Lp = Gp*K = k*(G + W_A*delta_I)"""
 
 def W_A(Gn, G):     # We take W_A = l_A , Additive error (l_A = G'- G)

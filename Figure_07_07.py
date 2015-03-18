@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import circle
-from scipy.optimize import fmin
+from scipy.optimize import minimize
 
 w = 0.5
 s = w * 1j
@@ -36,6 +36,7 @@ for l in range(n-2, -1, -1):
     tau = p[l]
     g0.append(Gp(k, tau, theta))
 
+g0 = np.array(g0)
 rea = np.real(g0)
 img = np.imag(g0)
 plt.plot(rea, img, '--')
@@ -53,14 +54,12 @@ r2 = np.max(np.abs(g2 - g0))
 plt.plot(c2x, c2y, 'g')
 
 # M3 Nominal model corresponding to the smallest radius
-
-
-def maxrad(g, g0):
-    g = g[0] + 1j * g[1]
+def maxrad(g):
+    g = complex(*g)
     return np.max(np.abs(g - g0))
 
-g3 = fmin(maxrad, [np.real(g2), np.imag(g2)], [g0], disp=False)
-g3 = g3[0] + 1j * g3[1]
+result = minimize(maxrad, [np.real(g2), np.imag(g2)])
+g3 = complex(*result.x)
 r3 = np.max(np.abs(g3 - g0))
 [c3x, c3y] = circle(np.real(g3), np.imag(g3), r3)
 
@@ -81,4 +80,6 @@ plt.legend(['Uncertainty disc', 'M1', 'M2', 'M3'],
 plt.plot(np.real(g1), np.imag(g1), '+r')
 plt.plot(np.real(g2), np.imag(g2), '+g')
 plt.plot(np.real(g3), np.imag(g3), '+c')
+# We need this for the circles to be circular
+plt.axis('equal')
 plt.show()

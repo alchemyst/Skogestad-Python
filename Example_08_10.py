@@ -7,19 +7,19 @@ I = np.asmatrix(np.identity(2))
 
 
 def G(s):
-        """process transfer matrix"""
-        return 1 / ((s ** 2) + a ** 2) * np.matrix([[s - a ** 2, a * (s + 1)],
-                                                    [-a * (s + 1), s - a ** 2]])
+    """process transfer matrix"""
+    return 1 / ((s ** 2) + a ** 2) * np.matrix([[s - a ** 2, a * (s + 1)],
+                                                [-a * (s + 1), s - a ** 2]])
 
 
-def K(s):
+def K():
     """controller"""
     return I
 
 
 def T(s):
     """this is a special case where T_I(s)= T(s) """
-    return G(s) * K(s) * (I + G(s) * K(s)).I
+    return G(s) * K() * (I + G(s) * K()).I
 
 frequency = np.logspace(-3, 2, 1000)
 s = 1j * frequency

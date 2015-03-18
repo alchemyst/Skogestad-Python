@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import RGA
 
 # The following code performs Example 3.12 of Skogestad.
