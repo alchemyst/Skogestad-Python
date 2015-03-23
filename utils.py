@@ -323,31 +323,6 @@ def feedback(forward, backward=None, positive=False):
     return  forward * 1/(1 + backward * forward)
 
 
-def tf_step(tf, t_final=10, initial_val=0, steps=100):
-    """
-    Prints the step response of a transfer function
-    """
-    # See the following docs for meaning of *args
-    # http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.step.html
-    
-    # Surpress the complex casting error
-    import warnings
-    warnings.simplefilter("ignore")
-    # TODO: Make more specific
-    
-    deadtime = tf.deadtime
-    tspace = numpy.linspace(0, t_final, steps)
-    foo = numpy.real(tf.step(initial_val, tspace))
-    t_stepsize = max(foo[0])/(foo[0].size-1)
-    t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
-    foo[1] = numpy.roll(foo[1], t_startindex)
-    foo[1,0:t_startindex] = initial_val
-    plt.plot(foo[0], foo[1])
-    plt.show()
-
-# TODO: Concatenate tf objects into MIMO structure
-
-
 def sigmas(A):
     """
     Returns the singular values of A
