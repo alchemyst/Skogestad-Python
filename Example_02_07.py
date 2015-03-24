@@ -7,7 +7,7 @@ import scipy.signal as scs
 # must be taken and the phase must also be considered.
 
 
-# Creates a general transfer function based on the coeffisients
+# Creates a general transfer function based on the coefficients
 # of the numerator and denominator
 def TF(num, den, s):
     TF = np.polyval(num, s)/np.polyval(den, s)
@@ -18,7 +18,7 @@ w = np.logspace(-2, 2, 100)
 z = 0.1
 tau = 1
 
-# Coeff found in sage of the T functiom
+# Coeff found in sage of the T function
 Tnum = [-1, z]
 Tden = [tau, tau*z + 1, z]
 
