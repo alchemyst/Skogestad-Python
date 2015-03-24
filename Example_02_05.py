@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import feedback, bodeclosedloop, tf, marginsclosedloop
+from utilsplot import step_response_plot
 
 s = tf([1, 0], 1)
 G = 4 /((s - 1) * (0.02 * s + 1)**2)
@@ -10,18 +11,11 @@ K = Kc * (1 + 1 / (Tauc * s))
 L = K * G
 T = feedback(L, 1)
 S = feedback(1, L)
-
+u = S * K
 
 plt.figure('Figure 2.9')
-tspan = np.linspace(0, 4, 50)
-[t, y] = T.step(0, tspan)
-plt.plot(t, y)
-[t, y] = S.step(0, tspan)
-plt.plot(t, y)
-plt.plot([0, 4], np.ones(2))
-plt.xlabel('Time [s]')
-plt.legend(['y(t)','u(t)'])
-#TODO there is a descrepancy with the u(t) plot
+step_response_plot(T, u, 4, 0)
+plt.show()
 
 bodeclosedloop(G, K, -1, 2, label='Figure 2.15', margin=True)
 #TODO there is a descrepancy with the phase plots
@@ -32,5 +26,3 @@ print "PM:", np.round(PM*180/np.pi, 1), "deg or", np.round(PM, 2), "rad"
 print 'wb :' , wb
 print 'wc :' , wc
 print 'wbt :' , wbt
-
-plt.show()
