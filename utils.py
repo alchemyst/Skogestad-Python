@@ -304,6 +304,7 @@ class tf(object):
         for k in range(other-1):
             r = r * self
         return r
+        
 
 def feedback(forward, backward=None, positive=False):
     """
@@ -323,27 +324,86 @@ def feedback(forward, backward=None, positive=False):
     return  forward * 1/(1 + backward * forward)
 
 
-def tf_step(tf, t_final=10, initial_val=0, steps=100):
+def tf_step(Y, t_end=10, initial_val=0, points=1000, constraint=None, method='numeric'):
     """
-    Prints the step response of a transfer function
-    """
-    # See the following docs for meaning of *args
-    # http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.step.html
+    Validate the step response data of a transfer function by considering dead
+    time and constraints. A unit step response is generated.  
     
+    Parameters
+    ----------
+    Y : tf
+        transfer function to evauate step response from
+        
+    t_end : integer
+        length of time to evaluate step response (optional)
+    
+    initial_val : integer
+        starting value to evalaute step response (optional)
+        
+    points : integer
+        number of iteration that will be calculated (optional)
+        
+    constraint : real
+        the upper limit the step response cannot exceed. is only calculated
+        if a value is specified (optional)
+        
+    method : ['numeric','analytic']
+        the method that is used to calculate a constrainted response. a
+        constraint value is required (optional)
+          
+    Returns
+    -------
+    var : type
+        description    
+    """ 
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
     # TODO: Make more specific
     
-    deadtime = tf.deadtime
-    tspace = numpy.linspace(0, t_final, steps)
-    foo = numpy.real(tf.step(initial_val, tspace))
-    t_stepsize = max(foo[0])/(foo[0].size-1)
-    t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
-    foo[1] = numpy.roll(foo[1], t_startindex)
-    foo[1,0:t_startindex] = initial_val
-    plt.plot(foo[0], foo[1])
-    plt.show()
+    tspace = numpy.linspace(0, t_end, points)    
+    
+    if (constraint == None):
+        deadtime = Y.deadtime        
+        foo = numpy.real(Y.step(initial_val, tspace))
+        t_stepsize = max(foo[0])/(foo[0].size-1)
+        t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
+        foo[1] = numpy.roll(foo[1], t_startindex)
+        foo[1,0:t_startindex] = initial_val
+        
+    else:
+        if (method == 'numeric'):
+            A = signal.tf2ss(Y.numerator, Y.denominator)[0]
+            B = signal.tf2ss(Y.numerator, Y.denominator)[1]
+            C = signal.tf2ss(Y.numerator, Y.denominator)[2]
+            D = signal.tf2ss(Y.numerator, Y.denominator)[3]
+            A, B, C, D = map(numpy.asmatrix, [A, B, C, D])
+            
+            dt = tspace[1]
+            ystore = []
+            u = 1
+            
+            #adjust the shape for complex state space functions
+            x = numpy.zeros((numpy.shape(A)[1], numpy.shape(B)[1]))
+            for t in tspace:
+                dxdt = A*x + B*u
+                y= C*x + D*u
+                
+                if (y[0,0] > constraint):
+                    y[0,0] = constraint            
+                  
+                x = x + dxdt * dt
+                
+                ystore.append(y[0,0])
+        elif (method == 'analytics'):
+            # TODO: caluate intercept of step and constraint line
+            foo = [0,0]
+        else: print 'Invalid function parameters'
+        
+        plt.plot(tspace, ystore)    
+        
+    # TODO: calculate time response
+    return foo[0], foo[1]
 
 # TODO: Concatenate tf objects into MIMO structure
 

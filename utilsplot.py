@@ -48,6 +48,7 @@ dis_rejctn_plot : A plot of the disturbance condition number and the bounds impo
 freq_step_response_plot: A subplot for both the frequnecy response and step
     response for a controlled plant
     
+step_response_plot: A plot of the step response of a transfer function
     
 """
 
@@ -380,7 +381,6 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
         controlled plant
     
     '''
-    import matplotlib.pyplot as plt
     
     if axlim is None:
         axlim = [None, None, None, None]
@@ -412,6 +412,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
         plt.loglog(w, abs(F(wi)), label='Kc={d%s}=' % Kc[i])
         i =+ 1
     plt.axis(axlim)
+    plt.grid(b=None, which='both', axis='both')
     plt.xlabel('Frequency [rad/s]')
     plt.legend(["Kc=0.2", "Kc=0.5", "Kc=0.8"],loc=4)
                
@@ -428,3 +429,55 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
     plt.ylabel('$y(t)$')
     
     plt.show()
+
+def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', points=1000, axlim=None, constraint=None, method='numeric'):
+    '''
+    A plot of the step response of a transfer function
+    
+    Parameters
+    ----------
+    Y : tf
+        output transfer function
+        
+    U : tf
+        input transfer function
+    
+    initial_val : integer
+        starting value to evalaute step response (optional)
+        
+    constraint : float
+        the upper limit the step response cannot exceed. is only calculated
+        if a value is specified (optional)
+        
+    method : ['numeric','analytic']
+        the method that is used to calculate a constrainted response. a
+        constraint value is required (optional)
+
+    Returns
+    -------
+    fig(Step response) : figure
+    
+    '''    
+    if axlim is None:
+        axlim = [None, None, None, None]       
+    
+    [t,y] = utils.tf_step(Y, t_end, initial_val)
+    plt.plot(t,y)
+    
+    [t,y] = utils.tf_step(U, t_end, initial_val)
+    plt.plot(t,y)
+    
+    plt.plot([0, t_end], numpy.ones(2),'--')
+    
+    if (constraint == None):
+        plt.legend(['$y(t)$','$u(t)$'])  
+    else:
+        [t,y] = utils.tf_step(Y, t_end, initial_val, points, constraint, method)
+        plt.plot(t,y)
+        
+        plt.legend(['$y(t)$','$u(t)$','$y(t) constraint$','$u(t) constraint$'])
+        
+    
+    plt.axis(axlim)
+    plt.xlabel('Time [' + timedim + ']')
+              

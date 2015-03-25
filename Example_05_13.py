@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utilsplot import step_response_plot
 from utils import feedback, tf
 
 s = tf([1, 0], 1)
@@ -31,16 +32,8 @@ plt.xlabel('Frequency [rad/s]')
 plt.ylabel('Magnitude') 
 plt.legend(('$|G|$','$|G_d|$'), loc=1)
 
-#TODO plot the correct constraint and unconstraint response
 plt.subplot(1, 2, 2)
-tspan = np.linspace(0, 10, 100)
-[t, y] = S.step(0, tspan)
-[t, u] = Gu.step(0, tspan)
-plt.plot(t, y)
-plt.plot(t, u)
-plt.axhline(0, color='black', linestyle=':')
-plt.xlabel('Time [sec]')
-plt.legend(['$y(t)$','$u(t)$'])
+step_response_plot(S, Gu, t_end=10)
 plt.title('(b) Response to step in disturbance ($k_d=0.5$)')
 
 plt.show()    
