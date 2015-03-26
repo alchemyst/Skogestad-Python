@@ -114,6 +114,25 @@ def RGA(Gin):
     return G*Ginv.T
 
 
+def RGAnumber(Gin, I):
+    """ 
+    Computes the RGA (Relative Gain Array) number of a matrix.
+    
+    Parameters
+    ----------
+    Gin : numpy matrix
+        Transfer function matrix.
+        
+    I : numpy matrix
+        Pairing matrix.
+        
+    Returns
+    -------
+    RGA number : float    
+    """    
+    return numpy.sum(numpy.abs(RGA(Gin) - I))
+
+
 def plot_freq_subplot(plt, w, direction, name, color, figure_num):
     plt.figure(figure_num)
     N = direction.shape[0]
@@ -324,86 +343,124 @@ def feedback(forward, backward=None, positive=False):
     return  forward * 1/(1 + backward * forward)
 
 
-def tf_step(Y, t_end=10, initial_val=0, points=1000, constraint=None, method='numeric'):
+def tf2SS(G):
+    """
+    Returns the state space (SS) matrixes for a transfer function
+    
+    Parameters
+    ----------
+    A : tf
+        Transfer function.
+        
+    Returns
+    -------
+    A, B, C, D : numpy matrix
+        State space matrixes.
+
+    """
+    # TODO: impliment in tf object
+    A = signal.tf2ss(G.numerator, G.denominator)[0]
+    B = signal.tf2ss(G.numerator, G.denominator)[1]
+    C = signal.tf2ss(G.numerator, G.denominator)[2]
+    D = signal.tf2ss(G.numerator, G.denominator)[3]
+    return map(numpy.asmatrix, [A, B, C, D]) #convert array to matrix
+    
+
+def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
     time and constraints. A unit step response is generated.  
     
     Parameters
     ----------
+    G : tf
+        Transfer function (input[u] or output[y]) to evauate step response.
+        
     Y : tf
-        transfer function to evauate step response from
+        Transfer function output[y] to evaluate constrain step response (optional)(required if constraint is specified).
         
     t_end : integer
-        length of time to evaluate step response (optional)
+        length of time to evaluate step response (optional).
     
     initial_val : integer
-        starting value to evalaute step response (optional)
+        starting value to evalaute step response (optional).
         
     points : integer
-        number of iteration that will be calculated (optional)
+        number of iteration that will be calculated (optional).
         
     constraint : real
-        the upper limit the step response cannot exceed. is only calculated
-        if a value is specified (optional)
+        The upper limit the step response cannot exceed. Is only calculated
+        if a value is specified (optional).
         
     method : ['numeric','analytic']
-        the method that is used to calculate a constrainted response. a
-        constraint value is required (optional)
+        The method that is used to calculate a constrainted response. A
+        constraint value is required (optional).
           
     Returns
     -------
-    var : type
-        description    
+    timedata : array
+        Array of floating time values.  
+        
+    process : array (1 or 2 dim)
+        1 or 2 dimensional array of floating process values.
     """ 
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
     # TODO: Make more specific
     
-    tspace = numpy.linspace(0, t_end, points)    
+    timedata = numpy.linspace(0, t_end, points)    
     
     if (constraint == None):
-        deadtime = Y.deadtime        
-        foo = numpy.real(Y.step(initial_val, tspace))
-        t_stepsize = max(foo[0])/(foo[0].size-1)
+        deadtime =G.deadtime        
+        [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
+        t_stepsize = max(timedata)/(timedata.size-1)
         t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
-        foo[1] = numpy.roll(foo[1], t_startindex)
-        foo[1,0:t_startindex] = initial_val
+        processdata = numpy.roll(processdata, t_startindex)
+        processdata[0:t_startindex] = initial_val
         
     else:
         if (method == 'numeric'):
-            A = signal.tf2ss(Y.numerator, Y.denominator)[0]
-            B = signal.tf2ss(Y.numerator, Y.denominator)[1]
-            C = signal.tf2ss(Y.numerator, Y.denominator)[2]
-            D = signal.tf2ss(Y.numerator, Y.denominator)[3]
-            A, B, C, D = map(numpy.asmatrix, [A, B, C, D])
+            A1, B1, C1, D1 = tf2SS(G)
+            #adjust the shape for complex state space functions
+            x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
-            dt = tspace[1]
-            ystore = []
+            if (constraint != None):
+                A2, B2, C2, D2 = tf2SS(Y)
+                x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
+            
+            dt = timedata[1]
+            processdata1 = []
+            processdata2 = []
+            bconst = False
             u = 1
             
-            #adjust the shape for complex state space functions
-            x = numpy.zeros((numpy.shape(A)[1], numpy.shape(B)[1]))
-            for t in tspace:
-                dxdt = A*x + B*u
-                y= C*x + D*u
+            for t in timedata:
+                dxdt1 = A1*x1 + B1*u
+                y1 = C1*x1 + D1*u
                 
-                if (y[0,0] > constraint):
-                    y[0,0] = constraint            
+                if (constraint != None):
+                    if (y1[0,0] > constraint) or bconst:
+                        y1[0,0] = constraint  
+                        bconst = True # once constraint the system is oversaturated
+                        u = 0 # TODO : incorrect, find the correct switching condition
+                    dxdt2 = A2*x2 + B2*u
+                    y2 = C2*x2 + D2*u
+                    x2 = x2 + dxdt2 * dt      
+                    processdata2.append(y2[0,0])
                   
-                x = x + dxdt * dt
-                
-                ystore.append(y[0,0])
+                x1 = x1 + dxdt1 * dt                
+                processdata1.append(y1[0,0])
+            if constraint:
+                processdata = [processdata1, processdata2]
+            else: processdata = processdata1
         elif (method == 'analytics'):
             # TODO: caluate intercept of step and constraint line
-            foo = [0,0]
+            timedata, processdata = [0,0]
         else: print 'Invalid function parameters'
         
-        plt.plot(tspace, ystore)    
-        
     # TODO: calculate time response
-    return foo[0], foo[1]
+    return timedata, processdata
 
 # TODO: Concatenate tf objects into MIMO structure
 
