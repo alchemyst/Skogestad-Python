@@ -28,6 +28,7 @@ install:
 # Run test
 script:
   - python runall.py
+  - python utils.py
  
 #TODO: calculate coverage
 #after_success:
