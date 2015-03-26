@@ -6,6 +6,7 @@ import traceback
 from operator import itemgetter
 import re
 from collections import Counter
+import sys
 
 # disable show in figures
 import matplotlib.pyplot as plt
@@ -51,3 +52,4 @@ if __name__ == "__main__":
             print message
 
     print statuscounter
+    sys.exit(statuscounter['Failed'])
