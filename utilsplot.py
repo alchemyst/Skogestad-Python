@@ -29,7 +29,7 @@ nyquist_plot:
 sv_plot : Maximum and minimum singular values of a matirix
     (Can remove SVD_over_frequency.py, SVD_Total_Analysis.py and SVD_w.py)
     
-condtn_nm_plot : A plot of the condition number for a specified diagonal
+condtn_nm_plot : A plot of the condition number for a specified diagonal 
     
 rga_plot: A plot of the relative gain interactions for a matrix over a given frequency
     (Can remove RGA.py script)
@@ -55,9 +55,10 @@ step_response_plot: A plot of the step response of a transfer function
 import numpy #do not abbreviate this module as np in utilsplot.py
 import utils
 import matplotlib.pyplot as plt
+import sys
       
 
-def sv_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
+def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     '''
     Plot of Maximum and minimum singular values of a matirix
     
@@ -99,7 +100,7 @@ def sv_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     return
 
 
-def condtn_nm_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
+def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     '''
     Plot of the condition number, the maximum over the minimum singular value
     
@@ -144,7 +145,7 @@ def condtn_nm_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     return
 
 
-def rga_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
+def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     '''
     Plots the relative gain interaction between each output and input pairing
     
@@ -163,9 +164,9 @@ def rga_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
     -------
     # Adapted from example 3.11 pg 86 S. Skogestad
     >>> def G(s):
-    ...     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
+    ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
-    >>> rga_plot(G, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
+    >>> rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
     
     
     Note
@@ -210,10 +211,9 @@ def rga_plot(G, axlim=None, w_start=-2, w_end=2, points=100):
             plt.title('Output %s vs. input %s' % (i + 1, k + 1))    
 
     plt.show()
-    return
 
 
-def rga_nm_plot(G, pairing=None, axlim=None, w_start=-2, w_end=2, points=100):
+def rga_nm_plot(G, pairing=None, w_start=-2, w_end=2, axlim=None, points=100):
     '''
     Plots the RGA number for a specified pairing
     
@@ -236,10 +236,10 @@ def rga_nm_plot(G, pairing=None, axlim=None, w_start=-2, w_end=2, points=100):
     -------
     # Adapted from example 3.11 pg 86 S. Skogestad
     >>> def G(s):
-    ...     G = 0.01*numpy.exp(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.array([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
+    ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
-    >>> pairing = numpy.array([[1., 0.], [0., 1.]])
-    >>> rga_nm_plot(G, pairing, axlim=[None, None, 0., 1.], w_start=-5, w_end=2)
+    >>> pairing = numpy.matrix([[1., 0.], [0., 1.]])
+    >>> rga_nm_plot(G, pairing, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
 
     Note
     ----
@@ -257,9 +257,9 @@ def rga_nm_plot(G, pairing=None, axlim=None, w_start=-2, w_end=2, points=100):
     if pairing is None: # Setting a blank entry to the default of a diagonal comparison
         diag = numpy.identity(dim[0])
         print('RGA number being calculated for a diagonal pairing')
-    elif not all(pairing.shape == dim):
+    elif (pairing.shape != dim):
         print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
-        pass
+        sys.exit()
     else:
         diag = pairing
 
@@ -270,17 +270,17 @@ def rga_nm_plot(G, pairing=None, axlim=None, w_start=-2, w_end=2, points=100):
     plt.semilogx(w, [numpy.sum(numpy.abs(utils.RGA(Gfr) - diag)) for Gfr in freqresp] )    
     
     plt.axis(axlim)
-    plt.ylabel('||$\Lambda$(G) - I||$_{sum}$', fontsize = 15)
+    plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
     plt.xlabel('Frequency (rad/unit time)')
     
     plt.show()
     return
     
 
-def dis_rejctn_plot(G, Gd, S, axlim=None, w_start=-2, w_end=2, points=100):
+def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
     '''
     A subplot of disturbance conditition number to check for input saturation
-    and a subplot of  to see if the disturbances fall withing the bounds on
+    and a subplot of to see if the disturbances fall withing the bounds on
     the singular values of S.
     
     Parameters
@@ -354,7 +354,7 @@ def dis_rejctn_plot(G, Gd, S, axlim=None, w_start=-2, w_end=2, points=100):
     return
 
 
-def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', heading='', w_start=-2, w_end=2, points=1000, axlim=None):
+def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', heading='', w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     A subplot function for both the frequnecy response and step response for a
     controlled plant
@@ -430,7 +430,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
     
     plt.show()
 
-def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', points=1000, axlim=None, constraint=None, method='numeric'):
+def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None, points=1000, constraint=None, method='numeric'):
     '''
     A plot of the step response of a transfer function
     
@@ -467,16 +467,16 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', points=1000
     [t,y] = utils.tf_step(U, t_end, initial_val)
     plt.plot(t,y)
     
-    plt.plot([0, t_end], numpy.ones(2),'--')
-    
     if (constraint == None):
         plt.legend(['$y(t)$','$u(t)$'])  
     else:
-        [t,y] = utils.tf_step(Y, t_end, initial_val, points, constraint, method)
-        plt.plot(t,y)
+        [t,y] = utils.tf_step(U, t_end, initial_val, points, constraint, Y, method)
+        plt.plot(t,y[0])
+        plt.plot(t,y[1])
         
-        plt.legend(['$y(t)$','$u(t)$','$y(t) constraint$','$u(t) constraint$'])
+        plt.legend(['$y(t)$','$u(t)$','$u(t) const$','$y(t) const$']) #con = constraint
         
+    plt.plot([0, t_end], numpy.ones(2),'--')    
     
     plt.axis(axlim)
     plt.xlabel('Time [' + timedim + ']')
