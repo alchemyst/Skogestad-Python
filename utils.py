@@ -114,25 +114,6 @@ def RGA(Gin):
     return G*Ginv.T
 
 
-def RGAnumber(Gin, I):
-    """ 
-    Computes the RGA (Relative Gain Array) number of a matrix.
-    
-    Parameters
-    ----------
-    Gin : numpy matrix
-        Transfer function matrix.
-        
-    I : numpy matrix
-        Pairing matrix.
-        
-    Returns
-    -------
-    RGA number : float    
-    """    
-    return numpy.sum(numpy.abs(RGA(Gin) - I))
-
-
 def plot_freq_subplot(plt, w, direction, name, color, figure_num):
     plt.figure(figure_num)
     N = direction.shape[0]
