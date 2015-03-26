@@ -15,7 +15,8 @@ before_install:
 # Install packages
 install:
   # TODO: Figure out how to read this from requirements.txt
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose control sympy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose csympy
+  - pip install control
   # Coverage packages are on my binstar channel
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
 # TODO: Package 
