@@ -5,7 +5,7 @@ Adapt the already specified transfer funtion matrix to match your system.
 """
 
 import numpy as np
-from utils import MIMOnyqPlot
+from utils import MIMOnyqPlot, plt
 
 K = np.array([[1., 2.],
               [3., 4.]])
@@ -26,3 +26,4 @@ def L(s):
     return(Kc*G(s))
     
 MIMOnyqPlot(L, 2, -3, 3)
+plt.show()
