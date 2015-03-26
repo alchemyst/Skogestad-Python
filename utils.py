@@ -669,7 +669,6 @@ def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
     BG = fig.patch
     BG.set_facecolor('white')
     plt.grid(True)
-    plt.show()
     return(wB) 
 
 
@@ -775,7 +774,6 @@ def MIMOnyqPlot(L, axLim, wStart, wEnd):
     fig = plt.gcf()
     BG = fig.patch
     BG.set_facecolor('white')
-    plt.show()
 
 
    
@@ -1021,7 +1019,6 @@ def bode(G, w1, w2, label='Figure', margin=False):
     plt.ylabel('Phase')
     plt.xlabel('Frequency [rad/unit time]')
     
-    plt.show()
 
     return GM, PM
     
@@ -1071,7 +1068,6 @@ def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
     plt.ylabel("Phase")
     plt.xlabel("Frequency [rad/s]")  
     
-    plt.show()
 
 
 
@@ -1160,7 +1156,6 @@ def mimoBode(Gin, wStart, wEnd, Kin=None):
     fig = plt.gcf()
     BG = fig.patch
     BG.set_facecolor('white')
-    plt.show()
     
     if Kin is None:
         Bandwidth = wC
@@ -1182,7 +1177,7 @@ def mimoBode(Gin, wStart, wEnd, Kin=None):
             if (f < 1 and Sv1[i] > 0.707):
                 wB = w[i]
                 f = 1
-        plt.figure('MIMO Bode')
+        plt.figure()
         plt.loglog(w, Sv1, 'r-', label='Max $\sigma$(S)')
         plt.loglog(w, Sv2, 'r-', alpha=0.5, label='Min $\sigma$(S)')
         plt.axhline(0.707, ls=':', lw=2, color='green')
@@ -1197,7 +1192,6 @@ def mimoBode(Gin, wStart, wEnd, Kin=None):
         fig = plt.gcf()
         BG = fig.patch
         BG.set_facecolor('white')
-        plt.show()
         Bandwidth = wC, wB
         print('Bandwidth is a tuple of wC, wB')
     return(Bandwidth)
