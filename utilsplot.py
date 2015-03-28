@@ -36,7 +36,6 @@ sv_plot : Maximum and minimum singular values of a matirix
 condtn_nm_plot : A plot of the condition number for a specified diagonal 
     
 rga_plot: A plot of the relative gain interactions for a matrix over a given frequency
-    (Can remove RGA.py script)
 
 rga_nm_plot: A plot of the RGA number for a given pairing
 
