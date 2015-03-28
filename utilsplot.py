@@ -4,7 +4,7 @@ Inputs
 ------
 The default inputs to a plotting function in this script include:
 
-axlim : list
+axlim : list [xmin, xmax, ymin, ymax]
         A list containing the minimum and maximum limits for the x and y-axis.
         To autoscale a limit enter 'None' in its placeholder.
         The default is to allow autoscaling of the axes.
@@ -17,6 +17,10 @@ w_end : float
 
 points : float
          The number of data points to be used in generating the plot.
+         
+show : boolean
+       If false, the plot is not automatically shown and can be edit externally
+       for special cases.
 
 Plots
 -----
@@ -145,14 +149,26 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     return
 
 
-def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
+def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_type='elements'):
     '''
     Plots the relative gain interaction between each output and input pairing
     
     Parameters
     ----------
     G : numpy array
-        plant model
+        Plant model.
+        
+    plot_type : ['All','Output','Input','Element']
+        Type of plot.
+        
+        =========      ============================
+        plot_type      Type of plot
+        =========      ============================
+        all            All the RGAs on one plot
+        output         Plots grouped by output
+        input          Plots grouped by input
+        element        Each element has its own plot
+        =========      ============================        
               
     Returns
     -------
@@ -177,6 +193,11 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
 
     if axlim is None:
         axlim = [None, None, None, None]
+    
+    if show:
+        plt.figure('RGA')
+        plt.clf()
+        plt.gcf().set_facecolor('white') 
 
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
@@ -184,47 +205,103 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function    
     freqresp = map(G, s)
     
-    count = 0 # Arrange the individual RGA responses to be compatible with the plotting order of plt.subplot
-    rga = numpy.zeros([dim[0]*dim[1], points])
-    for i in range(dim[0]):
-        for k in range(dim[1]):
-            rga[count,:] = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, k] for Gfr in freqresp])))
-            count += 1  
-    
-    plt.figure('RGA')
-    plt.clf()
-    plt.gcf().set_facecolor('white')
-
     plot_No = 1
-    
-    for i in range(dim[0]):
-        for k in range(dim[1]):
-            plt.subplot(dim[0], dim[1], plot_No)
-            plt.semilogx(w, rga[plot_No - 1])
-            
-            plot_No += 1
-            
-            plt.ylabel('|$\lambda$$_{ %s, %s}$|' % (i + 1,k + 1))
-            plt.axis(axlim)
+        
+    if (plot_type == 'elements'):
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                plt.subplot(dim[0], dim[1], plot_No)
+                plt.title('Output %s vs. input %s' % (i + 1, j + 1))  
+                plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
+                
+                plot_No += 1
+                
+                plt.axis(axlim)
+                plt.ylabel('|$\lambda$$_{ %s, %s}$|' % (i + 1,j + 1))
+                if i == dim[0] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
+                    plt.xlabel('Frequency [rad/unit time]')
+                        
+    elif (plot_type == 'outputs'): #i
+        for i in range(dim[0]):
+            plt.subplot(dim[1], 1, plot_No)
+            plt.title('Output %s vs. input j' % (i + 1))
+            rgamax = []
+            for j in range(dim[1]):
+                rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
+                plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                rgamax.append(max(rgas))
+
+                if (j == dim[1] - 1): #self-scaling algorithm
+                    if (axlim != None):
+                        plt.axis(axlim)
+                    else:
+                        plt.axis([None, None, None, max(rgamax)])
+                
+            plt.ylabel('|$\lambda$$_{%s, j}$|' % (i + 1))
+            plt.legend()
             if i == dim[0] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
+                plt.xlabel('Frequency [rad/unit time]')  
+            plot_No += 1     
+            
+    elif (plot_type == 'inputs'): #j
+        for j in range(dim[1]):
+            plt.subplot(dim[0], 1, plot_No)
+            plt.title('Output i vs. input %s' % (j + 1))
+            rgamax = []
+            for i in range(dim[0]):
+                rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
+                plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                rgamax.append(max(rgas))
+
+                if (i == dim[1] - 1): #self-scaling algorithm
+                    if (axlim != None):
+                        plt.axis(axlim)
+                    else:
+                        plt.axis([None, None, None, max(rgamax)])
+                
+            plt.ylabel('|$\lambda$$_{i, %s}$|' % (j + 1))
+            plt.legend()
+            if i == dim[1] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
+                plt.xlabel('Frequency [rad/unit time]')   
+            plot_No += 1  
+            
+    elif (plot_type == 'all'):  
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
+                plt.axis(axlim)            
+                plt.ylabel('|$\lambda$$_{i,j}$|')
                 plt.xlabel('Frequency [rad/unit time]')
-            plt.title('Output %s vs. input %s' % (i + 1, k + 1))    
+                
+    else:
+        print("Invalid plot_type paramter.")
+        sys.exit()        
 
-    plt.show()
+    if show: plt.show()
 
 
-def rga_nm_plot(G, pairing=None, w_start=-2, w_end=2, axlim=None, points=100):
+def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_type='all'):
     '''
     Plots the RGA number for a specified pairing
     
     Parameters
     ----------
-    G : numpy array
-        plant model
+    G : numpy matrix
+        Plant model
     
-    pairing : sparse numpy array of the same shape as G
+    pairing_list : list of sparse numpy matrixes of the same shape as G
         An array of zeros with a 1. at each required output-input pairing
         The default is a diagonal pairing with 1.'s on the diagonal
+        
+    plot_type : ['All','Element']
+        Type of plot.
+        
+        =========      ============================
+        plot_type      Type of plot
+        =========      ============================
+        all            All the pairings on one plot
+        element        Each pairing has its own plot
+        =========      ============================    
               
     Returns
     -------
@@ -239,7 +316,7 @@ def rga_nm_plot(G, pairing=None, w_start=-2, w_end=2, axlim=None, points=100):
     ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> pairing = numpy.matrix([[1., 0.], [0., 1.]])
-    >>> rga_nm_plot(G, pairing, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
+    >>> rga_nm_plot(G, [pairing], w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
 
     Note
     ----
@@ -248,33 +325,54 @@ def rga_nm_plot(G, pairing=None, w_start=-2, w_end=2, axlim=None, points=100):
 
     if axlim is None:
         axlim = [None, None, None, None]
+    
+    if show:
+        plt.figure('RGA Number')
+        plt.clf()
+        plt.gcf().set_facecolor('white')  
+        
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
     freqresp = map(G, s)
     
-    if pairing is None: # Setting a blank entry to the default of a diagonal comparison
-        diag = numpy.identity(dim[0])
-        print('RGA number being calculated for a diagonal pairing')
-    elif (pairing.shape != dim):
-        print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
-        sys.exit()
+    if pairing_list is None: # Setting a blank entry to the default of a diagonal comparison
+        pairing_list = numpy.identity(dim[0])
+        pairing_names ='Diagonal pairing'
     else:
-        diag = pairing
+        for pairing in pairing_list:
+            if (pairing.shape != dim):
+                print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
+                sys.exit()
+         
+    plot_No = 0
+    
+    if (plot_type == 'all'):
+        for p in pairing_list:    
+            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp], label=pairing_names[plot_No])  
+            plot_No += 1     
+        plt.axis(axlim)
+        plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
+        plt.xlabel('Frequency (rad/unit time)')
+        plt.legend() 
 
-    plt.figure('RGA Number')
-    plt.clf()
-    plt.gcf().set_facecolor('white')        
-    
-    plt.semilogx(w, [numpy.sum(numpy.abs(utils.RGA(Gfr) - diag)) for Gfr in freqresp] )    
-    
-    plt.axis(axlim)
-    plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
-    plt.xlabel('Frequency (rad/unit time)')
-    
-    plt.show()
-    return
+    elif (plot_type == 'element'):  
+        pcount = numpy.shape(pairing_list)[0] # pairing_list.count not accessible
+        for p in pairing_list:   
+            plot_No += 1   
+            plt.subplot(1, pcount, plot_No)            
+            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp])
+            plt.axis(axlim)
+            plt.title(pairing_names[plot_No - 1])            
+            plt.xlabel('Frequency (rad/unit time)')
+            if (plot_No == 1):
+                plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
+    else:
+        print("Invalid plot_type paramter.")
+        sys.exit()    
+        
+    if show: plt.show()
     
 
 def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
