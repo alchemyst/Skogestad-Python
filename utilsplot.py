@@ -259,7 +259,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_typ
                 
             plt.ylabel('|$\lambda$$_{i, %s}$|' % (j + 1))
             plt.legend()
-            if i == dim[1] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
+            if j == dim[1] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
                 plt.xlabel('Frequency [rad/unit time]')   
             plot_No += 1  
             
@@ -525,6 +525,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
     plt.ylabel('$y(t)$')
     
     plt.show()
+
 
 def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None, points=1000, constraint=None, method='numeric'):
     '''
