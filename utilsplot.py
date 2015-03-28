@@ -31,7 +31,6 @@ nyquist_plot:
     (Can bring across from utils.py)
     
 sv_plot : Maximum and minimum singular values of a matirix
-    (Can remove SVD_over_frequency.py, SVD_Total_Analysis.py and SVD_w.py)
     
 condtn_nm_plot : A plot of the condition number for a specified diagonal 
     
