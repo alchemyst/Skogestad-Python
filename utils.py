@@ -86,6 +86,27 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
+def RGAnumber(G, I):
+    """ 
+    Computes the RGA (Relative Gain Array) number of a matrix.
+    
+    Parameters
+    ----------
+    G : numpy matrix
+        Transfer function matrix.
+        
+    I : numpy matrix
+        Pairing matrix.
+        
+    Returns
+    -------
+    RGA number : float
+        RGA number.
+
+    """    
+    return numpy.sum(numpy.abs(RGA(G) - I))
+    
+
 def RGA(Gin):
     """ 
     Computes the Relative Gain Array of a matrix.
@@ -322,29 +343,6 @@ def feedback(forward, backward=None, positive=False):
     if positive:
         backward = -backward
     return  forward * 1/(1 + backward * forward)
-
-
-def tf2SS(G):
-    """
-    Returns the state space (SS) matrixes for a transfer function
-    
-    Parameters
-    ----------
-    A : tf
-        Transfer function.
-        
-    Returns
-    -------
-    A, B, C, D : numpy matrix
-        State space matrixes.
-
-    """
-    # TODO: impliment in tf object
-    A = signal.tf2ss(G.numerator, G.denominator)[0]
-    B = signal.tf2ss(G.numerator, G.denominator)[1]
-    C = signal.tf2ss(G.numerator, G.denominator)[2]
-    D = signal.tf2ss(G.numerator, G.denominator)[3]
-    return map(numpy.asmatrix, [A, B, C, D]) #convert array to matrix
     
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
@@ -388,7 +386,6 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
-    # TODO: Make more specific
     
     timedata = numpy.linspace(0, t_end, points)    
     
@@ -402,12 +399,12 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
         
     else:
         if (method == 'numeric'):
-            A1, B1, C1, D1 = tf2SS(G)
+            A1, B1, C1, D1 = signal.tf2ss(G.numerator, G.denominator)
             #adjust the shape for complex state space functions
             x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
             if (constraint != None):
-                A2, B2, C2, D2 = tf2SS(Y)
+                A2, B2, C2, D2 = signal.tf2ss(Y.numerator, Y.denominator)
                 x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
             
             dt = timedata[1]
@@ -435,7 +432,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
             if constraint:
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
-        elif (method == 'analytics'):
+        elif (method == 'analytic'):
             # TODO: caluate intercept of step and constraint line
             timedata, processdata = [0,0]
         else: print 'Invalid function parameters'
