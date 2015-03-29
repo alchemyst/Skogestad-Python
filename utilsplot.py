@@ -80,7 +80,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     if margin:
         plt.axvline(w_180, color='black')
         plt.text(w_180, numpy.average([numpy.max(gains), numpy.min(gains)]), r'$\angle$G(jw) = -180$\degree$')
-    plt.axhline(1., color='red', linestyle='--')
+    plt.axhline(1., color='red', ls='--')
     plt.axis(axlim)
     plt.grid()
     plt.ylabel('Magnitude')
@@ -92,7 +92,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     if margin:
         plt.axvline(wc, color='black')
         plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
-    plt.axhline(-180., color='red', linestyle='--')
+    plt.axhline(-180., color='red', ls='--')
     plt.axis(axlim)
     plt.grid()
     plt.ylabel('Phase')
@@ -181,11 +181,11 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     ...                   [7., 8.]])
     >>>                   
     >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1.))
+    ...     return K*numpy.exp(-t1*s)/(t2*s + 1.)
     >>>
     >>> def Kc(s):
-    ...     return(numpy.array([[0.1, 0.],
-    ...                         [0., 0.1]])*10.)
+    ...     return numpy.array([[0.1, 0.],
+    ...                         [0., 0.1]])*10.
     >>> mimoBode(G, -3, 3, Kc)
     Bandwidth is a tuple of wC, wB
     (0.55557762223988783, 1.3650078065460138)
@@ -210,7 +210,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     for i in range(len(w)):
         Sv1[i] = utils.sigmas(Gin(s[i]))[0]
         Sv2[i] = utils.sigmas(Gin(s[i]))[-1]
-        if (f < 1 and Sv2[i] < 1):
+        if f < 1 and Sv2[i] < 1:
             wC = w[i]
             f = 1
     ymin = numpy.min(Sv2)
@@ -235,6 +235,10 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
             L = Kin(s)*Gin(s)
             dim = numpy.shape(Gin(0))[0]
             return(numpy.linalg.inv(numpy.eye(dim) + L))      #SVD of S = 1/(I + L)
+            dim1, dim2 = numpy.shape(Gin(0))
+            return numpy.linalg.inv(numpy.eye(dim1) + L)  #SVD of S = 1/(I + L)
+        w = numpy.logspace(w_start, w_end, 1000)
+        s = w*1j
         Sv1 = numpy.zeros(len(w), dtype=complex)
         Sv2 = numpy.zeros(len(w), dtype=complex)
         f = 0
@@ -242,7 +246,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
         for i in range(len(w)):
             Sv1[i] = utils.sigmas(S(s[i]))[0]
             Sv2[i] = utils.sigmas(S(s[i]))[-1]
-            if (f < 1 and Sv1[i] > 0.707):
+            if f < 1 and Sv1[i] > 0.707:
                 wB = w[i]
                 f = 1
                 
@@ -288,10 +292,10 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     ...                   [0., 0.1]])*6
     >>> 
     >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
+    ...     return K*numpy.exp(-t1*s)/(t2*s + 1)
     ... 
     >>> def L(s):
-    ...     return(Kc*G(s))
+    ...     return Kc*G(s)
     ... 
     >>> #MIMOnyqPlot(L, 2)
     
@@ -317,8 +321,8 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     
     # plotting a unit circle
     x = numpy.linspace(-1, 1, 200)
-    y_up = numpy.sqrt(1-(x)**2)
-    y_down = -1*numpy.sqrt(1 - (x)**2)
+    y_up = numpy.sqrt(1- x**2)
+    y_down = -1*numpy.sqrt(1 - x**2)
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
     plt.plot(0, 0, 'r*', ms=10)
     plt.grid(True)
@@ -355,6 +359,15 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
       
     plt.semilogx(w, [utils.sigmas(Gfr)[0] for Gfr in freqresp], label=('$\sigma$$_{MAX}$'), color='blue')
     plt.semilogx(w, [utils.sigmas(Gfr)[-1] for Gfr in freqresp], label=('$\sigma$$_{MIN}$'), color='blue', alpha=0.5)
+    
+    plt.figure('Min Max SV')
+    plt.clf()
+    plt.gcf().set_facecolor('white')
+    
+    plt.semilogx(w, [utils.sigmas(Gfr)[0] for Gfr in freqresp], label='$\sigma$$_{MAX}$', color='blue')
+    plt.semilogx(w, [utils.sigmas(Gfr)[-1] for Gfr in freqresp], label='$\sigma$$_{MIN}$', color='blue', alpha=0.5)
+    plt.xlabel('Frequency (rad/unit time)')
+    
     plt.axhline(1., color='red', ls=':')
     plt.axis(axlim)
     plt.xlabel('Frequency (rad/unit time)')
@@ -388,15 +401,20 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     s = w*1j    
     
     def cndtn_nm(G):
-        return(utils.sigmas(G)[0]/utils.sigmas(G)[-1])
+        return utils.sigmas(G)[0]/utils.sigmas(G)[-1]
     
     freqresp = map(G, s)
     
     plt.semilogx(w, [cndtn_nm(Gfr) for Gfr in freqresp], label=('$\sigma$$_{MAX}$/$\sigma$$_{MIN}$'))
+    plt.figure('Condition number')
+    plt.clf()
+    plt.gcf().set_facecolor('white')
+    
+    plt.semilogx(w, [cndtn_nm(Gfr) for Gfr in freqresp], label='$\sigma$$_{MAX}$/$\sigma$$_{MIN}$')
     plt.axis(axlim)
     plt.ylabel('$\gamma$(G)', fontsize = 15)
     plt.xlabel('Frequency (rad/unit time)')
-    plt.axhline(10., color='red', ls=':', label=('$\gamma$(G) > 10'))
+    plt.axhline(10., color='red', ls=':', label='$\gamma$(G) > 10')
     plt.legend()
 
 
@@ -452,7 +470,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
     
     plot_No = 1
         
-    if (plot_type == 'elements'):
+    if plot_type == 'elements':
         for i in range(dim[0]):
             for j in range(dim[1]):
                 plt.subplot(dim[0], dim[1], plot_No)
@@ -466,7 +484,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
                 if i == dim[0] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
                     plt.xlabel('Frequency [rad/unit time]')
                         
-    elif (plot_type == 'outputs'): #i
+    elif plot_type == 'outputs': #i
         for i in range(dim[0]):
             plt.subplot(dim[1], 1, plot_No)
             plt.title('Output %s vs. input j' % (i + 1))
@@ -476,8 +494,8 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
                 plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
-                if (j == dim[1] - 1): #self-scaling algorithm
-                    if (axlim != None):
+                if j == dim[1] - 1: #self-scaling algorithm
+                    if axlim is not None:
                         plt.axis(axlim)
                     else:
                         plt.axis([None, None, None, max(rgamax)])
@@ -488,7 +506,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
                 plt.xlabel('Frequency [rad/unit time]')  
             plot_No += 1     
             
-    elif (plot_type == 'inputs'): #j
+    elif plot_type == 'inputs': #j
         for j in range(dim[1]):
             plt.subplot(dim[0], 1, plot_No)
             plt.title('Output i vs. input %s' % (j + 1))
@@ -498,8 +516,8 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
                 plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
-                if (i == dim[1] - 1): #self-scaling algorithm
-                    if (axlim != None):
+                if i == dim[1] - 1: #self-scaling algorithm
+                    if axlim is not None:
                         plt.axis(axlim)
                     else:
                         plt.axis([None, None, None, max(rgamax)])
@@ -510,7 +528,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
                 plt.xlabel('Frequency [rad/unit time]')   
             plot_No += 1  
             
-    elif (plot_type == 'all'):  
+    elif plot_type == 'all':
         for i in range(dim[0]):
             for j in range(dim[1]):
                 plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
@@ -579,13 +597,13 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         pairing_names ='Diagonal pairing'
     else:
         for pairing in pairing_list:
-            if (pairing.shape != dim):
+            if pairing.shape != dim:
                 print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
                 sys.exit()
          
     plot_No = 0
     
-    if (plot_type == 'all'):
+    if plot_type == 'all':
         for p in pairing_list:    
             plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp], label=pairing_names[plot_No])  
             plot_No += 1     
@@ -594,7 +612,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         plt.xlabel('Frequency (rad/unit time)')
         plt.legend() 
 
-    elif (plot_type == 'element'):  
+    elif plot_type == 'element':
         pcount = numpy.shape(pairing_list)[0] # pairing_list.count not accessible
         for p in pairing_list:   
             plot_No += 1   
@@ -603,7 +621,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
             plt.axis(axlim)
             plt.title(pairing_names[plot_No - 1])            
             plt.xlabel('Frequency (rad/unit time)')
-            if (plot_No == 1):
+            if plot_No == 1:
                 plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
     else:
         print("Invalid plot_type paramter.")
@@ -678,6 +696,8 @@ def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
     plt.loglog(w, s_min, label=('$\sigma$$_{MIN}$'), color='green')
     plt.loglog(w, s_max, label=('$\sigma$$_{MAX}$'), color='green', alpha = 0.5) 
     plt.axis(axlim) 
+    plt.loglog(w, s_min, label='$\sigma$$_{MIN}$', color='green')
+    plt.loglog(w, s_max, label='$\sigma$$_{MAX}$', color='green', alpha = 0.5)
     plt.xlabel('Frequency (rad/unit time)')
     plt.ylabel('1/||g$_d$||$_2$')
     plt.axhline(1., color='red', ls=':')
@@ -720,11 +740,11 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     Ks = [(kc * K) for kc in Kc]
     Ts = [utils.feedback(G * Kss, 1) for Kss in Ks]
    
-    if (freqtype=='S'):
+    if freqtype=='S':
         Fs = [(1 - Tss) for Tss in Ts]
         plt.title('(a) Sensitivity function')
         plt.ylabel('Magnitude $|S|$')
-    elif (freqtype=='T'):
+    elif freqtype=='T':
         Fs = Ts
         plt.title('(a) Complementary sensitivity function')
         plt.ylabel('Magnitude $|T|$')
@@ -796,7 +816,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     [t,y] = utils.tf_step(U, t_end, initial_val)
     plt.plot(t,y)
     
-    if (constraint == None):
+    if constraint is None:
         plt.legend(['$y(t)$','$u(t)$'])  
     else:
         [t,y] = utils.tf_step(U, t_end, initial_val, points, constraint, Y, method)
@@ -855,13 +875,14 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None):
     ...                   [0., 0.1]])*10
     >>> 
     >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
+    ...     return K*numpy.exp(-t1*s)/(t2*s + 1)
     ... 
     >>> def L(s):
-    ...     return(Kc*G(s))
+    ...     return Kc*G(s)
     ... 
     >>> def S(s):
-    ...     return(numpy.linalg.inv((numpy.eye(2) + L(s))))      #SVD of S = 1/(I + L)
+    ...     return numpy.linalg.inv((numpy.eye(2) + L(s)))      #SVD of S =
+    #  1/(I + L)
     ... 
     >>> #utils.perf_Wp(S, 0.05, 0.2, -3, 1)
     
@@ -882,7 +903,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None):
         _, Sv, _ = utils.SVD(S(s[i]))
         magPlotS1[i] = Sv[0]
         magPlotS3[i] = Sv[-1]
-        if (f < 1 and magPlotS1[i] > 0.707):
+        if f < 1 and magPlotS1[i] > 0.707:
             wB = w[i]
             f = 1
     for i in range(len(w)):
@@ -931,3 +952,8 @@ def singular_plot(G):
     Plot : matplotlib figure
     '''        
     
+    fig = plt.gcf()
+    BG = fig.patch
+    BG.set_facecolor('white')
+    plt.grid(True)
+    return wB
