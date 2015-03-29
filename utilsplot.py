@@ -17,10 +17,6 @@ w_end : float
 
 points : float
          The number of data points to be used in generating the plot.
-         
-show : boolean
-       If false, the plot is not automatically shown and can be edit externally
-       for special cases.
 
 Plots
 -----
@@ -89,7 +85,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=100, margin=False):
     w = numpy.logspace(w_start, w_end, points)
     s = 1j*w
 
-    plt.figure('Bode Plot')
+
     # Magnitude of G(jw)
     plt.subplot(211)
     gains = numpy.abs(G(s))
@@ -255,8 +251,8 @@ def mimoBode(Gin, wStart, wEnd, Kin=None):
     else:
         def S(s):
             L = Kin(s)*Gin(s)
-            dim1, dim2 = numpy.shape(Gin(0))
-            return(numpy.linalg.inv(numpy.eye(dim1) + L))      #SVD of S = 1/(I + L)
+            dim = numpy.shape(Gin(0))[0]
+            return(numpy.linalg.inv(numpy.eye(dim) + L))      #SVD of S = 1/(I + L)
         w = numpy.logspace(wStart, wEnd, 1000)
         s = w*1j
         Sv1 = numpy.zeros(len(w), dtype=complex)
@@ -435,7 +431,6 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     
     freqresp = map(G, s)
     
-    plt.figure('Condition number')
     plt.clf()
     plt.gcf().set_facecolor('white')
     
@@ -445,8 +440,6 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     plt.xlabel('Frequency (rad/unit time)')
     plt.axhline(10., color='red', ls=':', label=('$\gamma$(G) > 10'))
     plt.legend()
-    plt.show()
-    return
 
 
 def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_type='elements'):
@@ -493,11 +486,8 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_typ
 
     if axlim is None:
         axlim = [None, None, None, None]
-    
-    if show:
-        plt.figure('RGA')
-        plt.clf()
-        plt.gcf().set_facecolor('white') 
+    plt.clf()
+    plt.gcf().set_facecolor('white') 
 
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
@@ -625,11 +615,8 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
 
     if axlim is None:
         axlim = [None, None, None, None]
-    
-    if show:
-        plt.figure('RGA Number')
-        plt.clf()
-        plt.gcf().set_facecolor('white')  
+    plt.clf()
+    plt.gcf().set_facecolor('white') 
         
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
@@ -711,6 +698,8 @@ def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
 
     if axlim is None:
         axlim = [None, None, None, None]
+    plt.clf()
+    plt.gcf().set_facecolor('white') 
 
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
@@ -746,13 +735,10 @@ def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
     plt.xlabel('Frequency (rad/unit time)')
     plt.ylabel('1/||g$_d$||$_2$')
     plt.axhline(1., color='red', ls=':')
-    plt.legend()    
-    
-    plt.show()
-    return
+    plt.legend()  
 
 
-def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', heading='', w_start=-2, w_end=2, axlim=None, points=1000):
+def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     A subplot function for both the frequnecy response and step response for a
     controlled plant
@@ -779,11 +765,12 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
         controlled plant
     
     '''
-    
+
     if axlim is None:
         axlim = [None, None, None, None]
+    plt.clf()
+    plt.gcf().set_facecolor('white') 
     
-    plt.figure(heading)
     plt.subplot(1, 2, 1)  
     
     # Controllers transfer function with various controller gains
@@ -825,8 +812,6 @@ def freq_step_response_plot(G, K, Kc, t_end=50, t_points=100, freqtype='S', head
     plt.axis(axlim)
     plt.xlabel('Time [sec]')
     plt.ylabel('$y(t)$')
-    
-    plt.show()
 
 
 def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None, points=1000, constraint=None, method='numeric'):
@@ -857,8 +842,11 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     fig(Step response) : figure
     
     '''    
+
     if axlim is None:
-        axlim = [None, None, None, None]       
+        axlim = [None, None, None, None]
+    plt.clf()
+    plt.gcf().set_facecolor('white')       
     
     [t,y] = utils.tf_step(Y, t_end, initial_val)
     plt.plot(t,y)
@@ -881,7 +869,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     plt.xlabel('Time [' + timedim + ']')  
 
 
-def perf_Wp_plot(S, wB_req, maxSSerror, wStart, wEnd):
+def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None):
     """
     MIMO sensitivity S and performance weight Wp plotting funtion.
     
@@ -938,23 +926,27 @@ def perf_Wp_plot(S, wB_req, maxSSerror, wStart, wEnd):
     >>> #utils.perf_Wp(S, 0.05, 0.2, -3, 1)
     
     """
-    w = numpy.logspace(wStart, wEnd, 1000)
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.clf()
+    plt.gcf().set_facecolor('white') 
+    
+    w = numpy.logspace(w_start, w_end, 1000)
     s = w*1j
     magPlotS1 = numpy.zeros((len(w)))
     magPlotS3 = numpy.zeros((len(w)))
     Wpi = numpy.zeros((len(w)))
     f = 0                                    #f for flag
     for i in range(len(w)):
-        U, Sv, V = utils.SVD(S(s[i]))
+        _, Sv, _ = utils.SVD(S(s[i]))
         magPlotS1[i] = Sv[0]
         magPlotS3[i] = Sv[-1]
         if (f < 1 and magPlotS1[i] > 0.707):
             wB = w[i]
             f = 1
     for i in range(len(w)):
-        Wpi[i] = utils.Wp(wB_req, maxSSerror, s[i])                                      
-    plt.figure('MIMO sensitivity S and performance weight Wp')
-    plt.clf()
+        Wpi[i] = utils.Wp(wB_req, maxSSerror, s[i])
     plt.subplot(211)
     plt.loglog(w, magPlotS1, 'r-', label='Max $\sigma$(S)')
     plt.loglog(w, 1./Wpi, 'k:', label='|1/W$_P$|', lw=2.)
@@ -962,7 +954,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, wStart, wEnd):
     plt.axvline(wB_req, color='blue', ls=':', lw=2)
     plt.text(wB_req*1.1, 7, 'req wB', color='blue', fontsize=10)
     plt.axvline(wB, color='green')
-    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
+    plt.text(wB*1.1, 0.12, 'wB = %0.3f rad/s' % wB, color='green', fontsize=10)
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')
     plt.axis([None, None, 0.1, 10])
@@ -974,7 +966,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, wStart, wEnd):
     plt.axvline(wB_req, color='blue', ls=':', lw=2, label='|W$_P$S| = 1')
     plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95, 'req wB', color='blue', fontsize=10)
     plt.axvline(wB, color='green')
-    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
+    plt.text(wB*1.1, 0.12, 'wB = %0.3f rad/s' % wB, color='green', fontsize=10)
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')
     plt.legend(loc='upper right', fontsize=10, ncol=1)
@@ -982,5 +974,6 @@ def perf_Wp_plot(S, wB_req, maxSSerror, wStart, wEnd):
     BG = fig.patch
     BG.set_facecolor('white')
     plt.grid(True)
-    return(wB) 
+    
+    return wB
               
