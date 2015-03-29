@@ -5,7 +5,7 @@ Adapt the already specified transfer funtion matrix to match your system.
 """
 
 import numpy as np
-from utils import MIMOnyqPlot, plt
+from utilsplot import mino_nyquist_plot, plt
 
 K = np.array([[1., 2.],
               [3., 4.]])
@@ -25,5 +25,5 @@ def G(s):
 def L(s):
     return(Kc*G(s))
     
-MIMOnyqPlot(L, 2, -3, 3)
+mino_nyquist_plot(L, 2, -3, 3)
 plt.show()
