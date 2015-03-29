@@ -1,6 +1,8 @@
 import numpy as np
-import utils
 import matplotlib.pyplot as plt
+
+import utils
+
 
 a = 10
 I = np.asmatrix(np.identity(2))

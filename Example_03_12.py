@@ -1,5 +1,7 @@
 import numpy as np
+
 from utils import RGA
+
 
 # The following code performs Example 3.12 of Skogestad.
 # Here the RGA, iterative RGA, condition number and minimized

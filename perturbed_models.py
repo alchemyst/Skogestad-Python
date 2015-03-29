@@ -8,9 +8,10 @@ Created on Fri May 24 13:13:53 2013
 import matplotlib.pyplot as plt
 import matplotlib as ml
 import numpy as np
+
 from uncertain_MIMO import bound_SISO_wi, weight_calc
 from perturbations import possibilities
-import scipy.optimize as op
+
 
 ml.rcParams['font.family'] = 'serif'
 ml.rcParams['font.serif'] = ['Cambria'] + ml.rcParams['font.serif']

@@ -5,7 +5,9 @@ Adapt the already specified transfer funtion matrix to match your system.
 """
 
 import numpy as np
+
 from utilsplot import mino_nyquist_plot, plt
+
 
 K = np.array([[1., 2.],
               [3., 4.]])

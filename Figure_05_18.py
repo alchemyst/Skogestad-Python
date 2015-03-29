@@ -13,8 +13,10 @@ M6: Margin because of delay, theta
 
 import numpy as np
 import matplotlib.pyplot as plt
+
 from utils import tf, margins
 import Chapter_05 as ch5
+
 
 s = tf([1, 0], 1)
 

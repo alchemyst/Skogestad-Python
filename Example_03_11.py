@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from utilsplot import rga_plot, rga_nm_plot
+
 
 def G(s):
     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*np.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
