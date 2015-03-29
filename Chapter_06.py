@@ -174,7 +174,7 @@ def Min_Peaks(Zeros_G, Poles_G, error_poles_direction, io_type, usedeadtime=Fals
 
         Q_dead = np.zeros([G(0.0001).shape[0], G(0.0001).shape[0]])
 
-        for j in range(len(Poles_G)):
+        for i in range(len(Poles_G)):
             for j in range(len(Poles_G)):
                 denominator_mat = (np.transpose(
                                    np.conjugate(p_direction[:, i])) *

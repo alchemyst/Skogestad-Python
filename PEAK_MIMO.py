@@ -132,7 +132,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
 
                 Q_dead = np.zeros([G(0.0001).shape[0], G(0.0001).shape[0]])
 
-                for j in range(len(Poles_G)):
+                for i in range(len(Poles_G)):
                     for j in range(len(Poles_G)):
                         denominator_mat= np.transpose(np.conjugate(yp_direction[:, i]))*Dead_time_matrix(Poles_G[i], dead_time_vec_max_row)*Dead_time_matrix(Poles_G[j], dead_time_vec_max_row)*yp_direction[:, j]
                         numerator_mat = Poles_G[i]+Poles_G[i]
