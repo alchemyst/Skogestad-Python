@@ -21,11 +21,11 @@ Kc = np.array([[0.1, 0.],
 
 
 def G(s):
-    return(K*np.exp(-t1*s)/(t2*s + 1))
+    return K*np.exp(-t1*s)/(t2*s + 1)
 
 
 def L(s):
-    return(Kc*G(s))
+    return Kc*G(s)
     
 mino_nyquist_plot(L, 2, -3, 3)
 plt.show()

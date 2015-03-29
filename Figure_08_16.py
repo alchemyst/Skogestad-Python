@@ -13,7 +13,7 @@ w = np.logspace(-3, 2, 1000)
 s = 1j*w
 
 Wi = (s + 0.2)/(0.5 * s + 1)
-Wp = (s/2 + 0.05)/(s)
+Wp = (s/2 + 0.05)/s
 
 plt.figure(1)
 plt.title('Weight Values over Frequency')

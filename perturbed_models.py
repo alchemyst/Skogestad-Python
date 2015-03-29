@@ -72,7 +72,7 @@ def Gp(s, vec, i):
 def weight_i(s, a, b, c):
     """Function to give the weight of the uncertainty"""
 
-    w_i = (((s * a + start) / ((a / (end)) * s + 1))
+    w_i = (((s * a + start) / ((a /end) * s + 1))
            * ((s ** 2 + b * s + 1) / (s ** 2 + c * s + 1)))
 #    w_i = ((((s * a + start) / ((a / (end)) * s + 1))
 #            * ((s ** 2 + b * s + 1) / (s ** 2 + c * s + 1)))

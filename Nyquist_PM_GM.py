@@ -35,8 +35,8 @@ def Nyquist(w_start, w_end):
     # plotting a unit circle
     x = np.linspace(-1, 1, 200)
 
-    y_upper = np.sqrt(1-(x)**2)
-    y_down = -1*np.sqrt(1-(x)**2)
+    y_upper = np.sqrt(1- x**2)
+    y_down = -1*np.sqrt(1- x**2)
     plt.plot(x, y_upper, 'r-', x, y_down, 'r-')
 
     plt.show()
