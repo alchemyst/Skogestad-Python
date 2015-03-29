@@ -7,10 +7,10 @@ s = tf([1, 0], 1)
 G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
 
 [Kc, Taui, Ku, Pu] = ControllerTuning(G, method='ZN') 
-print 'Kc:', np.round(Ku/2.2, 3)
-print 'Taui:', np.round(Pu/1.2, 3)
-print 'Ku:', np.round(Ku, 3)
-print 'Pu:', np.round(Pu, 3)
+print 'Kc: %0.2f' % (Ku/2.2)
+print 'Taui: %0.1f' % (Pu/1.2)
+print 'Ku: %0.1f' % Ku
+print 'Pu: %0.1f' % Pu
 
 K1 = Kc * (1 + 1 / (Taui * s))
 K = K1[0] # use this code to remove array
@@ -26,11 +26,11 @@ plt.show()
 bodeclosedloop(G, K, -2, 1, 'Figure 2.14', margin=True)
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
-print 'GM:' , np.round(GM, 2)
-print "PM: ", np.round(PM, 1) , "deg or",  np.round(PM / 180 * np.pi, 2), "rad"
-print 'wb:' , np.round(wb, 2)
-print 'wc:' , np.round(wc, 2)
-print 'wbt:' , np.round(wbt, 2)
+print 'GM: %0.2f' % GM
+print "PM: %0.2f deg or %0.2f rad" % (PM, PM / 180 * np.pi)
+print 'wb: %0.2f' % wb
+print 'wc: %0.2f' % wc
+print 'wbt: %0.2f' % wbt
 
 if valid: print "Frequency range wb < wc < wbt is valid"
 else: print "Frequency range wb < wc < wbt is not valid"

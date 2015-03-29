@@ -35,9 +35,9 @@ GM, PM, wd, w_180 = margins(Gd)
 [valid5, wtd] = ch5.rule5(G)
 [valid8, wp] = ch5.rule8(G)
 
-print 'wc: ' , np.round(wc, 3)
-print 'wd: ' , np.round(wd, 3)
-print 'wu: ' , np.round(wu, 3)
+print 'wc: %0.2f' % wc
+print 'wd: %0.2f' % wd
+print 'wu: %0.2f' % wu
 
 wuy = abs(G((1j*wu)))
 wzy = abs(G((1j*wz)))

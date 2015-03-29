@@ -21,8 +21,8 @@ bodeclosedloop(G, K, -1, 2, label='Figure 2.15', margin=True)
 #TODO there is a descrepancy with the phase plots
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
-print 'GM:' , np.round(GM, 2)
-print 'PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg"
-print 'wb:' , np.round(wb, 2)
-print 'wc:' , np.round(wc, 2)
-print 'wbt:' , np.round(wbt, 4)
+print 'GM: %0.2f' % GM
+print "PM: %0.2f deg or %0.2f rad" % (PM, PM / 180 * np.pi)
+print 'wb: %0.2f' % wb
+print 'wc: %0.2f' % wc
+print 'wbt: %0.2f' % wbt
