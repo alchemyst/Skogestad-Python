@@ -3,67 +3,169 @@
 Created on Jan 27, 2012
 
 @author: Carl Sandrock
-
-
-Functions
----------
-circle: Return the coordinates of a circle
-
-arrayfun: Recurses down to scalar elements in A, then applies f, returning
-    lists containing the result 
-
-listify: Return list
-
-gaintf: Transform a gain value into a transfer function
-
-findst: Find S and T given a value for G and K
-
-phase: Return the phase angle in degrees or radians
-
-Closed_loop: Return zero and pole polynomial for a closed loop function.
-
-RGAnumber: Computes the RGA (Relative Gain Array) number of a matrix
-
-RGA: Computes the RGA (Relative Gain Array) of a matrix.
-
-polygcd: Find the Greatest Common Divisor of two polynomials
-
-class tf(object): Very basic transfer function object
-
-feedback: Calculates a feedback loop
-
-tf_step: Validate the step response data of a transfer function
-
-sigmas(A): Returns the singular values of A
-
-sv_dir: Returns the input and output singular vectors associated with singular
-    values
-
-SVD: Returns the singular values, and input and output singular vectors
-
-Wp: Computes the magnitude of the performance weighting function 
-
-distRej: Convenience wrapper to calculate ||gd||2 and disturbace condition
-    number
-
-feedback_mimo: Calculates a feedback loop for matrices
-
-omega: Convenience wrapper to define frequency range
-
-freq: Calculate the frequency response for an optimisation problem
-
-ControllerTuning: Calculates either the Ziegler-Nichols or Tyreus-Luyben tuning
-    parameters for a PI controller
-
-margins: Calculates the gain and phase margins, together with the gain and
-    phase crossover frequency for a plant model
-
-marginsclosedloop: Calculates the gain and phase margins, together with the
-    gain and phase crossover frequency for a control model
 '''
 
 import numpy #do not abbreviate this module as np in utils.py
 from scipy import optimize, signal
+
+
+class tf(object):
+    """
+    Very basic transfer function object
+
+    Construct with a numerator and denominator:
+
+    >>> G = tf(1, [1, 1])
+    >>> G
+    tf([ 1.], [ 1.  1.])
+
+    >>> G2 = tf(1, [2, 1])
+
+    The object knows how to do:
+
+    addition
+
+    >>> G + G2
+    tf([ 3.  2.], [ 2.  3.  1.])
+    >>> G + G # check for simplification
+    tf([ 2.], [ 1.  1.])
+
+    multiplication
+
+    >>> G * G2
+    tf([ 1.], [ 2.  3.  1.])
+
+    division
+
+    >>> G / G2
+    tf([ 2.  1.], [ 1.  1.])
+
+    Deadtime is supported:
+
+    >>> G3 = tf(1, [1, 1], deadtime=2)
+    >>> G3
+    tf([ 1.], [ 1.  1.], deadtime=2)
+
+    Note we can't add transfer functions with different deadtime:
+
+    >>> G2 + G3
+    Traceback (most recent call last):
+        ...
+    ValueError: Transfer functions can only be added if their deadtimes are the same
+
+    It is sometimes useful to define
+
+    >>> s = tf([1, 0])
+    >>> 1 + s
+    tf([ 1.  1.], [ 1.])
+
+    >>> 1/(s + 1)
+    tf([ 1.], [ 1.  1.])
+    """
+
+    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y=''):
+        """
+        Initialize the transfer function from a
+        numerator and denominator polynomial
+        """
+        # TODO: poly1d should be replaced by np.polynomial.Polynomial
+        self.numerator = numpy.poly1d(numerator)
+        self.denominator = numpy.poly1d(denominator)
+        self.simplify()
+        self.deadtime = deadtime
+        self.name = name
+        self.u = u
+        self.y = y
+
+    def inverse(self):
+        """
+        Inverse of the transfer function
+        """
+        return tf(self.denominator, self.numerator, -self.deadtime)
+
+    def step(self, *args):
+        """ Step response """ 
+        return signal.lti(self.numerator, self.denominator).step(*args)
+
+    def simplify(self):
+        g = polygcd(self.numerator, self.denominator)
+        self.numerator, remainder = self.numerator/g
+        self.denominator, remainder = self.denominator/g
+    
+    def __repr__(self):
+        if self.name:
+            r = str(self.name) + "\n"
+        else:
+            r = ''
+        r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
+        if self.deadtime != 0:
+            r += ", deadtime=" + str(self.deadtime)
+        if self.u: 
+            r += ", u='" + self.u + "'"
+        if self.y: 
+            r += ", y=': " + self.y + "'"
+        r += ")"
+        return r
+
+    def __call__(self, s):
+        """
+        This allows the transfer function to be evaluated at
+        particular values of s.
+        Effectively, this makes a tf object behave just like a function of s.
+
+        >>> G = tf(1, [1, 1])
+        >>> G(0)
+        1.0
+        """
+        return (numpy.polyval(self.numerator, s) /
+                numpy.polyval(self.denominator, s) *
+                numpy.exp(-s * self.deadtime))
+
+    def __add__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
+        if self.deadtime != other.deadtime:
+            raise ValueError("Transfer functions can only be added if their deadtimes are the same")
+        gcd = self.denominator * other.denominator
+        return tf(self.numerator*other.denominator +
+                  other.numerator*self.denominator, gcd, self.deadtime)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return other + (-self)
+
+    def __mul__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
+        return tf(self.numerator*other.numerator,
+                  self.denominator*other.denominator,
+                  self.deadtime + other.deadtime)
+
+    def __rmul__(self, other):
+        return self * other
+
+    def __div__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
+        return self * other.inverse()
+
+    def __rdiv__(self, other):
+        return tf(other)/self
+
+    def __neg__(self):
+        return tf(-self.numerator, self.denominator, self.deadtime)
+
+    def __pow__(self, other):
+        r = self
+        for k in range(other-1):
+            r = r * self
+        return r
+        
 
 def circle(cx, cy, r):
     """ 
@@ -312,164 +414,6 @@ def polygcd(a, b):
         a = b
         b = r
     return a/a[len(a)]
-
-
-class tf(object):
-    """
-    Very basic transfer function object
-
-    Construct with a numerator and denominator:
-
-    >>> G = tf(1, [1, 1])
-    >>> G
-    tf([ 1.], [ 1.  1.])
-
-    >>> G2 = tf(1, [2, 1])
-
-    The object knows how to do:
-
-    addition
-
-    >>> G + G2
-    tf([ 3.  2.], [ 2.  3.  1.])
-    >>> G + G # check for simplification
-    tf([ 2.], [ 1.  1.])
-
-    multiplication
-
-    >>> G * G2
-    tf([ 1.], [ 2.  3.  1.])
-
-    division
-
-    >>> G / G2
-    tf([ 2.  1.], [ 1.  1.])
-
-    Deadtime is supported:
-
-    >>> G3 = tf(1, [1, 1], deadtime=2)
-    >>> G3
-    tf([ 1.], [ 1.  1.], deadtime=2)
-
-    Note we can't add transfer functions with different deadtime:
-
-    >>> G2 + G3
-    Traceback (most recent call last):
-        ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same
-
-    It is sometimes useful to define
-
-    >>> s = tf([1, 0])
-    >>> 1 + s
-    tf([ 1.  1.], [ 1.])
-
-    >>> 1/(s + 1)
-    tf([ 1.], [ 1.  1.])
-    """
-
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y=''):
-        """
-        Initialize the transfer function from a
-        numerator and denominator polynomial
-        """
-        # TODO: poly1d should be replaced by np.polynomial.Polynomial
-        self.numerator = numpy.poly1d(numerator)
-        self.denominator = numpy.poly1d(denominator)
-        self.simplify()
-        self.deadtime = deadtime
-        self.name = name
-        self.u = u
-        self.y = y
-
-    def inverse(self):
-        """
-        Inverse of the transfer function
-        """
-        return tf(self.denominator, self.numerator, -self.deadtime)
-
-    def step(self, *args):
-        """ Step response """ 
-        return signal.lti(self.numerator, self.denominator).step(*args)
-
-    def simplify(self):
-        g = polygcd(self.numerator, self.denominator)
-        self.numerator, remainder = self.numerator/g
-        self.denominator, remainder = self.denominator/g
-    
-    def __repr__(self):
-        if self.name:
-            r = str(self.name) + "\n"
-        else:
-            r = ''
-        r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
-        if self.deadtime != 0:
-            r += ", deadtime=" + str(self.deadtime)
-        if self.u: 
-            r += ", u='" + self.u + "'"
-        if self.y: 
-            r += ", y=': " + self.y + "'"
-        r += ")"
-        return r
-
-    def __call__(self, s):
-        """
-        This allows the transfer function to be evaluated at
-        particular values of s.
-        Effectively, this makes a tf object behave just like a function of s.
-
-        >>> G = tf(1, [1, 1])
-        >>> G(0)
-        1.0
-        """
-        return (numpy.polyval(self.numerator, s) /
-                numpy.polyval(self.denominator, s) *
-                numpy.exp(-s * self.deadtime))
-
-    def __add__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
-        if self.deadtime != other.deadtime:
-            raise ValueError("Transfer functions can only be added if their deadtimes are the same")
-        gcd = self.denominator * other.denominator
-        return tf(self.numerator*other.denominator +
-                  other.numerator*self.denominator, gcd, self.deadtime)
-
-    def __radd__(self, other):
-        return self + other
-
-    def __sub__(self, other):
-        return self + (-other)
-
-    def __rsub__(self, other):
-        return other + (-self)
-
-    def __mul__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
-        return tf(self.numerator*other.numerator,
-                  self.denominator*other.denominator,
-                  self.deadtime + other.deadtime)
-
-    def __rmul__(self, other):
-        return self * other
-
-    def __div__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
-        return self * other.inverse()
-
-    def __rdiv__(self, other):
-        return tf(other)/self
-
-    def __neg__(self):
-        return tf(-self.numerator, self.denominator, self.deadtime)
-
-    def __pow__(self, other):
-        r = self
-        for k in range(other-1):
-            r = r * self
-        return r
         
 
 def feedback(forward, backward=None, positive=False):
