@@ -532,7 +532,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_typ
                 rgamax.append(max(rgas))
 
                 if j == dim[1] - 1: #self-scaling algorithm
-                    if axlim != None:
+                    if axlim is not None:
                         plt.axis(axlim)
                     else:
                         plt.axis([None, None, None, max(rgamax)])
@@ -554,7 +554,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, show=True, plot_typ
                 rgamax.append(max(rgas))
 
                 if i == dim[1] - 1: #self-scaling algorithm
-                    if axlim != None:
+                    if axlim is not None:
                         plt.axis(axlim)
                     else:
                         plt.axis([None, None, None, max(rgamax)])
@@ -866,7 +866,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     [t,y] = utils.tf_step(U, t_end, initial_val)
     plt.plot(t,y)
     
-    if constraint == None:
+    if constraint is None:
         plt.legend(['$y(t)$','$u(t)$'])  
     else:
         [t,y] = utils.tf_step(U, t_end, initial_val, points, constraint, Y, method)

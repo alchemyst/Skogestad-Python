@@ -534,7 +534,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     
     timedata = numpy.linspace(0, t_end, points)    
     
-    if constraint == None:
+    if constraint is None:
         deadtime =G.deadtime        
         [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
         t_stepsize = max(timedata)/(timedata.size-1)
@@ -548,7 +548,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
             #adjust the shape for complex state space functions
             x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
-            if constraint != None:
+            if constraint is not None:
                 A2, B2, C2, D2 = signal.tf2ss(Y.numerator, Y.denominator)
                 x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
             
@@ -562,7 +562,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 dxdt1 = A1*x1 + B1*u
                 y1 = C1*x1 + D1*u
                 
-                if constraint != None:
+                if constraint is not None:
                     if (y1[0,0] > constraint) or bconst:
                         y1[0,0] = constraint  
                         bconst = True # once constraint the system is oversaturated
@@ -662,7 +662,7 @@ def sv_dir(G, table=False):
     v = [V[:, 0]] + [V[:, -1]]
 
 
-    if table == True:
+    if table:
         Headings = ['Maximum', 'Minimum']
 
         for i in range(2):
