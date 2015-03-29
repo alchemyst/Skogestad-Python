@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import scipy.linalg as sc_lin
 import numpy as np
-import sys
 
 # This program contains all the important equations of Chapter 6 of
 # Skogestad pre-programmed.
