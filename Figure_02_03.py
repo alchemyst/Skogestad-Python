@@ -1,4 +1,5 @@
-from utils import bode, tf
+from utils import tf
+from utilsplot import bode
 
 s = tf([1, 0], 1)
 G = 30 * (s + 1) / ((s + 0.01)**2 * (s + 10))

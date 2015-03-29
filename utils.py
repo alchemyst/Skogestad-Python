@@ -3,13 +3,89 @@
 Created on Jan 27, 2012
 
 @author: Carl Sandrock
+
+
+Functions
+---------
+circle: Return the coordinates of a circle
+
+arrayfun: Recurses down to scalar elements in A, then applies f, returning
+    lists containing the result 
+
+listify: Return list
+
+gaintf: Transform a gain value into a transfer function
+
+findst: Find S and T given a value for G and K
+
+phase: Return the phase angle in degrees or radians
+
+Closed_loop: Return zero and pole polynomial for a closed loop function.
+
+RGAnumber: Computes the RGA (Relative Gain Array) number of a matrix
+
+RGA: Computes the RGA (Relative Gain Array) of a matrix.
+
+polygcd: Find the Greatest Common Divisor of two polynomials
+
+class tf(object): Very basic transfer function object
+
+feedback: Calculates a feedback loop
+
+tf_step: Validate the step response data of a transfer function
+
+sigmas(A): Returns the singular values of A
+
+sv_dir: Returns the input and output singular vectors associated with singular
+    values
+
+SVD: Returns the singular values, and input and output singular vectors
+
+Wp: Computes the magnitude of the performance weighting function 
+
+distRej: Convenience wrapper to calculate ||gd||2 and disturbace condition
+    number
+
+feedback_mimo: Calculates a feedback loop for matrices
+
+omega: Convenience wrapper to define frequency range
+
+freq: Calculate the frequency response for an optimisation problem
+
+ControllerTuning: Calculates either the Ziegler-Nichols or Tyreus-Luyben tuning
+    parameters for a PI controller
+
+margins: Calculates the gain and phase margins, together with the gain and
+    phase crossover frequency for a plant model
+
+marginsclosedloop: Calculates the gain and phase margins, together with the
+    gain and phase crossover frequency for a control model
 '''
 
 import numpy #do not abbreviate this module as np in utils.py
-import matplotlib.pyplot as plt
 from scipy import optimize, signal
 
 def circle(cx, cy, r):
+    """ 
+    Return the coordinates of a circle
+    
+    Parameters
+    ----------
+    cx : float
+        Center x coordinate.
+        
+    cy : float
+        Center x coordinate.
+        
+    r : float
+        Radius.
+    
+    Returns
+    -------
+    x, y : float
+        Circle coordinates.
+        
+   """
     npoints = 100
     theta = numpy.linspace(0, 2*numpy.pi, npoints)
     y = cy + numpy.sin(theta)*r
@@ -18,10 +94,20 @@ def circle(cx, cy, r):
 
 
 def arrayfun(f, A):
-    """
+    """ 
     Recurses down to scalar elements in A, then applies f, returning lists
     containing the result.
-    """
+    
+    Parameters
+    ----------
+    A : array
+    f : function
+    
+    Returns
+    -------
+    arrayfun : list
+        
+   """
     if len(A.shape) == 0:
         return f(A)
     else:
@@ -29,10 +115,38 @@ def arrayfun(f, A):
 
 
 def listify(A):
+    """ 
+    Transform a gain value into a transfer function.
+    
+    Parameters
+    ----------
+    K : float
+        Gain.
+    
+    Returns
+    -------
+    gaintf : tf
+        Transfer function.
+        
+   """
     return [A]
 
 
 def gaintf(K):
+    """ 
+    Transform a gain value into a transfer function.
+    
+    Parameters
+    ----------
+    K : float
+        Gain.
+    
+    Returns
+    -------
+    gaintf : tf
+        Transfer function.
+        
+   """
     r = tf(arrayfun(listify, K), arrayfun(listify, numpy.ones_like(K)))
     return r
 
@@ -54,7 +168,7 @@ def findst(G, K):
         Matrix of sensitivities.
     T : numpy array
         Matrix of complementary sensitivities.
-    
+        
    """
     L = G*K
     I = numpy.eye(G.outputs, G.inputs)
@@ -64,15 +178,47 @@ def findst(G, K):
 
 
 def phase(G, deg=False):
+    """ 
+    Return the phase angle in degrees or radians
+    
+    Parameters
+    ----------
+    G : tf
+        Plant of transfer functions.
+    deg : booleans
+        True if radians result is required, otherwise degree is default
+        (optional).
+    
+    Returns
+    -------
+    phase : float
+        Phase angle.
+        
+   """
     return numpy.unwrap(numpy.angle(G, deg=deg), 
                         discont=180 if deg else numpy.pi)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
-    """
-    Kz & Gz is the polynomial constants in the numerator
-    Kp & Gp is the polynomial constants in the denominator
-    """
+    """ 
+    Return zero and pole polynomial for a closed loop function.
+    
+    Parameters
+    ----------
+    Kz & Gz : list
+        Polynomial constants in the numerator.
+    Kz & Gz : list
+        Polynomial constants in the denominator.
+    
+    Returns
+    -------
+    Zeros_poly : list
+        List of zero polynomial for closed loop function.
+        
+    Poles_poly : list
+        List of pole polynomial for closed loop function.
+        
+   """
 
     # calculating the product of the two polynomials in the numerator
     # and denominator of transfer function GK
@@ -86,10 +232,30 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
+def RGAnumber(G, I):
+    """ 
+    Computes the RGA (Relative Gain Array) number of a matrix.
+    
+    Parameters
+    ----------
+    G : numpy matrix
+        Transfer function matrix.
+        
+    I : numpy matrix
+        Pairing matrix.
+        
+    Returns
+    -------
+    RGA number : float
+        RGA number.
+
+    """    
+    return numpy.sum(numpy.abs(RGA(G) - I))
+    
+
 def RGA(Gin):
     """ 
-    Computes the Relative Gain Array of a matrix.
-    
+    Computes the RGA (Relative Gain Array) of a matrix.
     
     Parameters
     ----------
@@ -322,88 +488,102 @@ def feedback(forward, backward=None, positive=False):
     if positive:
         backward = -backward
     return  forward * 1/(1 + backward * forward)
+    
 
-
-def tf_step(Y, t_end=10, initial_val=0, points=1000, constraint=None, method='numeric'):
+def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
     time and constraints. A unit step response is generated.  
     
     Parameters
     ----------
+    G : tf
+        Transfer function (input[u] or output[y]) to evauate step response.
+        
     Y : tf
-        transfer function to evauate step response from
+        Transfer function output[y] to evaluate constrain step response (optional)(required if constraint is specified).
         
     t_end : integer
-        length of time to evaluate step response (optional)
+        length of time to evaluate step response (optional).
     
     initial_val : integer
-        starting value to evalaute step response (optional)
+        starting value to evalaute step response (optional).
         
     points : integer
-        number of iteration that will be calculated (optional)
+        number of iteration that will be calculated (optional).
         
     constraint : real
-        the upper limit the step response cannot exceed. is only calculated
-        if a value is specified (optional)
+        The upper limit the step response cannot exceed. Is only calculated
+        if a value is specified (optional).
         
     method : ['numeric','analytic']
-        the method that is used to calculate a constrainted response. a
-        constraint value is required (optional)
+        The method that is used to calculate a constrainted response. A
+        constraint value is required (optional).
           
     Returns
     -------
-    var : type
-        description    
+    timedata : array
+        Array of floating time values.  
+        
+    process : array (1 or 2 dim)
+        1 or 2 dimensional array of floating process values.
     """ 
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
-    # TODO: Make more specific
     
-    tspace = numpy.linspace(0, t_end, points)    
+    timedata = numpy.linspace(0, t_end, points)    
     
     if (constraint == None):
-        deadtime = Y.deadtime        
-        foo = numpy.real(Y.step(initial_val, tspace))
-        t_stepsize = max(foo[0])/(foo[0].size-1)
+        deadtime =G.deadtime        
+        [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
+        t_stepsize = max(timedata)/(timedata.size-1)
         t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
-        foo[1] = numpy.roll(foo[1], t_startindex)
-        foo[1,0:t_startindex] = initial_val
+        processdata = numpy.roll(processdata, t_startindex)
+        processdata[0:t_startindex] = initial_val
         
     else:
         if (method == 'numeric'):
-            A = signal.tf2ss(Y.numerator, Y.denominator)[0]
-            B = signal.tf2ss(Y.numerator, Y.denominator)[1]
-            C = signal.tf2ss(Y.numerator, Y.denominator)[2]
-            D = signal.tf2ss(Y.numerator, Y.denominator)[3]
-            A, B, C, D = map(numpy.asmatrix, [A, B, C, D])
+            A1, B1, C1, D1 = signal.tf2ss(G.numerator, G.denominator)
+            #adjust the shape for complex state space functions
+            x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
-            dt = tspace[1]
-            ystore = []
+            if (constraint != None):
+                A2, B2, C2, D2 = signal.tf2ss(Y.numerator, Y.denominator)
+                x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
+            
+            dt = timedata[1]
+            processdata1 = []
+            processdata2 = []
+            bconst = False
             u = 1
             
-            #adjust the shape for complex state space functions
-            x = numpy.zeros((numpy.shape(A)[1], numpy.shape(B)[1]))
-            for t in tspace:
-                dxdt = A*x + B*u
-                y= C*x + D*u
+            for t in timedata:
+                dxdt1 = A1*x1 + B1*u
+                y1 = C1*x1 + D1*u
                 
-                if (y[0,0] > constraint):
-                    y[0,0] = constraint            
+                if (constraint != None):
+                    if (y1[0,0] > constraint) or bconst:
+                        y1[0,0] = constraint  
+                        bconst = True # once constraint the system is oversaturated
+                        u = 0 # TODO : incorrect, find the correct switching condition
+                    dxdt2 = A2*x2 + B2*u
+                    y2 = C2*x2 + D2*u
+                    x2 = x2 + dxdt2 * dt      
+                    processdata2.append(y2[0,0])
                   
-                x = x + dxdt * dt
-                
-                ystore.append(y[0,0])
-        elif (method == 'analytics'):
+                x1 = x1 + dxdt1 * dt                
+                processdata1.append(y1[0,0])
+            if constraint:
+                processdata = [processdata1, processdata2]
+            else: processdata = processdata1
+        elif (method == 'analytic'):
             # TODO: caluate intercept of step and constraint line
-            foo = [0,0]
+            timedata, processdata = [0,0]
         else: print 'Invalid function parameters'
         
-        plt.plot(tspace, ystore)    
-        
     # TODO: calculate time response
-    return foo[0], foo[1]
+    return timedata, processdata
 
 # TODO: Concatenate tf objects into MIMO structure
 
@@ -564,113 +744,7 @@ def Wp(wB, A, s):
     
     """
     M = 2
-    return(numpy.abs((s/M + wB) / (s + wB*A)))     
-
-
-
-def perf_Wp(S, wB_req, maxSSerror, wStart, wEnd):
-    """
-    MIMO sensitivity S and performance weight Wp plotting funtion.
-    
-    Parameters
-    ----------
-    S : numpy array
-        Sensitivity transfer function matrix as function of s => S(s)
-        
-    wB_req : float
-        The design or require bandwidth of the plant in rad/time.
-        1/time eg: wB_req = 1/20sec = 0.05rad/s
-        
-    maxSSerror : float
-        The maximum stead state tracking error required of the plant.
-        
-    wStart : float
-        Minimum power of w for the frequency range in rad/time. 
-        eg: for w startig at 10e-3, wStart = -3.
-        
-    wEnd : float
-        Maximum value of w for the frequency range in rad/time. 
-        eg: for w ending at 10e3, wStart = 3.
-
-    Returns
-    -------
-    wB : float
-        The actualy plant bandwidth in rad/time given the specified controller 
-        used to generate the sensitivity matrix S(s).
-    
-    Plot : matplotlib figure
-        A plot of the sensitivity function and the performance weight across the
-        frequency range specified.
-        
-    Example
-    -------
-    >>> K = numpy.array([[1., 2.],
-    ...                  [3., 4.]])
-    >>> t1 = numpy.array([[5., 5.],
-    ...                   [5., 5.]])
-    >>> t2 = numpy.array([[5., 6.],
-    ...                   [7., 8.]])
-    >>> Kc = numpy.array([[0.1, 0.],
-    ...                   [0., 0.1]])*10
-    >>> 
-    >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
-    ... 
-    >>> def L(s):
-    ...     return(Kc*G(s))
-    ... 
-    >>> def S(s):
-    ...     return(numpy.linalg.inv((numpy.eye(2) + L(s))))      #SVD of S = 1/(I + L)
-    ... 
-    >>> #utils.perf_Wp(S, 0.05, 0.2, -3, 1)
-    
-    """
-    w = numpy.logspace(wStart, wEnd, 1000)
-    s = w*1j
-    magPlotS1 = numpy.zeros((len(w)))
-    magPlotS3 = numpy.zeros((len(w)))
-    Wpi = numpy.zeros((len(w)))
-    f = 0                                    #f for flag
-    for i in range(len(w)):
-        U, Sv, V = SVD(S(s[i]))
-        magPlotS1[i] = Sv[0]
-        magPlotS3[i] = Sv[-1]
-        if (f < 1 and magPlotS1[i] > 0.707):
-            wB = w[i]
-            f = 1
-    for i in range(len(w)):
-        Wpi[i] = Wp(wB_req, maxSSerror, s[i])                                      
-    plt.figure('MIMO sensitivity S and performance weight Wp')
-    plt.clf()
-    plt.subplot(211)
-    plt.loglog(w, magPlotS1, 'r-', label='Max $\sigma$(S)')
-    plt.loglog(w, 1./Wpi, 'k:', label='|1/W$_P$|', lw=2.)
-    plt.axhline(0.707, color='green', ls=':', lw=2, label='|S| = 0.707')
-    plt.axvline(wB_req, color='blue', ls=':', lw=2)
-    plt.text(wB_req*1.1, 7, 'req wB', color='blue', fontsize=10)
-    plt.axvline(wB, color='green')
-    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
-    plt.xlabel('Frequency [rad/s]')
-    plt.ylabel('Magnitude')
-    plt.axis([None, None, 0.1, 10])
-    plt.legend(loc='upper left', fontsize=10, ncol=1)
-    plt.grid(True)
-    plt.subplot(212)
-    plt.semilogx(w, magPlotS1*Wpi, 'r-', label='|W$_P$S|')
-    plt.axhline(1, color='blue', ls=':', lw=2)
-    plt.axvline(wB_req, color='blue', ls=':', lw=2, label='|W$_P$S| = 1')
-    plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95, 'req wB', color='blue', fontsize=10)
-    plt.axvline(wB, color='green')
-    plt.text(wB*1.1, 0.12, 'wB = %s rad/s'%(numpy.round(wB,3)), color='green', fontsize=10)
-    plt.xlabel('Frequency [rad/s]')
-    plt.ylabel('Magnitude')
-    plt.legend(loc='upper right', fontsize=10, ncol=1)
-    fig = plt.gcf()
-    BG = fig.patch
-    BG.set_facecolor('white')
-    plt.grid(True)
-    return(wB) 
-
+    return(numpy.abs((s/M + wB) / (s + wB*A)))   
 
 
 def distRej(G, gd):
@@ -700,81 +774,6 @@ def distRej(G, gd):
     yd = gd1*gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
     return(gd1, distCondNum)
-
-
-
-def MIMOnyqPlot(L, axLim, wStart, wEnd):
-    """
-    Nyquist stability plot for MIMO system.
-    
-    Parameters
-    ----------
-    L : numpy array
-        Closed loop transfer function matrix as a function of s, i.e. def L(s).
-    
-    axLim : float
-        Axis limit for square axis.  axis will run from -axLim to +axLim.
-    
-    wStart : float
-        Minimum power of w for the frequency range in rad/time. 
-        eg: for w startig at 10e-3, wStart = -3.
-        
-    wEnd : float
-        Maximum value of w for the frequency range in rad/time. 
-        eg: for w ending at 10e3, wStart = 3.
-        
-    Returns
-    -------
-    Nyquist stability plot.
-    
-    Example
-    -------
-    >>> K = numpy.array([[1., 2.],
-    ...                  [3., 4.]])
-    >>> t1 = numpy.array([[5., 5.],
-    ...                   [5., 5.]])
-    >>> t2 = numpy.array([[5., 6.],
-    ...                   [7., 8.]]) 
-    >>> Kc = numpy.array([[0.1, 0.], 
-    ...                   [0., 0.1]])*6
-    >>> 
-    >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1))
-    ... 
-    >>> def L(s):
-    ...     return(Kc*G(s))
-    ... 
-    >>> #MIMOnyqPlot(L, 2)
-    
-    """
-    w = numpy.logspace(wStart, wEnd, 1000)    
-    Lin = numpy.zeros((len(w)), dtype=complex)
-    x = numpy.zeros((len(w)))
-    y = numpy.zeros((len(w)))
-    dim = numpy.shape(L(0.1))
-    for i in range(len(w)):        
-        Lin[i] = numpy.linalg.det(numpy.eye(dim[0]) + L(w[i]*1j))
-        x[i] = numpy.real(Lin[i])
-        y[i] = numpy.imag(Lin[i])        
-    plt.figure('MIMO Nyquist Plot')
-    plt.clf()
-    plt.plot(x, y, 'k-', lw=1)
-    plt.xlabel('Re G(wj)')
-    plt.ylabel('Im G(wj)')
-    # plotting a unit circle
-    x = numpy.linspace(-1, 1, 200)
-    y_up = numpy.sqrt(1-(x)**2)
-    y_down = -1*numpy.sqrt(1 - (x)**2)
-    plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
-    plt.plot(0, 0, 'r*', ms=10)
-    plt.grid(True)
-    n = axLim           # Sets x-axis limits
-    plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
-    plt.axis([-n, n, -n, n])
-    fig = plt.gcf()
-    BG = fig.patch
-    BG.set_facecolor('white')
-
 
    
 def feedback_mimo(forward, backward=None, positive=False):
@@ -960,242 +959,6 @@ def marginsclosedloop(L):
         valid = True
     else: valid = False
     return GM, PM, wc, wb, wbt, valid
-
-
-def bode(G, w1, w2, label='Figure', margin=False):
-    """ 
-    Shows the bode plot for a plant model
-    
-    Parameters
-    ----------
-    G : tf
-        plant transfer function
-    w1 : real
-        start frequency
-    w2 : real
-        end frequency
-    label : string
-        title for the figure (optional)
-    margin : boolean
-        show the cross over frequencies on the plot (optional)        
-          
-    Returns
-    -------
-    GM : array containing a real number      
-        gain margin
-    PM : array containing a real number           
-        phase margin         
-    """
-
-    GM, PM, wc, w_180 = margins(G)
-
-    # plotting of Bode plot and with corresponding frequencies for PM and GM
-#    if ((w2 < numpy.log(w_180)) and margin):
-#        w2 = numpy.log(w_180)  
-    w = numpy.logspace(w1, w2, 1000)
-    s = 1j*w
-
-    plt.figure(label)
-    # Magnitude of G(jw)
-    plt.subplot(211)
-    gains = numpy.abs(G(s))
-    plt.loglog(w, gains)
-    if margin:
-        plt.axvline(w_180, color='black')
-        plt.text(w_180, numpy.average([numpy.max(gains), numpy.min(gains)]), r'$\angle$G(jw) = -180$\degree$')
-    plt.axhline(1., color='red')
-    plt.grid()
-    plt.ylabel('Magnitude')
-
-    # Phase of G(jw)
-    plt.subplot(212)
-    phaseangle = phase(G(s), deg=True)
-    plt.semilogx(w, phaseangle)
-    if margin:
-        plt.axvline(wc, color='black')
-        plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
-    plt.axhline(-180., color='red')
-    plt.grid()
-    plt.ylabel('Phase')
-    plt.xlabel('Frequency [rad/unit time]')
-    
-
-    return GM, PM
-    
-def bodeclosedloop(G, K, w1, w2, label='Figure', margin=False):
-    """ 
-    Shows the bode plot for a controller model
-    
-    Parameters
-    ----------
-    G : tf
-        plant transfer function
-    K : tf
-        controller transfer function
-    w1 : real
-        start frequency
-    w2 : real
-        end frequency
-    label : string
-        title for the figure (optional)
-    margin : boolean
-        show the cross over frequencies on the plot (optional)             
-    """
-    
-    w = numpy.logspace(w1, w2, 1000)    
-    L = G(1j*w) * K(1j*w)
-    S = feedback(1, L)
-    T = feedback(L, 1)
-    
-    plt.figure(label)
-    plt.subplot(2, 1, 1)
-    plt.loglog(w, abs(L))
-    plt.loglog(w, abs(S))
-    plt.loglog(w, abs(T))
-    plt.grid()
-    plt.ylabel("Magnitude")
-    plt.legend(["L", "S", "T"],
-               bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
-    
-    if margin:        
-        plt.plot(w, 1/numpy.sqrt(2) * numpy.ones(len(w)), linestyle='dotted')
-        
-    plt.subplot(2, 1, 2)
-    plt.semilogx(w, phase(L, deg=True))
-    plt.semilogx(w, phase(S, deg=True))
-    plt.semilogx(w, phase(T, deg=True))
-    plt.grid()
-    plt.ylabel("Phase")
-    plt.xlabel("Frequency [rad/s]")  
-    
-
-
-
-def mimoBode(Gin, wStart, wEnd, Kin=None): 
-    """
-    Plots the max and min singular values of G and computes the crossover freq.
-    
-    If a controller is specified, the max and min singular values
-    of S are also plotted and the bandwidth freq computed.
-              
-    Parameters
-    ----------
-    Gin : numpy array
-        Matrix of plant transfer functions.
-    
-    wStart : float
-        Minimum power of w for the frequency range in rad/time. 
-        eg: for w startig at 10e-3, wStart = -3.
-        
-    wEnd : float
-        Maximum value of w for the frequency range in rad/time. 
-        eg: for w ending at 10e3, wStart = 3.
-    
-    Kin : numpy array
-        Controller matrix (optional).
-    
-    Returns
-    -------
-    wC : real
-        Crossover frequency.
-        
-    wB : real
-        Bandwidth frequency.
-        
-    Plot : matplotlib plot
-        Bode plot of singular values of G and S(optional).
-    
-    Example
-    -------
-    >>> K = numpy.array([[1., 2.],
-    ...                  [3., 4.]])*10
-    >>> t1 = numpy.array([[5., 5.],
-    ...                   [5., 5.]])
-    >>> t2 = numpy.array([[5., 6.],
-    ...                   [7., 8.]])
-    >>>                   
-    >>> def G(s):
-    ...     return(K*numpy.exp(-t1*s)/(t2*s + 1.))
-    >>>
-    >>> def Kc(s):
-    ...     return(numpy.array([[0.1, 0.],
-    ...                         [0., 0.1]])*10.)
-    >>> mimoBode(G, -3, 3, Kc)
-    Bandwidth is a tuple of wC, wB
-    (0.55557762223988783, 1.3650078065460138)
-    
-    """
-    xmin = 10**wStart
-    xmax = 10**wEnd
-    w = numpy.logspace(wStart, wEnd, 1000)
-    s = w*1j
-    Sv1 = numpy.zeros(len(w), dtype=complex)
-    Sv2 = numpy.zeros(len(w), dtype=complex)
-    f = 0
-    wC = 0
-    for i in range(len(w)):
-        Sv1[i] = sigmas(Gin(s[i]))[0]
-        Sv2[i] = sigmas(Gin(s[i]))[-1]
-        if (f < 1 and Sv2[i] < 1):
-            wC = w[i]
-            f = 1
-    ymin = numpy.min(Sv2)
-    plt.figure('MIMO Bode')
-    plt.clf()
-    plt.loglog(w, Sv1, 'k-', label='Max $\sigma$(G)')
-    plt.loglog(w, Sv2, 'k-', alpha=0.5, label='Min $\sigma$(G)')
-    plt.axhline(1, ls=':', lw=2, color='blue')
-    plt.text(xmin, 1.1, 'Mag = 1', color='blue')
-    plt.axvline(wC, ls=':', lw=2, color='blue')
-    plt.text(wC*1.1, ymin*1.1, 'wC', color='blue')
-    plt.legend(loc='upper right', fontsize = 10, ncol=1)
-    plt.xlabel('Frequency [rad/time]')
-    plt.ylabel('Magnitude')
-    plt.axis([xmin, xmax, None, None])
-    plt.grid(True)
-    fig = plt.gcf()
-    BG = fig.patch
-    BG.set_facecolor('white')
-    
-    if Kin is None:
-        Bandwidth = wC
-        print('Bandwidth = wC')
-    else:
-        def S(s):
-            L = Kin(s)*Gin(s)
-            dim1, dim2 = numpy.shape(Gin(0))
-            return(numpy.linalg.inv(numpy.eye(dim1) + L))      #SVD of S = 1/(I + L)
-        w = numpy.logspace(wStart, wEnd, 1000)
-        s = w*1j
-        Sv1 = numpy.zeros(len(w), dtype=complex)
-        Sv2 = numpy.zeros(len(w), dtype=complex)
-        f = 0
-        wB = 0
-        for i in range(len(w)):
-            Sv1[i] = sigmas(S(s[i]))[0]
-            Sv2[i] = sigmas(S(s[i]))[-1]
-            if (f < 1 and Sv1[i] > 0.707):
-                wB = w[i]
-                f = 1
-        plt.figure()
-        plt.loglog(w, Sv1, 'r-', label='Max $\sigma$(S)')
-        plt.loglog(w, Sv2, 'r-', alpha=0.5, label='Min $\sigma$(S)')
-        plt.axhline(0.707, ls=':', lw=2, color='green')
-        plt.text(xmin, 0.5, 'Mag = 0.707', color='green')
-        plt.axvline(wB, ls=':', lw=2, color='green')
-        plt.text(wB*1.1, ymin*1.1, 'wB', color='green')
-        plt.legend(loc='upper right', fontsize = 10, ncol=1)
-        plt.xlabel('Frequency [rad/time]')
-        plt.ylabel('Magnitude')
-        plt.axis([xmin, xmax, None, None])
-        plt.grid(True)
-        fig = plt.gcf()
-        BG = fig.patch
-        BG.set_facecolor('white')
-        Bandwidth = wC, wB
-        print('Bandwidth is a tuple of wC, wB')
-    return(Bandwidth)
-
        
 
 # according to convention this procedure should stay at the bottom       
