@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import scipy.linalg as sc_lin
 import numpy as np
-import sys
 
 # This program contains all the important equations of Chapter 6 of
 # Skogestad pre-programmed.
@@ -118,8 +117,7 @@ def Min_Peaks(Zeros_G, Poles_G, error_poles_direction, io_type, usedeadtime=Fals
             p_direction[:, i] = S[:, 0]   
             
     else:
-        print "Incorrect io_type specified"
-        sys.exit
+        raise ValueError("Incorrect io_type specified")
 
     yz_mat1 = (np.matrix(np.diag(Zeros_G)) *
                np.matrix(np.ones([len(Zeros_G), len(Zeros_G)])))

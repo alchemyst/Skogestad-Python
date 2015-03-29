@@ -1,5 +1,7 @@
 import numpy as np
+
 from robusttools import UnstructuredDelta
+
 
 M = np.matrix([[2., 2.],[-1., -1.]])  
  

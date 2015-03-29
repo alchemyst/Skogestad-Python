@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from utils import tf, margins
+
 
 s = tf([1, 0], 1)
 

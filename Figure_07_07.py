@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import circle
 from scipy.optimize import minimize
+
+from utils import circle
+
 
 w = 0.5
 s = w * 1j

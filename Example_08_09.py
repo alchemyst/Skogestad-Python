@@ -1,7 +1,9 @@
 import numpy as np
-import utils
 import matplotlib.pyplot as plt
 import scipy.optimize
+
+import utils
+
 
 I = np.identity(2)
 

@@ -8,7 +8,9 @@ Created on Tue Jun 04 13:03:43 2013
 import numpy as np
 import control
 import matplotlib.pyplot as plt
+
 from utils import feedback
+
 
 w = np.logspace(-1, 2, 1000)
 s = control.tf([1, 0], 1)

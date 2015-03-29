@@ -12,7 +12,6 @@ as explained in Skogestad chapter 5.14.
 import control as cn
 import numpy as np
 import matplotlib.pyplot as plt
-import control_add_on as cadd
 
 """
 Rule 1 and 2: |e| < 1 for acceptable control given feedback

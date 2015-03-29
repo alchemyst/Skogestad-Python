@@ -50,11 +50,13 @@ perf_Wp_plot: MIMO sensitivity S and performance weight Wp plotting funtion
    
 """
 
-import numpy #do not abbreviate this module as np in utilsplot.py
-import utils
-import matplotlib.pyplot as plt
 import sys
-      
+
+import numpy #do not abbreviate this module as np in utilsplot.py
+import matplotlib.pyplot as plt
+
+import utils
+
 
 def bode(G, w_start=-2, w_end=2, axlim=None, points=100, margin=False):
     """ 

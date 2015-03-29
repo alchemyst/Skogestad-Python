@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
+
 from utilsplot import bode
 from utils import tf
+
 
 s = tf([1, 0])
 

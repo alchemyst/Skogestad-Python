@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib as ml
 import scipy.optimize as op
 

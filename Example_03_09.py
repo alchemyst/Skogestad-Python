@@ -1,5 +1,7 @@
 import numpy as np
+
 from utils import RGA
+
 
 # Blending process: mix sugar (u1) and water (u2) to control amount
 # (y1 = F) and sugar fraction(y2 = x) in a soft drink

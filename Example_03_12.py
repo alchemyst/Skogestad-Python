@@ -1,5 +1,7 @@
 import numpy as np
+
 from utils import RGA
+
 
 # The following code performs Example 3.12 of Skogestad.
 # Here the RGA, iterative RGA, condition number and minimized
@@ -12,7 +14,7 @@ def condnum(A):
     return gamma
 
 def IterRGA(A, n):
-    for i in range(1, n):
+    for _ in range(1, n):
         A = RGA(A)
     return A
 

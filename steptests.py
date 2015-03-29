@@ -10,10 +10,12 @@ This function is similar to the MatLab step function
 Models must be defined as tf objects
 """
 
-from steptest_models_tf import G, Gd
 import matplotlib.pyplot as plt
 import matplotlib as ml
 import numpy as np
+
+from steptest_models_tf import G
+
 
 ml.rcParams['font.family'] = 'serif'
 ml.rcParams['font.serif'] = ['Cambria'] + ml.rcParams['font.serif']

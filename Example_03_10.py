@@ -1,5 +1,7 @@
 import numpy as np
+
 from utils import RGA
+
 
 # 3x3 plant at steady-state
 G = np.matrix([[16.8, 30.5, 4.30], 
