@@ -1,4 +1,5 @@
-from utils import bode, tf
+from utils import tf
+from utilsplot import bode
 
 G = tf([5], [10, 1], deadtime=2)
 

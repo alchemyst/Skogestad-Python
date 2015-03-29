@@ -1,8 +1,8 @@
 import numpy as np
-import scipy as sc
-import scipy.signal as scs
 import matplotlib.pyplot as plt
+
 from utils import plot_freq_subplot
+
 
 def G(w):
     """ function to create the matrix of transfer functions"""

@@ -6,8 +6,6 @@ Created on Tue Mar 26 18:10:40 2013
 """
 
 import numpy
-import scipy
-import scipy.signal
 import matplotlib.pyplot as plt
 
 w = numpy.logspace(-3, 2, 2000)

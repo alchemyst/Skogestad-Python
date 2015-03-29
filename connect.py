@@ -14,8 +14,6 @@ The example used here is the same as in the reference
 """
 
 from utils import tf, feedback, tf_step
-import matplotlib.pyplot as plt
-import numpy as np
 
 # First example in reference to demonstrate working of tf object
 

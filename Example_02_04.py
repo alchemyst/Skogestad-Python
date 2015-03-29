@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import feedback, tf, bodeclosedloop, marginsclosedloop, ControllerTuning
+
+from utils import feedback, tf, marginsclosedloop, ControllerTuning
+from utilsplot import step_response_plot, bodeclosedloop
+
 
 s = tf([1, 0], 1)
 G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
-
 
 [Kc, Taui, Ku, Pu] = ControllerTuning(G, method='ZN') 
 print 'Kc:', np.round(Ku/2.2, 3)
@@ -20,17 +22,10 @@ S = feedback(1, L)
 u = S * K
 
 plt.figure('Figure 2.8')
-tspan = np.linspace(0, 80, 100)
-[t, y] = T.step(0, tspan)
-plt.plot(t, y)
-[t, u] = u.step(0, tspan)
-plt.plot(t, u, '-.')
-plt.plot([0, 80], np.ones(2))
-plt.xlabel('Time [s]')
-plt.legend(['y(t)','u(t)'])
+step_response_plot(T, u, 80, 0)
+plt.show()
 
 bodeclosedloop(G, K, -2, 1, 'Figure 2.14', margin=True)
-
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
 print 'GM:' , np.round(GM, 2)
@@ -41,5 +36,3 @@ print 'wbt:' , np.round(wbt, 2)
 
 if valid: print "Frequency range wb < wc < wbt is valid"
 else: print "Frequency range wb < wc < wbt is not valid"
-
-plt.show()
