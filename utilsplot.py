@@ -237,7 +237,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
             return(numpy.linalg.inv(numpy.eye(dim) + L))      #SVD of S = 1/(I + L)
             dim1, dim2 = numpy.shape(Gin(0))
             return numpy.linalg.inv(numpy.eye(dim1) + L)  #SVD of S = 1/(I + L)
-        w = numpy.logspace(wStart, wEnd, 1000)
+        w = numpy.logspace(w_start, w_end, points)
         s = w*1j
         Sv1 = numpy.zeros(len(w), dtype=complex)
         Sv2 = numpy.zeros(len(w), dtype=complex)
