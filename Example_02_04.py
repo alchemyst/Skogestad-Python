@@ -25,7 +25,9 @@ plt.figure('Figure 2.8')
 step_response_plot(T, u, 80, 0)
 plt.show()
 
-bodeclosedloop(G, K, -2, 1, 'Figure 2.14', margin=True)
+plt.figure('Figure 2.14')
+bodeclosedloop(G, K, -2, 1, margin=True)
+plt.show()
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
 print 'GM: %0.2f' % GM
