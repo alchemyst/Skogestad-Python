@@ -534,7 +534,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     
     timedata = numpy.linspace(0, t_end, points)    
     
-    if (constraint == None):
+    if constraint == None:
         deadtime =G.deadtime        
         [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
         t_stepsize = max(timedata)/(timedata.size-1)
@@ -543,12 +543,12 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
         processdata[0:t_startindex] = initial_val
         
     else:
-        if (method == 'numeric'):
+        if method == 'numeric':
             A1, B1, C1, D1 = signal.tf2ss(G.numerator, G.denominator)
             #adjust the shape for complex state space functions
             x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
-            if (constraint != None):
+            if constraint != None:
                 A2, B2, C2, D2 = signal.tf2ss(Y.numerator, Y.denominator)
                 x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
             
@@ -562,7 +562,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 dxdt1 = A1*x1 + B1*u
                 y1 = C1*x1 + D1*u
                 
-                if (constraint != None):
+                if constraint != None:
                     if (y1[0,0] > constraint) or bconst:
                         y1[0,0] = constraint  
                         bconst = True # once constraint the system is oversaturated
@@ -577,7 +577,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
             if constraint:
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
-        elif (method == 'analytic'):
+        elif method == 'analytic':
             # TODO: caluate intercept of step and constraint line
             timedata, processdata = [0,0]
         else: print 'Invalid function parameters'
@@ -679,7 +679,7 @@ def sv_dir(G, table=False):
                 
             print(' ')
     
-    return(u, v)
+    return u, v
 
 
 def SVD(Gin):
@@ -714,7 +714,7 @@ def SVD(Gin):
     """
     U, Sv, VH = numpy.linalg.svd(Gin)
     V = numpy.conj(numpy.transpose(VH))
-    return(U, Sv, V)
+    return U, Sv, V
  
 
 def Wp(wB, A, s):
@@ -744,7 +744,7 @@ def Wp(wB, A, s):
     
     """
     M = 2
-    return(numpy.abs((s/M + wB) / (s + wB*A)))   
+    return numpy.abs((s/M + wB) / (s + wB*A))
 
 
 def distRej(G, gd):
@@ -770,10 +770,10 @@ def distRej(G, gd):
     
     """
     
-    gd1 = 1/numpy.linalg.norm((gd), 2)   #Returns largest sing value of gd(wj)
+    gd1 = 1/numpy.linalg.norm(gd, 2)   #Returns largest sing value of gd(wj)
     yd = gd1*gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
-    return(gd1, distCondNum)
+    return gd1, distCondNum
 
    
 def feedback_mimo(forward, backward=None, positive=False):
