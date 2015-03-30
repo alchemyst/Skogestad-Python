@@ -1,9 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-from utils import feedback, tf, marginsclosedloop
-from utilsplot import step_response_plot, bodeclosedloop
-
+from utils import feedback, bodeclosedloop, tf, marginsclosedloop
+from utilsplot import step_response_plot
 
 s = tf([1, 0], 1)
 G = 4 /((s - 1) * (0.02 * s + 1)**2)
