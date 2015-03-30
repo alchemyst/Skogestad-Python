@@ -18,15 +18,11 @@ processes = [[G1, 'Distillation process 3.7(a)', -4, 1],
 
 plt.figure('Figure 3.7')
 for i, [G, title, minw, maxw] in enumerate(processes):
-    # Singular values
-    omega = np.logspace(minw, maxw, 1000)
-    s = 1j * omega
-    Gw = map(G, s)
     plt.subplot(2, 2, i + 1)
     plt.title(title)
     sv_plot(G, minw, maxw)
     
-    """this is an additional plot to the textbook"""
+    #this is an additional plot to the textbook
     plt.subplot(2, 2, 3 + i)
     condtn_nm_plot(G, minw, maxw)
 
