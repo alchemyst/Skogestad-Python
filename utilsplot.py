@@ -20,11 +20,15 @@ points : float
          
 Example
 -------
+def G(s):
+    return numpy.matrix([[s/(s+1), 1],
+                         [s**2 + 1, 1/(s+1)]])
+                         
 plt.figure('Example 1')
-your_utilsplot_functionA(G)
+your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1, more_paramaters])
 plt.show()
 
-plt.figure('Example 2')
+plt.figure('Example 2')     plt.clf()
 plt.subplot(2, 1, 1)
 your_utilsplot_functionB(G)
 plt.subplot(2, 1, 2)
@@ -108,11 +112,13 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
     Parameters
     ----------
     G : tf
-        plant transfer function
+        Plant transfer function.
+        
     K : tf
-        controller transfer function
+        Controller transfer function.
+        
     margin : boolean
-        show the cross over frequencies on the plot (optional)             
+        Show the cross over frequencies on the plot (optional).
     """
 
     if axlim is None:
@@ -155,10 +161,10 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
               
     Parameters
     ----------
-    Gin : numpy array
+    Gin : numpy matrix
         Matrix of plant transfer functions.
     
-    Kin : numpy array
+    Kin : numpy matrix
         Controller matrix (optional).
     
     Returns
@@ -273,7 +279,7 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     
     Parameters
     ----------
-    L : numpy array
+    L : numpy matrix
         Closed loop transfer function matrix as a function of s, i.e. def L(s).
         
     Returns
@@ -329,14 +335,17 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
 
 
-def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
+def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
     '''
     Plot of Maximum and minimum singular values of a matirix
     
     Parameters
     ----------
-    G : numpy array
-        plant model or sensitivity function
+    G : numpy matrix
+        Plant model or sensitivity function.
+        
+    sv_all : boolean
+        If true, plot all the singular values of the plant (optional).
               
     Returns
     -------
@@ -355,33 +364,32 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j    
     
-    freqresp = map(G, s)
-      
-    plt.semilogx(w, [utils.sigmas(Gfr)[0] for Gfr in freqresp], label=('$\sigma$$_{MAX}$'), color='blue')
-    plt.semilogx(w, [utils.sigmas(Gfr)[-1] for Gfr in freqresp], label=('$\sigma$$_{MIN}$'), color='blue', alpha=0.5)
+    freqresp = map(G, s)    
+    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
     
-    plt.figure('Min Max SV')
-    plt.clf()
-    plt.gcf().set_facecolor('white')
-    
-    plt.semilogx(w, [utils.sigmas(Gfr)[0] for Gfr in freqresp], label='$\sigma$$_{MAX}$', color='blue')
-    plt.semilogx(w, [utils.sigmas(Gfr)[-1] for Gfr in freqresp], label='$\sigma$$_{MIN}$', color='blue', alpha=0.5)
-    plt.xlabel('Frequency (rad/unit time)')
+    if not sv_all:
+        plt.loglog(w, sig[:,0], label='$\sigma$$_{max}$')
+        plt.loglog(w, sig[:,-1], label='$\sigma$$_{min}$')
+    else:
+        dim = numpy.shape(sig)[1]
+        for sv in range(dim):
+            plt.loglog(w, sig[:,sv], label='$\sigma$$_{%s}$' % sv)
     
     plt.axhline(1., color='red', ls=':')
     plt.axis(axlim)
     plt.xlabel('Frequency (rad/unit time)')
+    plt.ylabel('$\sigma$')
     plt.legend()  
 
 
-def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
+def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     Plot of the condition number, the maximum over the minimum singular value
     
     Parameters
     ----------
-    G : numpy array
-        plant model
+    G : numpy matrix
+        Plant model.
               
     Returns
     -------
@@ -391,6 +399,9 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     ----
     A condition number over 10 may indicate sensitivity to uncertainty and
     control problems
+    
+    With a smallcondition number, Gamma =1, the system is insensitive to
+    inputuncertainty, irrespective of controller (p248).
     '''
 
     if axlim is None:
@@ -405,26 +416,21 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=100):
     
     freqresp = map(G, s)
     
-    plt.semilogx(w, [cndtn_nm(Gfr) for Gfr in freqresp], label=('$\sigma$$_{MAX}$/$\sigma$$_{MIN}$'))
-    plt.figure('Condition number')
-    plt.clf()
-    plt.gcf().set_facecolor('white')
-    
-    plt.semilogx(w, [cndtn_nm(Gfr) for Gfr in freqresp], label='$\sigma$$_{MAX}$/$\sigma$$_{MIN}$')
+    plt.loglog(w, [cndtn_nm(Gfr) for Gfr in freqresp], label='$\gamma (G)$')
     plt.axis(axlim)
-    plt.ylabel('$\gamma$(G)', fontsize = 15)
+    plt.ylabel('$\gamma (G)$')
     plt.xlabel('Frequency (rad/unit time)')
-    plt.axhline(10., color='red', ls=':', label='$\gamma$(G) > 10')
+    plt.axhline(10., color='red', ls=':', label='"Large" $\gamma (G) = 10$')
     plt.legend()
 
 
-def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements'):
+def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='elements'):
     '''
     Plots the relative gain interaction between each output and input pairing
     
     Parameters
     ----------
-    G : numpy array
+    G : numpy matrix
         Plant model.
         
     plot_type : ['All','Output','Input','Element']
@@ -541,25 +547,25 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=100, plot_type='elements
         sys.exit()        
 
 
-def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=100, plot_type='all'):
+def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
     '''
     Plots the RGA number for a specified pairing
     
     Parameters
     ----------
     G : numpy matrix
-        Plant model
+        Plant model.
     
-    pairing_list : list of sparse numpy matrixes of the same shape as G
-        An array of zeros with a 1. at each required output-input pairing
-        The default is a diagonal pairing with 1.'s on the diagonal
+    pairing_list : List of sparse numpy matrixes of the same shape as G.
+        An array of zeros with a 1. at each required output-input pairing.
+        The default is a diagonal pairing with 1.'s on the diagonal.
         
     plot_type : ['All','Element']
-        Type of plot.
+        Type of plot:
         
-        =========      ============================
-        plot_type      Type of plot
-        =========      ============================
+        ========       ============================
+        Property       Description
+        ========       ============================
         all            All the pairings on one plot
         element        Each pairing has its own plot
         =========      ============================    
@@ -628,7 +634,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         sys.exit()
     
 
-def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
+def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     A subplot of disturbance conditition number to check for input saturation
     and a subplot of to see if the disturbances fall withing the bounds on
@@ -636,16 +642,15 @@ def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
     
     Parameters
     ----------
-    G : numpy array
-        plant model
+    G : numpy matrix
+        Plant model.
     
-    Gd : numpy array
-        plant disturbance model
+    Gd : numpy matrix
+        Plant disturbance model.
 
-    S : numpy array
-        Sensitivity function
-              
-              
+    S : numpy matrix
+        Sensitivity function (optional, if available).
+                            
     Returns
     -------
     Plot : matplotlib figure
@@ -673,34 +678,30 @@ def dis_rejctn_plot(G, Gd, S, w_start=-2, w_end=2, axlim=None, points=100):
     for i in range(dim[1]):
         for k in range(points):
             inv_norm_gd[i,k], condtn_nm_gd[i,k] = utils.distRej(G(s[k]), Gd(s[k])[:,i])
-                      
-    s_min = [utils.sigmas(S(s[i]))[-1] for i in range(points)]
-    s_max = [utils.sigmas(S(s[i]))[0] for i in range(points)]
     
-    plt.figure('Condition number and performance objective')
-    plt.clf()
-    plt.gcf().set_facecolor('white')
+    if not S is None:
+        s_min = [utils.sigmas(S(s[i]))[-1] for i in range(points)]
+        s_max = [utils.sigmas(S(s[i]))[0] for i in range(points)]
     
     plt.subplot(2, 1, 1)
     for i in range(dim[1]):
-        plt.loglog(w, condtn_nm_gd[i], label=('$\gamma$$_{d%s}$(G)' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))
+        plt.loglog(w, condtn_nm_gd[i], label=('$\gamma$$_{d%s} (G)$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))
     plt.axhline(1., color='red', ls=':')  
     plt.axis(axlim)
-    plt.ylabel('$\gamma$$_d$(G)')
+    plt.ylabel('$\gamma$$_d (G)$')
     plt.axhline(1., color='red', ls=':')
     plt.legend()
     
     plt.subplot(2, 1, 2)
     for i in range(dim[1]):
-        plt.loglog(w, inv_norm_gd[i], label=('1/||g$_{d%s}$||$_2$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))   
-    plt.loglog(w, s_min, label=('$\sigma$$_{MIN}$'), color='green')
-    plt.loglog(w, s_max, label=('$\sigma$$_{MAX}$'), color='green', alpha = 0.5) 
+        plt.loglog(w, inv_norm_gd[i], label=('1/||g$_{d%s}$||$_2$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))  
+    if not S is None:
+        plt.loglog(w, s_min, label='$\sigma$$_{min}$', color='green')
+        plt.loglog(w, s_max, label='$\sigma$$_{max}$', color='green', alpha = 0.5)
+    plt.axhline(1., color='red', ls=':') 
     plt.axis(axlim) 
-    plt.loglog(w, s_min, label='$\sigma$$_{MIN}$', color='green')
-    plt.loglog(w, s_max, label='$\sigma$$_{MAX}$', color='green', alpha = 0.5)
     plt.xlabel('Frequency (rad/unit time)')
     plt.ylabel('1/||g$_d$||$_2$')
-    plt.axhline(1., color='red', ls=':')
     plt.legend()  
 
 
@@ -712,17 +713,24 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     Parameters
     ----------
     G : tf
-        plant transfer function
+        Plant transfer function.
     
     K : tf
-        controller transfer function
+        Controller transfer function.
         
     Kc : integer
-        controller constant 
+        Controller constant.
 
     freqtype : string (optional)
-        S = Sensitivity function; T = Complementary sensitivity function; L =
-        Loop function
+        Type of function to plot:
+        
+        ========    ==================================
+        Property    Description
+        ========    ==================================
+        S           Sensitivity function
+        T           Complementary sensitivity function
+        L           Loop function
+        ========    ==================================
               
     Returns
     -------
@@ -831,7 +839,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     plt.xlabel('Time [' + timedim + ']')  
 
 
-def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None):
+def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000):
     '''
     MIMO sensitivity S and performance weight Wp plotting funtion.
     
@@ -892,7 +900,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None):
         axlim = [None, None, None, None]
     plt.gcf().set_facecolor('white') 
     
-    w = numpy.logspace(w_start, w_end, 1000)
+    w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
     magPlotS1 = numpy.zeros((len(w)))
