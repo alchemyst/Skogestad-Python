@@ -28,7 +28,7 @@ plt.figure('Example 1')
 your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1, more_paramaters])
 plt.show()
 
-plt.figure('Example 2')     plt.clf()
+plt.figure('Example 2')     
 plt.subplot(2, 1, 1)
 your_utilsplot_functionB(G)
 plt.subplot(2, 1, 2)
@@ -672,36 +672,36 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
-    dim = numpy.shape(G(0))    
-    inv_norm_gd = numpy.zeros((dim[1],points))
-    condtn_nm_gd = numpy.zeros((dim[1],points))
-    for i in range(dim[1]):
+    dim = numpy.shape(Gd(0))[1]
+    inv_norm_gd = numpy.zeros((dim, points))
+    condtn_nm_gd = numpy.zeros((dim, points))
+    for i in range(dim):
         for k in range(points):
             inv_norm_gd[i,k], condtn_nm_gd[i,k] = utils.distRej(G(s[k]), Gd(s[k])[:,i])
     
     if not S is None:
-        s_min = [utils.sigmas(S(s[i]))[-1] for i in range(points)]
-        s_max = [utils.sigmas(S(s[i]))[0] for i in range(points)]
+        s_min = numpy.array([utils.sigmas(S(s[i]))[-1] for i in range(points)])
+        s_max = numpy.array([utils.sigmas(S(s[i]))[0] for i in range(points)])
     
     plt.subplot(2, 1, 1)
-    for i in range(dim[1]):
-        plt.loglog(w, condtn_nm_gd[i], label=('$\gamma$$_{d%s} (G)$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))
+    for i in range(dim):
+        plt.loglog(w, condtn_nm_gd[i], label=('$\gamma_{d%s} (G)$' % (i+1)))
     plt.axhline(1., color='red', ls=':')  
     plt.axis(axlim)
+    plt.xlabel('Frequency (rad/unit time)')
     plt.ylabel('$\gamma$$_d (G)$')
     plt.axhline(1., color='red', ls=':')
     plt.legend()
     
     plt.subplot(2, 1, 2)
-    for i in range(dim[1]):
-        plt.loglog(w, inv_norm_gd[i], label=('1/||g$_{d%s}$||$_2$' % (i+1)), color='blue', alpha=((i+1.)/dim[1]))  
+    for i in range(dim):
+        plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
     if not S is None:
         plt.loglog(w, s_min, label='$\sigma$$_{min}$', color='green')
         plt.loglog(w, s_max, label='$\sigma$$_{max}$', color='green', alpha = 0.5)
-    plt.axhline(1., color='red', ls=':') 
     plt.axis(axlim) 
     plt.xlabel('Frequency (rad/unit time)')
-    plt.ylabel('1/||g$_d$||$_2$')
+    plt.ylabel('$1/||g_d||_2$')
     plt.legend()  
 
 
