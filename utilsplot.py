@@ -609,13 +609,13 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     plot_No = 0
     
     if plot_type == 'all':
-        for p in pairing_list:    
-            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp], label=pairing_names[plot_No])  
-            plot_No += 1     
+        for p in pairing_list:  
+            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp], label=pairing_names[plot_No])
+            plot_No += 1
         plt.axis(axlim)
         plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
         plt.xlabel('Frequency (rad/unit time)')
-        plt.legend() 
+        plt.legend()
 
     elif plot_type == 'element':
         pcount = numpy.shape(pairing_list)[0] # pairing_list.count not accessible
@@ -702,6 +702,104 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     plt.xlabel('Frequency (rad/unit time)')
     plt.ylabel('$1/||g_d||_2$')
     plt.legend()  
+    
+
+def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, simultaneous=False):
+    '''
+    Plot for input constraints for perfect control.
+    
+    Parameters
+    ----------
+    G : numpy matrix
+        Plant model.
+    
+    Gd : numpy matrix
+        Plant disturbance model.
+        
+    simultaneous : boolean.
+        If true, the induced max-norm is calculated for simultaneous
+        disturbances (optional).
+
+    Returns
+    -------    
+    Plot : matplotlib figure
+    
+    Note
+    ----
+    The boundary conditions is values below 1 (p240).
+    '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.gcf().set_facecolor('white')
+    
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j
+    
+    dim = numpy.shape(Gd(0))[1]    
+    perfect_control = numpy.zeros((dim, points))
+    #if simultaneous: imn = np.zeros(points)
+    for i in range(dim):
+        for k in range(points):
+            Ginv = numpy.linalg.inv(G(s[k]))
+            perfect_control[i, k] = numpy.max(numpy.abs(Ginv * Gd(s[k])[:, i]))
+            #if simultaneous: TODO complete induced max-norm
+        plt.loglog(w, perfect_control[i], label=('$g_{d%s}$' % (i + 1)))
+    
+    plt.axhline(1., color='red', ls=':')      
+    plt.ylabel(r'$||G^{-1}.g_d||_{max}$')
+    plt.xlabel('Frequency (rad/unit time)')         
+    plt.grid(True)
+    plt.axis(axlim)
+    plt.legend()
+
+
+def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000):
+    '''
+    Subbplots for input constraints for accepatable control.
+    
+    Parameters
+    ----------
+    G : numpy matrix
+        Plant model.
+    
+    Gd : numpy matrix
+        Plant disturbance model.
+
+    Returns
+    -------
+    
+    Plot : matplotlib figure
+    '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.gcf().set_facecolor('white')
+    
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j    
+    
+    freqresp = map(G, s) 
+    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])  
+    
+    plot_No = 1
+    
+    dimGd = numpy.shape(Gd(0))[1]
+    dimG = numpy.shape(G(0))[0]
+    acceptable_control = numpy.zeros((dimGd, dimG, points))
+    for j in range(dimGd):
+        for i in range(dimG):
+            for k in range(points):
+                U, _, _ = utils.SVD(G(s[k]))
+                acceptable_control[j, i, k] = numpy.abs(U[:, i].H * Gd(s[k])[:, j]) - 1
+            plt.subplot(dimGd, dimG, plot_No)
+            plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
+            plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
+            plt.xlabel('Frequency (rad/unit time)')
+            plt.grid(True)
+            plt.axis(axlim)
+            plt.legend()
+            plot_No += 1
 
 
 def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=2, axlim=None, points=1000):
