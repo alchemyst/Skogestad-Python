@@ -228,7 +228,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     plt.axvline(wC, ls=':', lw=2, color='blue')
     plt.text(wC*1.1, ymin*1.1, 'wC', color='blue')
     plt.legend(loc='upper right', fontsize = 10, ncol=1)
-    plt.xlabel('Frequency [rad/time]')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('Magnitude')
     plt.axis(axlim)
     plt.grid(True)
@@ -263,7 +263,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
         plt.axvline(wB, ls=':', lw=2, color='green')
         plt.text(wB*1.1, ymin*1.1, 'wB', color='green')
         plt.legend(loc='upper right', fontsize = 10, ncol=1)
-        plt.xlabel('Frequency [rad/time]')
+        plt.xlabel('Frequency [rad/unit time]')
         plt.ylabel('Magnitude')
         plt.axis(axlim)
         plt.grid(True)
@@ -376,7 +376,7 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
     
     plt.axhline(1., color='red', ls=':')
     plt.axis(axlim)
-    plt.xlabel('Frequency (rad/unit time)')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('$\sigma$')
     plt.legend()  
 
@@ -418,7 +418,7 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.loglog(w, [cndtn_nm(Gfr) for Gfr in freqresp], label='$\gamma (G)$')
     plt.axis(axlim)
     plt.ylabel('$\gamma (G)$')
-    plt.xlabel('Frequency (rad/unit time)')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.axhline(10., color='red', ls=':', label='"Large" $\gamma (G) = 10$')
     plt.legend()
 
@@ -614,7 +614,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
             plot_No += 1
         plt.axis(axlim)
         plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
-        plt.xlabel('Frequency (rad/unit time)')
+        plt.xlabel('Frequency [rad/unit time]')
         plt.legend()
 
     elif plot_type == 'element':
@@ -625,7 +625,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
             plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp])
             plt.axis(axlim)
             plt.title(pairing_names[plot_No - 1])            
-            plt.xlabel('Frequency (rad/unit time)')
+            plt.xlabel('Frequency [rad/unit time]')
             if plot_No == 1:
                 plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
     else:
@@ -687,7 +687,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
         plt.loglog(w, condtn_nm_gd[i], label=('$\gamma_{d%s} (G)$' % (i+1)))
     plt.axhline(1., color='red', ls=':')  
     plt.axis(axlim)
-    plt.xlabel('Frequency (rad/unit time)')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('$\gamma$$_d (G)$')
     plt.axhline(1., color='red', ls=':')
     plt.legend()
@@ -699,7 +699,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
         plt.loglog(w, s_min, label='$\sigma$$_{min}$', color='green')
         plt.loglog(w, s_max, label='$\sigma$$_{max}$', color='green', alpha = 0.5)
     plt.axis(axlim) 
-    plt.xlabel('Frequency (rad/unit time)')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('$1/||g_d||_2$')
     plt.legend()  
     
@@ -736,7 +736,7 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
-    dim = numpy.shape(Gd(0))[1]    
+    dim = numpy.shape(Gd(0))[1]
     perfect_control = numpy.zeros((dim, points))
     #if simultaneous: imn = np.zeros(points)
     for i in range(dim):
@@ -748,7 +748,7 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     
     plt.axhline(1., color='red', ls=':')      
     plt.ylabel(r'$||G^{-1}.g_d||_{max}$')
-    plt.xlabel('Frequency (rad/unit time)')         
+    plt.xlabel('Frequency [rad/unit time]')         
     plt.grid(True)
     plt.axis(axlim)
     plt.legend()
@@ -795,13 +795,97 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
             plt.subplot(dimGd, dimG, plot_No)
             plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
             plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
-            plt.xlabel('Frequency (rad/unit time)')
+            plt.xlabel('Frequency [rad/unit time]')
             plt.grid(True)
             plt.axis(axlim)
             plt.legend()
             plot_No += 1
 
 
+def step(G, t_end=100, initial_val=0, points=1000):
+    '''
+    This function is similar to the MatLab step function. Models must be
+    defined as tf objects
+    
+    Parameters
+    ----------
+    G : tf
+        Plant transfer function.
+        
+    t_end : integer
+        Time period which the step response should occur (optional).
+    
+    initial_val : integer
+        Starting value to evalaute step response (optional).
+          
+    Returns
+    -------
+    
+    Plot : matplotlib figure
+    '''
+    plt.gcf().set_facecolor('white')
+    
+    rows = numpy.shape(G(0))[0]
+    columns = numpy.shape(G(0))[1]
+
+    s = utils.tf([1, 0])
+    system = G(s)
+    
+    fig = plt.figure(1, figsize=(12, 8))
+    bigax = fig.add_subplot(111)
+    bigax.spines['top'].set_color('none')
+    bigax.spines['bottom'].set_color('none')
+    bigax.spines['left'].set_color('none')
+    bigax.spines['right'].set_color('none')
+    bigax.tick_params(labelcolor='grey', top='off', bottom='off',
+                      left='off', right='off')
+    plt.setp(bigax.get_xticklabels(), visible=False)
+    plt.setp(bigax.get_yticklabels(), visible=False)
+
+    cnt = 0
+    tspace = numpy.linspace(0, t_end, points)
+    for i in range(rows):
+        for k in range(columns):
+            cnt += 1
+            nulspace = numpy.zeros(points)
+            ax = fig.add_subplot(rows + 1, columns, cnt)
+            tf = system[i, k]
+            if all(tf.numerator) != 0:
+                realstep = numpy.real(tf.step(initial_val, tspace))
+                ax.plot(realstep[0], realstep[1])
+            else:
+                ax.plot(tspace, nulspace)
+            
+            if i == 0:
+                xax = ax
+            else:
+                ax.sharex = xax
+                
+            if k == 0:
+                yax = ax
+            else:
+                ax.sharey =yax
+            
+            if i == range(rows)[-1]:            
+                plt.setp(ax.get_xticklabels(), visible=True, fontsize=10)
+            else:
+                plt.setp(ax.get_xticklabels(), visible=False)
+                
+            plt.setp(ax.get_yticklabels(), fontsize=10)
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 * 1.05 - 0.05,
+                             box.width * 0.85, box.height])
+#            if k == 0:            
+#                plt.setp(ax.get_yticklabels(), visible=True)
+#            else:
+#                plt.setp(ax.get_yticklabels(), visible=False)
+    box = bigax.get_position()    
+    bigax.set_position([box.x0 - 0.05, box.y0 - 0.02,
+                        box.width * 1.1, box.height * 1.1])        
+    bigax.set_ylabel('Output magnitude')
+    bigax.set_xlabel('Time')   
+    
+    
 def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     A subplot function for both the frequency response and step response for a
@@ -817,6 +901,9 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
         
     Kc : integer
         Controller constant.
+        
+    t_end : integer
+        Time period which the step response should occur.
 
     freqtype : string (optional)
         Type of function to plot:
@@ -866,7 +953,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
         i =+ 1
     plt.axis(axlim)
     plt.grid(b=None, which='both', axis='both')
-    plt.xlabel('Frequency [rad/s]')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.legend(["Kc=0.2", "Kc=0.5", "Kc=0.8"],loc=4)
                
     plt.subplot(1, 2, 2)
@@ -878,7 +965,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     plt.plot(tspan, 0 * numpy.ones(points), ls='--')
     plt.plot(tspan, 1 * numpy.ones(points), ls='--')
     plt.axis(axlim)
-    plt.xlabel('Time [sec]')
+    plt.xlabel('Time')
     plt.ylabel('$y(t)$')
 
 
@@ -889,21 +976,24 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     Parameters
     ----------
     Y : tf
-        output transfer function
+        Output transfer function.
         
     U : tf
-        input transfer function
+        Input transfer function.
+        
+    t_end : integer
+        Time period which the step response should occur (optional).
     
     initial_val : integer
-        starting value to evalaute step response (optional)
+        Starting value to evalaute step response (optional).
         
     constraint : float
-        the upper limit the step response cannot exceed. is only calculated
-        if a value is specified (optional)
+        The upper limit the step response cannot exceed. is only calculated
+        if a value is specified (optional).
         
     method : ['numeric','analytic']
-        the method that is used to calculate a constrainted response. a
-        constraint value is required (optional)
+        The method that is used to calculate a constrainted response. A
+        constraint value is required (optional).
 
     Returns
     -------
@@ -934,6 +1024,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     
     plt.axis(axlim)
     plt.xlabel('Time [' + timedim + ']')  
+
 
 
 def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000):
@@ -1024,7 +1115,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     plt.text(wB*1.1, 0.12, 'wB = %0.3f rad/s' % wB, color='green', fontsize=10)
     plt.axis(axlim)
     plt.grid(True)
-    plt.xlabel('Frequency [rad/s]')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('Magnitude')
     plt.legend(loc='upper left', fontsize=10, ncol=1)
     
@@ -1036,7 +1127,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     plt.axvline(wB, color='green')
     plt.text(wB*1.1, 0.12, 'wB = %0.3f rad/s' % wB, color='green', fontsize=10)
     plt.axis(axlim)
-    plt.xlabel('Frequency [rad/s]')
+    plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('Magnitude')
     plt.legend(loc='upper right', fontsize=10, ncol=1)
     
