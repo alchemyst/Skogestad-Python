@@ -17,7 +17,7 @@ allitems = open('allitems.txt').read().splitlines()
 
 kinds = ['Figure', 'Example', 'Exercise']
 
-statustable = []
+faillist = []
 
 if __name__ == "__main__":
     for item in allitems:
@@ -41,13 +41,21 @@ if __name__ == "__main__":
                 status = 'Failed'
                 message = traceback.format_exc()
         else:
-            status = 'Not implemeted'
+            status = 'Not implemented'
 
         statuscounter[status] += 1
 
-        print kind, chapter, number, status
+        if status != 'Not implemented':
+            print kind, chapter, number, status
+
         if status == 'Failed':
+            faillist.append([kind, chapter, number])
             print message
 
-    print statuscounter
+    for items in statuscounter.iteritems():
+        print "{}: {}".format(*items)
+    print "Failed items:"
+    for items in faillist:
+        print "  {} {} {}".format(*items)
+
     sys.exit(statuscounter['Failed'])
