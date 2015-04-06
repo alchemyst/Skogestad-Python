@@ -6,6 +6,7 @@ Created on Jan 27, 2012
 '''
 
 import numpy #do not abbreviate this module as np in utils.py
+import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 
 
@@ -902,8 +903,76 @@ def marginsclosedloop(L):
     if (PM < 90) and (wb < wc) and (wc < wbt):
         valid = True
     else: valid = False
-    return GM, PM, wc, wb, wbt, valid
-       
+    return GM, PM, wc, wb, wbt, valid   
+    
+    
+def pole(G):
+    '''
+    Return the poles of a multivariable transfer function system. Applies
+    Theorem 4.4 (p135).
+    
+    Parameters
+    ----------
+    G : matrix (numpy/sympy), with sympy Symbol defined
+        A n x n plant matrix.
+
+    Returns
+    -------
+    zero : array
+        List of zeros.
+        
+    Example
+    -------
+    >>> G = 1 / (s + 2) * sp.Matrix([[s - 1,  4],
+    ...                             [4.5, 2 * (s - 1)]])
+    >>> s = sympy.Symbol('s')
+    >>> zero(G(s))
+    [4.00000000000000]
+    
+    Note
+    ----
+    Not applicable for a non-squared plant, yet.
+    '''
+    
+    G = sympy.Matrix(G) #convert to sympy matrix object
+    det = sympy.simplify(G.det())
+    pole = sympy.solve(sympy.denom(det))
+    return pole 
+
+
+def zero(G):
+    '''
+    Return the zeros of a multivariable transfer function  system. Applies
+    Theorem 4.5 (p139).
+    
+    Parameters
+    ----------
+    G : matrix (numpy/sympy), with sympy Symbol defined
+        A n x n plant matrix.
+
+    Returns
+    -------
+    pole : array
+        List of poles.
+        
+    Example
+    -------
+    >>> G = 1 / (s + 2) * sp.Matrix([[s - 1,  4],
+    ...                             [4.5, 2 * (s - 1)]])
+    >>> s = sympy.Symbol('s')
+    >>> zero(G(s))
+    [-2.00000000000000]
+    
+    Note
+    ----
+    Not applicable for a non-squared plant, yet.
+    '''
+    
+    G = sympy.Matrix(G) #convert to sympy matrix object
+    det = sympy.simplify(G.det())
+    zero = sympy.solve(sympy.numer(det))
+    return zero
+    
 
 # according to convention this procedure should stay at the bottom       
 if __name__ == '__main__':
