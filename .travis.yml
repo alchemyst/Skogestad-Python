@@ -20,16 +20,15 @@ install:
   # TODO: Figure out how to read this from requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose sympy
   - pip install control
-  # Coverage packages are on my binstar channel
+  # Coverage packages are on the binstar channel
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
 # TODO: Package 
 #  - python setup.py install
  
 # Run test
 script:
-  - python runall.py
-  - python utils.py
+  - coverage run runall.py
+  - coverage run -a utils.py
  
-#TODO: calculate coverage
-#after_success:
-#  - coveralls --config_file .coveragerc
+after_success:
+  - coveralls --config_file .coveragerc

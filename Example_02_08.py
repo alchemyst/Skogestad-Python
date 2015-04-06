@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import phase, tf, feedback
-
+from utils import tf, feedback, marginsclosedloop
+from utilsplot import bode
 
 
 # Loop shaping is an iterative procedure where the designer
@@ -12,12 +12,9 @@ from utils import phase, tf, feedback
 # 4. the magnitude of the input signal
 #
 # 1 to 4 are the important frequency domain measures used to assess
-#   perfomance and characterise speed of response
+#   performance and characterise speed of response
 
-w = np.logspace(-2, 1, 1000)
-wi = w*1j
-
-s = tf([1, 0])
+s = tf([1, 0], 1)
 
 Kc = 0.05
 #plant model
@@ -28,24 +25,17 @@ K = Kc*(10*s+1)*(5*s+1)/(s*(2*s+1)*(0.33*s+1))
 L = G*K
 
 #magnitude and phase
-plt.subplot(2, 1, 1)
-plt.loglog(w, abs(L(wi)))
-plt.axhline(1)
-plt.ylabel('Magnitude')
-
-plt.subplot(2, 1, 2)
-plt.semilogx(w, phase(L(wi), deg=True))
-plt.axhline(-180)
-plt.ylabel('Phase')
-plt.xlabel('frequency (rad/s)')
+bode(L, -2, 1, 'Figure 2.19')
 plt.figure()
 
-# From the figure we can calculate GM and PM,
-# cross-over frequency wc and w180
-# results:GM = 1/0.354 = 2.82
-#         PM = -125.3 + 180 = 54 degC
+# From the figure we can calculate w180
 #         w180 = 0.44
-#         wc = 0.15
+GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
+print 'GM:' , np.round(GM, 2)
+print 'PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg"
+print 'wb:' , np.round(wb, 2)
+print 'wc:' , np.round(wc, 2)
+print 'wbt:' , np.round(wbt, 4)
 
 #Response to step in reference for loop shaping design
 #y = Tr, r(t) = 1 for t > 0

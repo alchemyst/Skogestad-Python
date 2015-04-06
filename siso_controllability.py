@@ -141,10 +141,8 @@ def dead_time_bound(L, Gd, deadtime, freq = np.arange(0.001, 1,0.001)):
     gm, pm, wg, wp_L = cn.margin(mag, phase, omega)
     gm, pm, wg, wp_Gd = cn.margin(mag_d, phase_d, omega_d)
 
-    freq_lim = [freq[x] for x in range(len(freq)) if mag[x] > 0.1 
-                and mag[x] < 10]
-    mag_lim = [mag[x] for x in range(len(freq)) if mag[x] > 0.1 
-               and mag[x] < 10]
+    freq_lim = [freq[x] for x in range(len(freq)) if 0.1 < mag[x] < 10]
+    mag_lim = [mag[x] for x in range(len(freq)) if 0.1 < mag[x] < 10]
 
     plt.loglog(freq_lim, mag_lim, color = "blue", label = "|L|")
 

@@ -98,7 +98,7 @@ def Min_Peaks(Zeros_G, Poles_G, error_poles_direction, io_type, usedeadtime=Fals
     p_direction = np.matrix(np.zeros([G(0.001).shape[0], len(Poles_G)]))    
     
     # error_poles_direction is to to prevent the numerical method from breaking    
-    if (io_type == 'input'):
+    if io_type == 'input':
         
         for i in range(len(Zeros_G)):
             [U, S, V] = np.linalg.svd(G(Zeros_G[i]+error_poles_direction))
@@ -107,7 +107,7 @@ def Min_Peaks(Zeros_G, Poles_G, error_poles_direction, io_type, usedeadtime=Fals
             [U, S, V] = np.linalg.svd(G(Poles_G[i] + error_poles_direction))
             p_direction[:, i] = U[:, 0]  
             
-    elif (io_type == 'output'):
+    elif io_type == 'output':
         
         for i in range(len(Zeros_G)):
             [U, S, V] = np.linalg.svd(G(Zeros_G[i]+error_poles_direction))
@@ -174,7 +174,7 @@ def Min_Peaks(Zeros_G, Poles_G, error_poles_direction, io_type, usedeadtime=Fals
 
         Q_dead = np.zeros([G(0.0001).shape[0], G(0.0001).shape[0]])
 
-        for j in range(len(Poles_G)):
+        for i in range(len(Poles_G)):
             for j in range(len(Poles_G)):
                 denominator_mat = (np.transpose(
                                    np.conjugate(p_direction[:, i])) *

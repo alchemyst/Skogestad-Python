@@ -10,6 +10,9 @@ Python code for Multivariable Feedback Control
    :target: https://travis-ci.org/alchemyst/Skogestad-Python
    :alt: Build status
 
+.. image:: https://coveralls.io/repos/alchemyst/Skogestad-Python/badge.svg
+  :target: https://coveralls.io/r/alchemyst/Skogestad-Python
+
 This project aims to create Python code for the various code examples in the textbook 
 
 * Skogestad, S., I. Postlethwaite; Multivariable Feedback Control: Analysis and Design; John Wiley & Sons, 2005.

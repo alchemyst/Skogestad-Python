@@ -24,11 +24,11 @@ def UnstructuredDelta(M, DeltaStructure):
         unstructured delta matrix
     '''
     
-    if (DeltaStructure == "Full"):
+    if DeltaStructure == "Full":
         [U, s, V] = utils.SVD(M)
         S = np.diag(s)
         delta = 1/s[0] * V[:,0] * U[:,0].H  
-    elif (DeltaStructure == 'Diagonal'):
+    elif DeltaStructure == 'Diagonal':
 # TODO: complete
         delta = 'NA'
     else: delta = 0

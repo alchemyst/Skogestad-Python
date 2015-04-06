@@ -25,7 +25,7 @@ def g11(s):
 
 
 def g12(s):
-    return (1/(s**2 + 100))
+    return 1/(s**2 + 100)
 
 
 def g21(s):
@@ -33,7 +33,7 @@ def g21(s):
 
 
 def g22(s):
-    return (1/(s**2 + 100))
+    return 1/(s**2 + 100)
 
 
 def lambda11(s):

@@ -17,7 +17,9 @@ plt.figure('Figure 2.9')
 step_response_plot(T, u, 4, 0)
 plt.show()
 
-bodeclosedloop(G, K, -1, 2, label='Figure 2.15', margin=True)
+plt.figure('Figure 2.15')
+bodeclosedloop(G, K, -1, 2, margin=True)
+plt.show()
 #TODO there is a descrepancy with the phase plots
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 

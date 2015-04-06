@@ -75,11 +75,11 @@ plt.annotate('$M_1$', (m1x + 0.01, abs(m1g - m1gd) / 3))
 plt.annotate('', (m2x, m2gd), (m2x, m2l), arrowprops=dict(arrowstyle='<->', shrinkA=0, shrinkB=0))
 plt.annotate('$M_2$', (m2x + 25, abs(m2gd - m2l) / 1.5))
 
-if (wp != 0):
+if wp != 0:
     plt.annotate('', (wp, 10**-2.5), (wc, 10**-2.5), arrowprops=dict(arrowstyle='<->', shrinkA=0, shrinkB=0))
     plt.annotate('$M_3$', (abs(wc - wp) / 1.5, 10**-2.3))
 
-if (wz != 0):
+if wz != 0:
     plt.annotate('', (wc, 10**-3.5), (wz, 10**-3.5), arrowprops=dict(arrowstyle='<->', shrinkA=0, shrinkB=0))
     plt.annotate('$M_4$', (abs(wc - wz) / 3, 10**-3.3))
 
@@ -89,7 +89,7 @@ plt.annotate('$M_5$', (abs(wc - wu) / 0.5, 10**-4.3))
 plt.annotate('', (0.001, 10**-2.5), (wd, 10**-2.5), arrowprops=dict(arrowstyle='<-', shrinkA=0, shrinkB=0))
 plt.annotate('Control needed to reject disturbances', (0.0015, 10**-2.3))
 
-if (wtd != 0):
+if wtd != 0:
     plt.annotate('', (wc, 10**-5.5), (wtd, 10**-5.5), arrowprops=dict(arrowstyle='<->', shrinkA=0, shrinkB=0))
     plt.annotate('$M_6$', (abs(wc - wtd) / 8, 10**-5.3))
 
