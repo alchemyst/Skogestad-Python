@@ -25,9 +25,10 @@ K = Kc*(10*s+1)*(5*s+1)/(s*(2*s+1)*(0.33*s+1))
 L = G*K
 
 #magnitude and phase
-bode(L, -2, 1, 'Figure 2.19')
-plt.figure()
+plt.figure('Figure 2.19')
+bode(L, -2, 1)
 
+plt.figure()
 # From the figure we can calculate w180
 #         w180 = 0.44
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
