@@ -25,7 +25,7 @@ def G(s):
                          [s**2 + 1, 1/(s+1)]])
                          
 plt.figure('Example 1')
-your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1, more_paramaters])
+your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1], more_paramaters)
 plt.show()
 
 plt.figure('Example 2')     
@@ -43,6 +43,50 @@ import utils
 import sys
 
 
+def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
+    """ 
+    General function to adjust the margins for subplots.
+    
+    Parameters
+    ----------
+    xlabel : string
+        Label on the main x-axis.        
+    ylabel : string
+        Label on the main x-axis.
+    x0 : integer
+        Horizontal offset of xlabel.
+    y0 : integer
+        Verticle offset of ylabel.
+    width : float
+        Scaling factor of width of subplots.
+    height : float
+        Scaling factor of height of subplots.
+          
+    Returns
+    -------
+    fig : matplotlib subplot area
+    """
+    
+    f = plt.get_fignums()[-1] #usefull when multiple figures are added
+    fig = plt.figure(f) #call of plt.figure('plot name') still required externally
+    bigax = fig.add_subplot(111)
+    bigax.spines['top'].set_color('none') #remove solid line on major axis
+    bigax.spines['bottom'].set_color('none')
+    bigax.spines['left'].set_color('none')
+    bigax.spines['right'].set_color('none')
+    bigax.tick_params(labelcolor='grey', top='off', bottom='off',
+                      left='off', right='off') #remove dashes on major axis                  
+    plt.setp(bigax.get_xticklabels(), visible=False) #remove values on major axis
+    plt.setp(bigax.get_yticklabels(), visible=False)
+        
+    box = bigax.get_position()
+    bigax.set_position([box.x0 + x0, box.y0 + y0,
+                        box.width * width, box.height * height])
+    bigax.set_xlabel(xlabel)
+    bigax.set_ylabel(ylabel)
+    return fig
+
+
 def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     """ 
     Shows the bode plot for a plant model
@@ -50,17 +94,16 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     Parameters
     ----------
     G : tf
-        Plant transfer function.
+        Plant transfer function.        
     margin : boolean
         Show the cross over frequencies on the plot (optional).
           
     Returns
     -------
     GM : array containing a real number      
-        Gain margin.
+        Gain margin.      
     PM : array containing a real number           
-        Phase margin.
-        
+        Phase margin.       
     Plot : matplotlib figure
     """
 
@@ -112,11 +155,9 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
     Parameters
     ----------
     G : tf
-        Plant transfer function.
-        
+        Plant transfer function.     
     K : tf
-        Controller transfer function.
-        
+        Controller transfer function.    
     margin : boolean
         Show the cross over frequencies on the plot (optional).
     """
@@ -163,7 +204,6 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     ----------
     Gin : numpy matrix
         Matrix of plant transfer functions.
-    
     Kin : numpy matrix
         Controller matrix (optional).
     
@@ -341,8 +381,7 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
     Parameters
     ----------
     G : numpy matrix
-        Plant model or sensitivity function.
-        
+        Plant model or sensitivity function.       
     sv_all : boolean
         If true, plot all the singular values of the plant (optional).
               
@@ -423,15 +462,14 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.legend()
 
 
-def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='elements'):
+def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='elements', input_label=None, output_label=None):
     '''
     Plots the relative gain interaction between each output and input pairing
     
     Parameters
     ----------
     G : numpy matrix
-        Plant model.
-        
+        Plant model. 
     plot_type : ['All','Output','Input','Element']
         Type of plot.
         
@@ -450,17 +488,12 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='element
     
     Example
     -------
-    # Adapted from example 3.11 pg 86 S. Skogestad
+    Adapted from example 3.11 pg 86 S. Skogestad
+    
     >>> def G(s):
     ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
-    
-    
-    Note
-    ----
-    This entry draws on and improves RGA.py.
-    If accepted, then RGA.py could be removed from the repository
     '''
 
     if axlim is None:
@@ -475,75 +508,91 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='element
     
     plot_No = 1
         
+    if ((input_label == None) and (input_label == None)):
+        labels = False   
+    elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
+        labels = True
+    else:
+        print('Input and output label count is not equal')
+        sys.exit()   
+    
     if plot_type == 'elements':
+        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 0.8, 0.9)
         for i in range(dim[0]):
-            for j in range(dim[1]):
-                plt.subplot(dim[0], dim[1], plot_No)
-                plt.title('Output %s vs. input %s' % (i + 1, j + 1))  
-                plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
-                
+            for j in range(dim[1]):                                      
+                ax = fig.add_subplot(dim[0], dim[1], plot_No)
+                if labels:
+                    ax.set_title('Output (%s) vs. Input (%s)' % (output_label[i], input_label[j]))
+                else:
+                    ax.set_title('Output %s vs. Input %s' % (i + 1, j + 1))
+                ax.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
                 plot_No += 1
                 
-                plt.axis(axlim)
-                plt.ylabel('|$\lambda$$_{ %s, %s}$|' % (i + 1,j + 1))
-                if i == dim[0] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
-                    plt.xlabel('Frequency [rad/unit time]')
+                ax.axis(axlim)
+                ax.set_ylabel('$|\lambda$$_{%s, %s}|$' % (i + 1, j + 1))
+                box = ax.get_position()
+                ax.set_position([box.x0, box.y0,
+                                 box.width * 0.8, box.height * 0.9])
                         
     elif plot_type == 'outputs': #i
+        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
         for i in range(dim[0]):
-            plt.subplot(dim[1], 1, plot_No)
-            plt.title('Output %s vs. input j' % (i + 1))
+            ax = fig.add_subplot(dim[1], 1, plot_No)
+            ax.set_title('Output %s vs. input j' % (i + 1))
             rgamax = []
             for j in range(dim[1]):
                 rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
                 if j == dim[1] - 1: #self-scaling algorithm
                     if axlim is not None:
-                        plt.axis(axlim)
+                        ax.axis(axlim)
                     else:
-                        plt.axis([None, None, None, max(rgamax)])
+                        ax.axis([None, None, None, max(rgamax)])
                 
-            plt.ylabel('|$\lambda$$_{%s, j}$|' % (i + 1))
-            plt.legend()
-            if i == dim[0] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
-                plt.xlabel('Frequency [rad/unit time]')  
+            ax.set_ylabel('$|\lambda$$_{%s, j}|$' % (i + 1))
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0,
+                             box.width, box.height * 0.9])
+            ax.legend()
             plot_No += 1     
             
     elif plot_type == 'inputs': #j
+        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
         for j in range(dim[1]):
-            plt.subplot(dim[0], 1, plot_No)
-            plt.title('Output i vs. input %s' % (j + 1))
+            ax = fig.add_subplot(dim[0], 1, plot_No)
+            ax.set_title('Output i vs. input %s' % (j + 1))
             rgamax = []
             for i in range(dim[0]):
                 rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                plt.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
                 if i == dim[1] - 1: #self-scaling algorithm
                     if axlim is not None:
-                        plt.axis(axlim)
+                        ax.axis(axlim)
                     else:
-                        plt.axis([None, None, None, max(rgamax)])
-                
-            plt.ylabel('|$\lambda$$_{i, %s}$|' % (j + 1))
-            plt.legend()
-            if j == dim[1] - 1: # To avoid clutter only plot xlabel on the very bottom subplots
-                plt.xlabel('Frequency [rad/unit time]')   
-            plot_No += 1  
+                        ax.axis([None, None, None, max(rgamax)])
+        
+            ax.set_ylabel('$|\lambda$$_{i, %s}|$' % (j + 1))
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0,
+                             box.width, box.height * 0.9])
+            ax.legend()
+            plot_No += 1
             
     elif plot_type == 'all':
         for i in range(dim[0]):
             for j in range(dim[1]):
                 plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
-                plt.axis(axlim)            
+                plt.axis(axlim)
                 plt.ylabel('|$\lambda$$_{i,j}$|')
                 plt.xlabel('Frequency [rad/unit time]')
                 
     else:
         print("Invalid plot_type paramter.")
-        sys.exit()        
+        sys.exit()
 
 
 def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
@@ -554,11 +603,9 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     ----------
     G : numpy matrix
         Plant model.
-    
     pairing_list : List of sparse numpy matrixes of the same shape as G.
         An array of zeros with a 1. at each required output-input pairing.
         The default is a diagonal pairing with 1.'s on the diagonal.
-        
     plot_type : ['All','Element']
         Type of plot:
         
@@ -643,10 +690,8 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     ----------
     G : numpy matrix
         Plant model.
-    
     Gd : numpy matrix
         Plant disturbance model.
-
     S : numpy matrix
         Sensitivity function (optional, if available).
                             
@@ -711,11 +756,9 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     Parameters
     ----------
     G : numpy matrix
-        Plant model.
-    
+        Plant model.    
     Gd : numpy matrix
-        Plant disturbance model.
-        
+        Plant disturbance model.        
     simultaneous : boolean.
         If true, the induced max-norm is calculated for simultaneous
         disturbances (optional).
@@ -761,14 +804,12 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
     Parameters
     ----------
     G : numpy matrix
-        Plant model.
-    
+        Plant model.    
     Gd : numpy matrix
         Plant disturbance model.
 
     Returns
-    -------
-    
+    -------   
     Plot : matplotlib figure
     '''
 
@@ -802,25 +843,25 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
             plot_No += 1
 
 
-def step(G, t_end=100, initial_val=0, points=1000):
+def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, points=1000):
     '''
-    This function is similar to the MatLab step function. Models must be
-    defined as tf objects
+    This function is similar to the MatLab step function.
     
     Parameters
     ----------
     G : tf
-        Plant transfer function.
-        
+        Plant transfer function.        
     t_end : integer
-        Time period which the step response should occur (optional).
-    
+        Time period which the step response should occur (optional).   
     initial_val : integer
-        Starting value to evalaute step response (optional).
+        Starting value to evalaute step response (optional).       
+    input_label : array
+        List of input variable labels.       
+    output_label : array
+        List of output variable labels.
           
     Returns
-    -------
-    
+    -------   
     Plot : matplotlib figure
     '''
     plt.gcf().set_facecolor('white')
@@ -830,60 +871,50 @@ def step(G, t_end=100, initial_val=0, points=1000):
 
     s = utils.tf([1, 0])
     system = G(s)
+        
+    if ((input_label == None) and (input_label == None)):
+        labels = False   
+    elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
+        labels = True
+    else:
+        print('Input and output label count is not equal')
+        sys.exit()   
     
-    fig = plt.figure(1, figsize=(12, 8))
-    bigax = fig.add_subplot(111)
-    bigax.spines['top'].set_color('none')
-    bigax.spines['bottom'].set_color('none')
-    bigax.spines['left'].set_color('none')
-    bigax.spines['right'].set_color('none')
-    bigax.tick_params(labelcolor='grey', top='off', bottom='off',
-                      left='off', right='off')
-    plt.setp(bigax.get_xticklabels(), visible=False)
-    plt.setp(bigax.get_yticklabels(), visible=False)
+    fig = adjust_spine('Time','Output magnitude', -0.05, 0.1, 0.8, 0.9)
 
     cnt = 0
     tspace = numpy.linspace(0, t_end, points)
     for i in range(rows):
-        for k in range(columns):
+        for j in range(columns):
             cnt += 1
             nulspace = numpy.zeros(points)
             ax = fig.add_subplot(rows + 1, columns, cnt)
-            tf = system[i, k]
+            tf = system[i, j]
             if all(tf.numerator) != 0:
                 realstep = numpy.real(tf.step(initial_val, tspace))
                 ax.plot(realstep[0], realstep[1])
             else:
                 ax.plot(tspace, nulspace)
+            if labels:
+                ax.set_title('Output (%s) vs. Input (%s)' % (output_label[i], input_label[j]))
+            else:
+                ax.set_title('Output %s vs. Input %s' % (i + 1, j + 1))
             
             if i == 0:
                 xax = ax
             else:
                 ax.sharex = xax
                 
-            if k == 0:
+            if j == 0:
                 yax = ax
+                ax.set_ylabel = output_label[j]
             else:
-                ax.sharey =yax
-            
-            if i == range(rows)[-1]:            
-                plt.setp(ax.get_xticklabels(), visible=True, fontsize=10)
-            else:
-                plt.setp(ax.get_xticklabels(), visible=False)
+                ax.sharey =yax            
                 
             plt.setp(ax.get_yticklabels(), fontsize=10)
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 * 1.05 - 0.05,
-                             box.width * 0.85, box.height])
-#            if k == 0:            
-#                plt.setp(ax.get_yticklabels(), visible=True)
-#            else:
-#                plt.setp(ax.get_yticklabels(), visible=False)
-    box = bigax.get_position()    
-    bigax.set_position([box.x0 - 0.05, box.y0 - 0.02,
-                        box.width * 1.1, box.height * 1.1])        
-    bigax.set_ylabel('Output magnitude')
-    bigax.set_xlabel('Time')   
+                             box.width * 0.8, box.height * 0.9])                
     
     
 def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=2, axlim=None, points=1000):
@@ -894,17 +925,13 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     Parameters
     ----------
     G : tf
-        Plant transfer function.
-    
+        Plant transfer function.    
     K : tf
-        Controller transfer function.
-        
+        Controller transfer function.        
     Kc : integer
-        Controller constant.
-        
+        Controller constant.        
     t_end : integer
         Time period which the step response should occur.
-
     freqtype : string (optional)
         Type of function to plot:
         
@@ -976,21 +1003,16 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     Parameters
     ----------
     Y : tf
-        Output transfer function.
-        
+        Output transfer function.        
     U : tf
-        Input transfer function.
-        
+        Input transfer function.        
     t_end : integer
-        Time period which the step response should occur (optional).
-    
+        Time period which the step response should occur (optional).    
     initial_val : integer
-        Starting value to evalaute step response (optional).
-        
+        Starting value to evalaute step response (optional).        
     constraint : float
         The upper limit the step response cannot exceed. is only calculated
-        if a value is specified (optional).
-        
+        if a value is specified (optional).        
     method : ['numeric','analytic']
         The method that is used to calculate a constrainted response. A
         constraint value is required (optional).
@@ -1034,19 +1056,15 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     Parameters
     ----------
     S : numpy array
-        Sensitivity transfer function matrix as function of s => S(s)
-        
+        Sensitivity transfer function matrix as function of s => S(s)       
     wB_req : float
         The design or require bandwidth of the plant in rad/time.
-        1/time eg: wB_req = 1/20sec = 0.05rad/s
-        
+        1/time eg: wB_req = 1/20sec = 0.05rad/s        
     maxSSerror : float
-        The maximum stead state tracking error required of the plant.
-        
+        The maximum stead state tracking error required of the plant.        
     wStart : float
         Minimum power of w for the frequency range in rad/time. 
-        eg: for w startig at 10e-3, wStart = -3.
-        
+        eg: for w startig at 10e-3, wStart = -3.        
     wEnd : float
         Maximum value of w for the frequency range in rad/time. 
         eg: for w ending at 10e3, wStart = 3.
@@ -1055,8 +1073,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     -------
     wB : float
         The actualy plant bandwidth in rad/time given the specified controller 
-        used to generate the sensitivity matrix S(s).
-    
+        used to generate the sensitivity matrix S(s).    
     Plot : matplotlib figure
         
     Example

@@ -21,3 +21,14 @@ plt.subplot(1, 2, 2)
 plt.title('(b) RGA numbers')
 rga_nm_plot(G, [I1, I2], ['Diagonal pairing','Off-diagonal pairing'], -5, 1, plot_type='all')
 plt.show()
+
+# The section below demonstrates more utilsplot functions
+plt.figure('RGA per element')
+rga_plot(G, -5, 1, plot_type='elements')
+
+plt.figure('RGA per output')
+rga_plot(G, -5, 1, plot_type='outputs')
+
+plt.figure('RGA per input')
+rga_plot(G, -5, 1, plot_type='inputs')
+plt.show()
