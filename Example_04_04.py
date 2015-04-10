@@ -2,6 +2,7 @@ import numpy as np
 import numpy.linalg as lin
 import scipy.linalg as LA
 import scipy.signal as sign
+import Chapter_04 as mimo
 
 # This module executes Example 4.4.
 # The controllability Gramian has been included
@@ -16,6 +17,7 @@ D = 0
 
 # Create frequency domain mode;
 G = sign.lti(A, B, C, D)
+control, in_vecs, c_matrix = mimo.state_controllability(A, B)
 
 # Question: Why does A.transpose give the same eigenvectors as the book
 # and not plain A??
@@ -27,16 +29,11 @@ G = sign.lti(A, B, C, D)
 
 # Calculate eigen vectors and pole vectors
 val, vec = LA.eig(A, None, 1, 0, 0, 0)
-U1 = np.dot(B.T, vec[:, 0].T)
-U2 = np.dot(B.T, vec[:, 1].T)
 
-# Set-up controllability Matrix
-Con = np.zeros([2, 2])
-Con[:, 0] = B.T
-Con[:, 1] = (A * B).T
-n = lin.matrix_rank(Con)
+n = lin.matrix_rank(c_matrix)
 
 P = LA.solve_lyapunov(A, -B * B.T)
+
 
 # Display results
 print '\nThe transfer function realization is:'
@@ -47,10 +44,12 @@ print np.poly1d(G.den, variable='s')
 
 print '\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1]
 print '   with eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1]
-print '   Input pole vectors are: up1 = ', U1, 'and up2 = ', U2
+print '   Input pole vectors are: up1 = ', in_vecs[0], 'and up2 = ', in_vecs[1]
 
 print '\n2) The controlabillity matrix has rank', n, 'and is given as:'
-print '  ', Con[0, :], '\n  ', Con[1, :]
+print c_matrix
 
 print '\n3) The controllability Gramian ='
 print '  ', P[0, :], '\n  ', P[1, :]
+
+print "\n4) State Controllable: " + str(control)

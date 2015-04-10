@@ -1,19 +1,6 @@
-'''
-Created on 27 Mar 2013
-
-@author: St Elmo Wilken
-'''
-
-
-import control as cn
 import numpy as np
 import scipy.linalg as spla
-import sympy as sm
-
-"""
-This toolbox assumes you have the control toolbox at your
-disposal... And all the imports above...
-"""
+import sympy as sp
 
 
 def state_controllability(A, B):
@@ -95,16 +82,14 @@ def is_min_realisation(A, B, C):
     return state_control and state_obsr
 
 
-def pole_zero_directions(vec, tf, e=0.0001):
+def pole_zero_directions(G, vec):
     """    
     Parameters
     ----------
+    G : numpy matrix
+        The transfer function G(s) of the system.
     vec : numpy array
         A vector containing all the transmission poles or zeros of a system.
-    tf : tf
-        The transfer function G(s) of the system.
-    e : real
-        This avoids possible divide by zero errors in G(z).
     
     Returns
     -------
@@ -115,33 +100,21 @@ def pole_zero_directions(vec, tf, e=0.0001):
     Note
     ----
     This method is going to give dubious answers if the function G has pole
-    zero cancellation.
-        
+    zero cancellation.        
     """
+    
     pz_dir = []
     for d in vec:
-        num, den = cn.tfdata(tf)
-        rows, cols = np.shape(num)
+        g = G(d)
 
-        G = np.empty(shape=(rows, cols))
-
-        for x in range(rows):
-            for y in range(cols):
-                top = np.polyval(num[x][y], d)
-                bot = np.polyval(den[x][y], d)
-                if bot == 0.0:
-                    bot = e
-
-                entry = float(top) / bot
-                G[x][y] = entry
-
-        U, S, V = np.linalg.svd(G)
+        U, S, V = np.linalg.svd(g)
         V = np.transpose(np.conjugate(V))
         u_rows, u_cols = np.shape(U)
         v_rows, v_cols = np.shape(V)
         yz = np.hsplit(U, u_cols)[-1]
         uz = np.hsplit(V, v_cols)[-1]
         pz_dir.append((d, uz, yz))
+        
     return pz_dir
 
 
@@ -151,11 +124,11 @@ def zero(A, B, C, D):
     Parameters: A, B, C, D state space matrices
     Returns: zero vector (which you may use in my other functions)
     """
-    z = sm.Symbol('z')
+    z = sp.Symbol('z')
     top = np.hstack((A,B))
     bot = np.hstack((C,D))
     m = np.vstack((top, bot))
-    M = sm.Matrix(m)
+    M = sp.Matrix(m)
     [rowsA, colsA] = np.shape(A)
     [rowsB, colsB] = np.shape(B)
     [rowsC, colsC] = np.shape(C)
@@ -167,12 +140,10 @@ def zero(A, B, C, D):
     top = np.hstack((p1,p2))
     bot = np.hstack((p3,p4))
     p = np.vstack((top, bot))
-    Ig = sm.Matrix(p)
+    Ig = sp.Matrix(p)
     zIg = z*Ig
     f = zIg-M
     zf = f.det()
-    zs = sm.solve(zf, z)
-    print "The zeros of the system are: "
-    for z in zs:
-        print z
+    zs = sp.solve(zf, z)
+    
     return zs
