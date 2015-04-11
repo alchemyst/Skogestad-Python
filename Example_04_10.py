@@ -1,12 +1,14 @@
 import numpy as np
 import sympy as sp
-from utils import pole
+from utils import poles
 
-s= sp.Symbol('s')
+def G(s):
+    G = 1 / ((s + 1) * (s + 2) * (s - 1))
+    return G * sp.Matrix([[(s - 1) * (s + 2), 0, (s - 1)**2],
+                          [-(s + 1) * (s + 2), (s - 1) * (s + 1), (s - 1) * (s + 1)]])    
 
-G = 1 / ((s + 1) * (s + 2) * (s - 1))
-G = G * sp.Matrix([[(s - 1) * (s + 2), 0, (s - 1)**2],
-                   [-(s + 1) * (s + 2), (s - 1) * (s + 1), (s - 1) * (s + 1)]])
+s = sp.Symbol('s')
+G = G(s)
 print G
 
 #TODO: This is a concept for a general m x n pole() function
@@ -32,9 +34,17 @@ print '---All poles---'
 m1count = np.shape(m1)[0]
 for m in range(0, m1count):
     print sp.solve(sp.denom(m1[m]))
-print pole(m2_1)
-print pole(m2_2)
-print pole(m2_3)
+
+def M21(s):
+    return G[:,[1,2]]
+def M12(s):
+    return G[:,[0,1]]
+def M13(s):
+    return G[:,[0,1]]
+    
+print poles(M21)
+print poles(M12)
+print poles(M13)
 
 print 'Therefore the poles are -1, 1 and -2'
 
