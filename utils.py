@@ -979,4 +979,6 @@ def zeros(G):
 # according to convention this procedure should stay at the bottom       
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()       
+    import sys
+    # Exit with an error code equal to number of failed tests
+    sys.exit(doctest.testmod()[0])
