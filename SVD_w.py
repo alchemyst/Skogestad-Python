@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import plot_freq_subplot
+from utilsplot import plot_freq_subplot
 
 
 def G(w):

@@ -2,7 +2,8 @@ import numpy as np
 import numpy.linalg as lin
 import scipy.linalg as LA
 import scipy.signal as sign
-import Chapter_04 as mimo
+
+from utils import state_controllability
 
 # This module executes Example 4.4.
 # The controllability Gramian has been included
@@ -17,7 +18,7 @@ D = 0
 
 # Create frequency domain mode;
 G = sign.lti(A, B, C, D)
-control, in_vecs, c_matrix = mimo.state_controllability(A, B)
+control, in_vecs, c_matrix = state_controllability(A, B)
 
 # Question: Why does A.transpose give the same eigenvectors as the book
 # and not plain A??
@@ -52,4 +53,5 @@ print c_matrix
 print '\n3) The controllability Gramian ='
 print '  ', P[0, :], '\n  ', P[1, :]
 
-print "\n4) State Controllable: " + str(control)
+print '\nMore properties'
+print "\nState Controllable: " + str(control)

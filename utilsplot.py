@@ -40,7 +40,6 @@ plt.show()
 import numpy #do not abbreviate this module as np in utilsplot.py
 import matplotlib.pyplot as plt
 import utils
-import sys
 
 
 def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
@@ -85,6 +84,17 @@ def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     bigax.set_xlabel(xlabel)
     bigax.set_ylabel(ylabel)
     return fig
+
+
+def plot_freq_subplot(plt, w, direction, name, color, figure_num):
+    plt.figure(figure_num)
+    N = direction.shape[0]
+    for i in range(N):
+        #label = '%s Input Dir %i' % (name, i+1)
+
+        plt.subplot(N, 1, i + 1)
+        plt.title(name)
+        plt.semilogx(w, direction[i, :], color)
 
 
 def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
@@ -232,7 +242,7 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     >>> def Kc(s):
     ...     return numpy.array([[0.1, 0.],
     ...                         [0., 0.1]])*10.
-    >>> mimoBode(G, -3, 3, Kc)
+    >>> mimo_bode(G, -3, 3, Kc)
     Bandwidth is a tuple of wC, wB
     (0.55557762223988783, 1.3650078065460138)
     
@@ -470,7 +480,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     ----------
     G : numpy matrix
         Plant model. 
-    plot_type : ['All','Output','Input','Element']
+    plot_type : string
         Type of plot.
         
         =========      ============================
@@ -513,8 +523,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
         labels = True
     else:
-        print('Input and output label count is not equal')
-        sys.exit()   
+        raise ValueError('Input and output label count is not equal')
     
     if plot_type == 'elements':
         fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 0.8, 0.9)
@@ -591,8 +600,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                 plt.xlabel('Frequency [rad/unit time]')
                 
     else:
-        print("Invalid plot_type paramter.")
-        sys.exit()
+        raise ValueError("Invalid plot_type paramter.")
 
 
 def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
@@ -606,7 +614,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     pairing_list : List of sparse numpy matrixes of the same shape as G.
         An array of zeros with a 1. at each required output-input pairing.
         The default is a diagonal pairing with 1.'s on the diagonal.
-    plot_type : ['All','Element']
+    plot_type : string
         Type of plot:
         
         ========       ============================
@@ -650,8 +658,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     else:
         for pairing in pairing_list:
             if pairing.shape != dim:
-                print('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
-                sys.exit()
+                raise ValueError('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
          
     plot_No = 0
     
@@ -676,8 +683,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
             if plot_No == 1:
                 plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
     else:
-        print("Invalid plot_type paramter.")
-        sys.exit()
+        raise ValueError("Invalid plot_type paramter.")
     
 
 def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000):
@@ -786,7 +792,8 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
         for k in range(points):
             Ginv = numpy.linalg.inv(G(s[k]))
             perfect_control[i, k] = numpy.max(numpy.abs(Ginv * Gd(s[k])[:, i]))
-            #if simultaneous: TODO complete induced max-norm
+            #if simultaneous: 
+            #TODO induced max-norm
         plt.loglog(w, perfect_control[i], label=('$g_{d%s}$' % (i + 1)))
     
     plt.axhline(1., color='red', ls=':')      
@@ -864,6 +871,7 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
     -------   
     Plot : matplotlib figure
     '''
+    
     plt.gcf().set_facecolor('white')
     
     rows = numpy.shape(G(0))[0]
@@ -877,8 +885,7 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
     elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
         labels = True
     else:
-        print('Input and output label count is not equal')
-        sys.exit()   
+        raise ValueError('Input and output label count is not equal')  
     
     fig = adjust_spine('Time','Output magnitude', -0.05, 0.1, 0.8, 0.9)
 
@@ -1094,11 +1101,9 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     ...     return Kc*G(s)
     ... 
     >>> def S(s):
-    ...     return numpy.linalg.inv((numpy.eye(2) + L(s)))      #SVD of S =
-    #  1/(I + L)
-    ... 
-    >>> #utils.perf_Wp(S, 0.05, 0.2, -3, 1)
-    
+    ... # SVD of S = 1/(I + L)
+    ...     return numpy.linalg.inv((numpy.eye(2) + L(s)))
+    >>> perf_Wp(S, 0.05, 0.2, -3, 1)
     '''
 
     if axlim is None:
@@ -1149,3 +1154,4 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     plt.legend(loc='upper right', fontsize=10, ncol=1)
     
     return wB
+    
