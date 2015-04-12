@@ -924,11 +924,11 @@ def poles(G):
     Example
     -------
     >>> def G(s):
-    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                                [4.5, 2 * (s - 1)]])
-    >>> zero(G)
-    [4.00000000000000]
-    
+    ...     return 1 / (s + 2) * sympy.Matrix([[s - 1,  4],
+    ...                                     [4.5, 2 * (s - 1)]])
+    >>> poles(G)
+    [-2.00000000000000]
+
     Note
     ----
     Not applicable for a non-squared plant, yet.
@@ -959,11 +959,11 @@ def zeros(G):
     Example
     -------
     >>> def G(s):
-    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                                [4.5, 2 * (s - 1)]])
-    >>> zero(G)
-    [-2.00000000000000]
-    
+    ...     return 1 / (s + 2) * sympy.Matrix([[s - 1,  4],
+    ...                                        [4.5, 2 * (s - 1)]])
+    >>> zeros(G)
+    [4.00000000000000]
+
     Note
     ----
     Not applicable for a non-squared plant, yet.
