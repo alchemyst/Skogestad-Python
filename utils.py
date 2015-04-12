@@ -906,14 +906,14 @@ def marginsclosedloop(L):
     return GM, PM, wc, wb, wbt, valid   
     
     
-def pole(G):
+def poles(G):
     '''
     Return the poles of a multivariable transfer function system. Applies
     Theorem 4.4 (p135).
     
     Parameters
     ----------
-    G : matrix (numpy/sympy), with sympy Symbol defined
+    G : transfer function matrix (numpy/sympy)
         A n x n plant matrix.
 
     Returns
@@ -923,10 +923,10 @@ def pole(G):
         
     Example
     -------
-    >>> G = 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                             [4.5, 2 * (s - 1)]])
-    >>> s = sympy.Symbol('s')
-    >>> zero(G(s))
+    >>> def G(s):
+    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
+    ...                                [4.5, 2 * (s - 1)]])
+    >>> zero(G)
     [4.00000000000000]
     
     Note
@@ -934,20 +934,21 @@ def pole(G):
     Not applicable for a non-squared plant, yet.
     '''
     
-    G = sympy.Matrix(G) #convert to sympy matrix object
+    s = sympy.Symbol('s')
+    G = sympy.Matrix(G(s)) #convert to sympy matrix object
     det = sympy.simplify(G.det())
     pole = sympy.solve(sympy.denom(det))
     return pole 
 
 
-def zero(G):
+def zeros(G):
     '''
     Return the zeros of a multivariable transfer function  system. Applies
     Theorem 4.5 (p139).
     
     Parameters
     ----------
-    G : matrix (numpy/sympy), with sympy Symbol defined
+    G : transfer function matrix (numpy/sympy)
         A n x n plant matrix.
 
     Returns
@@ -957,10 +958,10 @@ def zero(G):
         
     Example
     -------
-    >>> G = 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                             [4.5, 2 * (s - 1)]])
-    >>> s = sympy.Symbol('s')
-    >>> zero(G(s))
+    >>> def G(s):
+    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
+    ...                                [4.5, 2 * (s - 1)]])
+    >>> zero(G)
     [-2.00000000000000]
     
     Note
@@ -968,7 +969,8 @@ def zero(G):
     Not applicable for a non-squared plant, yet.
     '''
     
-    G = sympy.Matrix(G) #convert to sympy matrix object
+    s = sympy.Symbol('s')
+    G = sympy.Matrix(G(s)) #convert to sympy matrix object
     det = sympy.simplify(G.det())
     zero = sympy.solve(sympy.numer(det))
     return zero

@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg as spla
 import sympy as sp
 
+from utils import SVD
 
 def state_controllability(A, B):
     """
@@ -82,38 +83,74 @@ def is_min_realisation(A, B, C):
     return state_control and state_obsr
 
 
-def pole_zero_directions(G, vec):
-    """    
+def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
+    """
+    Crude method to calculate the input and output direction of a pole or zero,
+    from the SVD.
+    
     Parameters
     ----------
     G : numpy matrix
         The transfer function G(s) of the system.
-    vec : numpy array
+    vec : array
         A vector containing all the transmission poles or zeros of a system.
+        
+    dir_type : string
+        Type of direction to calculate.  
+            
+        ==========     ============================
+        dir_type       Choose
+        ==========     ============================
+        'p'            Poles
+        'z'            Zeros
+        ==========     ============================
+        
+    display_type : string
+        Choose the type of directional data to return (optional).  
+        
+        ============   ============================
+        display_type   Directional data to return
+        ============   ============================
+        'a'            All data (default)
+        'u'            Only input direction
+        'y'            Only output direction
+        ============   ============================
+    
+    e : float
+        Used in pole direction calculation, to avoid division by zero. Let
+        epsilon be very small.
     
     Returns
     -------
-    pz_dir : numpy array
-        Pole or zero direction in the form - 
+    pz_dir : array
+        Pole or zero direction in the form:
         (pole/zero, input direction, output direction)
         
     Note
     ----
-    This method is going to give dubious answers if the function G has pole
-    zero cancellation.        
+    This method is going to give incorrect answers if the function G has pole
+    zero cancellation. The proper method is to use the state-space.
     """
     
+    if dir_type == 'p':
+        dt = 0
+    else:  # z
+        dt = -1
+        e = 0
+
     pz_dir = []
     for d in vec:
-        g = G(d)
+        g = G(d + e)
 
-        U, S, V = np.linalg.svd(g)
-        V = np.transpose(np.conjugate(V))
-        u_rows, u_cols = np.shape(U)
-        v_rows, v_cols = np.shape(V)
-        yz = np.hsplit(U, u_cols)[-1]
-        uz = np.hsplit(V, v_cols)[-1]
-        pz_dir.append((d, uz, yz))
+        U, _, V =  SVD(g)
+        u = V[:,dt]
+        y = U[:,dt]
+        if display_type == 'u':
+            pz_dir.append(u)
+        elif display_type == 'y':
+            pz_dir.append(y)
+        else: # all data
+            pz_dir.append((d, u, y))
         
     return pz_dir
 

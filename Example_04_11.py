@@ -1,9 +1,9 @@
-import sympy as sp
+import numpy as np
 
-from utils import pole, zero
+from utils import poles, zeros
 
-s = sp.Symbol('s')
-G = 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-                             [4.5, 2 * (s - 1)]])
-print 'Poles: ' , pole(G)
-print 'Zeros: ' , zero(G)
+def G(s):
+    return 1 / (s + 2) * np.matrix([[s - 1,  4],
+                                    [4.5, 2 * (s - 1)]])
+print 'Poles: ' , poles(G)
+print 'Zeros: ' , zeros(G)

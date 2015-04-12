@@ -1,9 +1,10 @@
 import sympy as sp
 
-from utils import pole, zero
+from utils import poles, zeros
 
-s = sp.Symbol('s')
-G = 1 / (1.25 * (s + 1) * (s + 2)) * sp.Matrix([[s - 1, s],
-                                                [-6, s - 2]])
-print 'Poles: ' , pole(G)
-print 'Zeros: ' , zero(G)
+def G(s):
+    return 1 / (1.25 * (s + 1) * (s + 2)) * sp.Matrix([[s - 1, s],
+                                                       [-6, s - 2]])
+                                                
+print 'Poles: ' , poles(G)
+print 'Zeros: ' , zeros(G)
