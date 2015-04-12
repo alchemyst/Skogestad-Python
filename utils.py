@@ -977,11 +977,11 @@ def poles(G):
     Example
     -------
     >>> def G(s):
-    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                                [4.5, 2 * (s - 1)]])
-    >>> zero(G)
-    [4.00000000000000]
-    
+    ...     return 1 / (s + 2) * sympy.Matrix([[s - 1,  4],
+    ...                                     [4.5, 2 * (s - 1)]])
+    >>> poles(G)
+    [-2.00000000000000]
+
     Note
     ----
     Not applicable for a non-squared plant, yet.
@@ -1016,11 +1016,11 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     Example
     -------
     >>> def G(s):
-    >>> return 1 / (s + 2) * sp.Matrix([[s - 1,  4],
-    ...                                [4.5, 2 * (s - 1)]])
-    >>> zero(G)
-    [-2.00000000000000]
-    
+    ...     return 1 / (s + 2) * sympy.Matrix([[s - 1,  4],
+    ...                                        [4.5, 2 * (s - 1)]])
+    >>> zeros(G)
+    [4.00000000000000]
+
     Note
     ----
     Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
@@ -1135,4 +1135,6 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
 # according to convention this procedure should stay at the bottom       
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()       
+    import sys
+    # Exit with an error code equal to number of failed tests
+    sys.exit(doctest.testmod()[0])
