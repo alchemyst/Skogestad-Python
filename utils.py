@@ -8,6 +8,7 @@ Created on Jan 27, 2012
 import numpy #do not abbreviate this module as np in utils.py
 import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
+import scipy.linalg as sc_linalg
 
 
 class tf(object):
@@ -904,6 +905,58 @@ def marginsclosedloop(L):
         valid = True
     else: valid = False
     return GM, PM, wc, wb, wbt, valid   
+
+
+###############################################################################
+#                                Chapter 4                                    #
+###############################################################################
+
+
+def state_controllability(A, B):
+    '''
+    This method checks if the state space description of the system is state
+    controllable according to Definition 4.1 (p127).
+    
+    Parameters
+    ----------
+    A : numpy matrix
+        Matrix A of state-space representation.
+    B : numpy matrix
+        Matrix B of state-space representation.
+
+    Returns
+    -------
+    state_control : boolean
+        True if state controllable
+    u_p : array
+        Input pole vectors for the states u_p_i
+    control_matrix : numpy matrix
+        State Controllability Matrix
+        
+    Note
+    ----
+    This does not check for state controllability for systems with repeated
+    poles.
+    '''
+    
+    state_control = True
+
+    A = numpy.asmatrix(A)
+    B = numpy.asmatrix(B)
+        
+    # Compute all input pole vectors.
+    ev, vl = sc_linalg.eig(A, left=True, right=False)
+    u_p = []
+    for i in range(vl.shape[1]):
+        vli = numpy.asmatrix(vl[:,i]) 
+        u_p.append(B.H*vli.T) 
+    state_control = not any(numpy.linalg.norm(x) == 0.0 for x in u_p)
+
+    # compute the controllability matrix
+    c_plus = [A**n*B for n in range(A.shape[1])]
+    control_matrix = numpy.hstack(c_plus)
+
+    return state_control, u_p, control_matrix
     
     
 def poles(G):
@@ -941,15 +994,19 @@ def poles(G):
     return pole 
 
 
-def zeros(G):
+def zeros(G=None, A=None, B=None, C=None, D=None):
     '''
-    Return the zeros of a multivariable transfer function  system. Applies
-    Theorem 4.5 (p139).
+    Return the zeros of a multivariable transfer function system for with
+    transfer functions or state-space. For transfer functions, Theorem 4.5
+    (p139) is used. For state-space, the method from Equations 4.66 and 4.67
+    (p138) is applied.
     
     Parameters
     ----------
     G : transfer function matrix (numpy/sympy)
-        A n x n plant matrix.
+        A n x n plant matrix        
+    A, B, C, D : numpy matrix
+        State space parameters
 
     Returns
     -------
@@ -966,14 +1023,113 @@ def zeros(G):
 
     Note
     ----
-    Not applicable for a non-squared plant, yet.
+    Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
+    have values if A is defined.
     '''
+    # TODO create a beter function to accept paramters and switch between tf and ss
     
-    s = sympy.Symbol('s')
-    G = sympy.Matrix(G(s)) #convert to sympy matrix object
-    det = sympy.simplify(G.det())
-    zero = sympy.solve(sympy.numer(det))
+    if not G is None:
+        s = sympy.Symbol('s')
+        G = sympy.Matrix(G(s)) #convert to sympy matrix object
+        det = sympy.simplify(G.det())
+        zero = sympy.solve(sympy.numer(det))
+    
+    elif not A is None:
+        z = sympy.Symbol('z')
+        top = numpy.hstack((A,B))
+        bot = numpy.hstack((C,D))
+        m = numpy.vstack((top, bot))
+        M = numpy.Matrix(m)
+        [rowsA, colsA] = numpy.shape(A)
+        [rowsB, colsB] = numpy.shape(B)
+        [rowsC, colsC] = numpy.shape(C)
+        [rowsD, colsD] = numpy.shape(D)
+        p1 = numpy.eye(rowsA)
+        p2 = numpy.zeros((rowsB, colsB))
+        p3 = numpy.zeros((rowsC, colsC))
+        p4 = numpy.zeros((rowsD, colsD))
+        top = numpy.hstack((p1, p2))
+        bot = numpy.hstack((p3, p4))
+        p = numpy.vstack((top, bot))
+        Ig = sympy.Matrix(p)
+        zIg = z * Ig
+        f = zIg - M
+        zf = f.det()
+        zero = sympy.solve(zf, z)    
+    
     return zero
+
+
+def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
+    """
+    Crude method to calculate the input and output direction of a pole or zero,
+    from the SVD.
+    
+    Parameters
+    ----------
+    G : numpy matrix
+        The transfer function G(s) of the system.
+    vec : array
+        A vector containing all the transmission poles or zeros of a system.
+        
+    dir_type : string
+        Type of direction to calculate.  
+            
+        ==========     ============================
+        dir_type       Choose
+        ==========     ============================
+        'p'            Poles
+        'z'            Zeros
+        ==========     ============================
+        
+    display_type : string
+        Choose the type of directional data to return (optional).  
+        
+        ============   ============================
+        display_type   Directional data to return
+        ============   ============================
+        'a'            All data (default)
+        'u'            Only input direction
+        'y'            Only output direction
+        ============   ============================
+    
+    e : float
+        Used in pole direction calculation, to avoid division by zero. Let
+        epsilon be very small.
+    
+    Returns
+    -------
+    pz_dir : array
+        Pole or zero direction in the form:
+        (pole/zero, input direction, output direction)
+        
+    Note
+    ----
+    This method is going to give incorrect answers if the function G has pole
+    zero cancellation. The proper method is to use the state-space.
+    """
+    
+    if dir_type == 'p':
+        dt = 0
+    else:  # z
+        dt = -1
+        e = 0
+
+    pz_dir = []
+    for d in vec:
+        g = G(d + e)
+
+        U, _, V =  SVD(g)
+        u = V[:,dt]
+        y = U[:,dt]
+        if display_type == 'u':
+            pz_dir.append(u)
+        elif display_type == 'y':
+            pz_dir.append(y)
+        else: # all data
+            pz_dir.append((d, u, y))
+        
+    return pz_dir
     
 
 # according to convention this procedure should stay at the bottom       
