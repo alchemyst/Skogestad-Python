@@ -2,62 +2,71 @@ import numpy as np
 import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
 
-from utils import plot_freq_subplot
+from utils import poles, zeros
+from utilsplot import plot_freq_subplot
 
 
 def G(s):
     """ give the transfer matrix of the system"""
-    G = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s-2)]])
-    return G
+    return np.matrix([[1 / (s + 1), 1], 
+                      [1 / (s + 2) ** 2, (s - 1) / (s + 2)]])
 
 def Gd(s):
-    Gd = np.matrix([[1/(s+1)], [1/(s+20)]])
-    return Gd
+    return np.matrix([[1 / (s + 1)],
+                      [1 / (s + 20)]])
 
 def reference_change():
     """Reference change matrix/vector for use in eq 6-52 pg 242 to check input saturation"""
-
     R = np.matrix([[1, 0], [0, 1]])
-    R = R/np.linalg.norm(R, 2)
-    return R
-
-def G_s(s):
-    """ stable, minimum phase system of G and Gd
-    This could be done symbolically using Sage"""
-
-    G_s = np.matrix([[1/s+1, 1], [1/(s+2)**2, (s-1)/(s+2)]])
-    return G_s
+    return R/np.linalg.norm(R, 2)
 
 def Zeros_Poles_RHP():
     """ Give a vector with all the RHP zeros and poles
     RHP zeros and poles are calculated from sage program"""
 
+    # TODO change to correct values
     Zeros_G = [1, 5]
     Poles_G = [2, 3]
     Zeros_Gd = []
     Poles_Gd = []
     return Zeros_G, Poles_G, Zeros_Gd, Poles_Gd
 
-
-
 def deadtime():
     """ vector of the deadtime of the system"""
     #individual time delays
     dead_G = np.matrix([[0, -2], [-1, -4]])
     dead_Gd = np.matrix([])
-
     return dead_G, dead_Gd
 
+print 'Poles: ' , poles(G)
+print 'Zeros: ' , zeros(G)
 
-
-
+# TODO redefine this function with utils functions
 def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
-    """ this function is for multivariable system analysis of controllability
+    '''
+    This function is for multivariable system analysis of controllability.
     gives:
     minimum peak values on S and T with or without deadtime
     R is the expected worst case reference change, with condition that ||R||2<= 2
     wr is the frequency up to where reference tracking is required
-    enter value of 1 in deadtime_if if system has dead time"""
+    enter value of 1 in deadtime_if if system has dead time
+    
+    Parameters
+    ----------
+    var : type
+        Description (optional).
+
+        ========    ==================================
+        Property    Description
+        ========    ==================================
+
+        ========    ==================================
+
+    Returns
+    -------
+    var : type
+        Description.
+    '''
 
     #importing most of the zeros and poles data
     [Zeros_G, Poles_G, Zeros_Gd, Poles_Gd] = Zeros_Poles_RHP()
@@ -85,7 +94,6 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
                 #error_poles_direction is to to prevent the numerical method from breaking
                 [U, S, V] = np.linalg.svd(G(Poles_G[i]+error_poles_direction))
                 yp_direction[:, i] = U[:, 0]
-            print yp_direction
 
             yz_mat1 = np.matrix(np.diag(Zeros_G))*np.matrix(np.ones([len(Zeros_G), len(Zeros_G)]))
             yz_mat2 = yz_mat1.T
@@ -181,7 +189,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
 
     #checking peak values of KS eq 6-24 pg 229 np.linalg.svd(A)[2][:, 0]
     #done with less tight lower bounds
-    KS_PEAK = [np.linalg.norm(np.linalg.svd(G_s(RHP_p+error_poles_direction))[2][:, 0].H*np.linalg.pinv(G_s(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
+    KS_PEAK = [np.linalg.norm(np.linalg.svd(G(RHP_p+error_poles_direction))[2][:, 0].H*np.linalg.pinv(G(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
     KS_max = np.max(KS_PEAK)
 
     print 'Lower bound on K'
