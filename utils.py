@@ -53,7 +53,16 @@ class tf(object):
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 1.], [ 2.  1.]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+
+    Although we can add a zero-gain tf to anything
+
+    >>> G2 + 0*G3
+    tf([ 1.], [ 2.  1.])
+
+    >>> 0*G2 + G3
+    tf([ 1.], [ 1.  1.], deadtime=2)
+
 
     It is sometimes useful to define
 
@@ -73,8 +82,9 @@ class tf(object):
         # TODO: poly1d should be replaced by np.polynomial.Polynomial
         self.numerator = numpy.poly1d(numerator)
         self.denominator = numpy.poly1d(denominator)
-        self.simplify()
         self.deadtime = deadtime
+        self.zerogain = False
+        self.simplify()
         self.name = name
         self.u = u
         self.y = y
@@ -93,6 +103,12 @@ class tf(object):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
         self.denominator, remainder = self.denominator/g
+        # Zero-gain transfer functions are special.  They effectively have no
+        # dead time and can be simplified to a unity denominator
+        if self.numerator == numpy.poly1d([0]):
+            self.zerogain = True
+            self.deadtime = 0
+            self.denominator = numpy.poly1d([1])
     
     def __repr__(self):
         if self.name:
@@ -100,7 +116,7 @@ class tf(object):
         else:
             r = ''
         r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
-        if self.deadtime != 0:
+        if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
         if self.u: 
             r += ", u='" + self.u + "'"
@@ -126,11 +142,12 @@ class tf(object):
     def __add__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
-        if self.deadtime != other.deadtime:
-            raise ValueError("Transfer functions can only be added if their deadtimes are the same")
+        # Zero-gain functions are special
+        if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
+            raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
-                  other.numerator*self.denominator, gcd, self.deadtime)
+                  other.numerator*self.denominator, gcd, self.deadtime + other.deadtime)
 
     def __radd__(self, other):
         return self + other
