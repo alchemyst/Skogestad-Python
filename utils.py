@@ -109,6 +109,28 @@ class tf(object):
             self.zerogain = True
             self.deadtime = 0
             self.denominator = numpy.poly1d([1])
+
+    def exp(self):
+        """ If this is basically "D*s" defined as tf([D, 0], 1),
+            return dead time
+
+        >>> s = tf([1, 0], 1)
+        >>> numpy.exp(-2*s)
+        tf([ 1.], [ 1.], deadtime=2.0)
+        
+        """
+        # Check that denominator is 1:
+        if self.denominator != numpy.poly1d([1]):
+            raise ValueError('Can only exponentiate multiples of s, not {}'.format(self))
+        s = tf([1, 0], 1)
+        ratio = -self/s
+
+        if len(ratio.numerator.coeffs) != 1:
+            raise ValueError('Can not determine dead time associated with {}'.format(self))
+
+        D = ratio.numerator.coeffs[0]
+
+        return tf(1, 1, deadtime=D)
     
     def __repr__(self):
         if self.name:
