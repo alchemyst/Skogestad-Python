@@ -140,9 +140,9 @@ class tf(object):
         r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
         if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
-        if self.u: 
+        if self.u:
             r += ", u='" + self.u + "'"
-        if self.y: 
+        if self.y:
             r += ", y=': " + self.y + "'"
         r += ")"
         return r
@@ -207,7 +207,89 @@ class tf(object):
             r = r * self
         return r
 # TODO: Concatenate tf objects into MIMO structure
-    
+
+
+@numpy.vectorize
+def evalfr(G, s):
+    return G(s)
+
+
+class mimotf(object):
+    """ Represents MIMO transfer function matrix
+
+    This is a pretty basic wrapper around the numpy.matrix class which deals
+    with most of the heavy lifting.
+
+    You can construct the object from siso tf objects similarly to calling
+    numpy.matrix:
+
+    >>> G11 = G12 = G21 = G22 = tf(1, [1, 1])
+    >>> G = mimotf([[G11, G12], [G21, G22]])
+    >>> G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    The object knows how to do:
+
+    addition
+
+    >>> G + G
+    mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
+     [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
+
+    multiplication
+    #TODO: scalar multiplication doesn't work!
+    >>> G * G
+    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
+     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+
+
+    """
+    def __init__(self, matrix):
+        self.matrix = numpy.asmatrix(matrix)
+
+    def __call__(self, s):
+        return evalfr(self.matrix, s)
+
+    def __repr__(self):
+        return "mimotf({})".format(str(self.matrix))
+
+    def __add__(self, other):
+        if not isinstance(other, mimotf):
+            other = mimotf(other)
+        return mimotf(self.matrix + other.matrix)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return other + (-self)
+
+    def __mul__(self, other):
+        if not isinstance(other, mimotf):
+            other = mimotf(other)
+        return mimotf(self.matrix*other.matrix)
+
+    def __rmul__(self, other):
+        if not isinstance(other, mimotf):
+            other = mimotf(other)
+        return mimotf(other.matrix*self.matrix)
+
+    def __div__(self, other):
+        raise NotImplemented("Division doesn't make sense on matrices")
+
+    def __neg__(self):
+        return mimotf(-self.matrix)
+
+    def __pow__(self, other):
+        r = self
+        for k in range(other-1):
+            r = r * self
+        return r
+
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
