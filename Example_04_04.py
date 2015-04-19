@@ -3,7 +3,7 @@ import numpy.linalg as lin
 import scipy.linalg as LA
 import scipy.signal as sign
 
-from utils import state_controllability
+from utils import state_controllability, zeros
 
 # This module executes Example 4.4.
 # The controllability Gramian has been included
@@ -14,7 +14,7 @@ A = np.matrix([[-2, -2],
 B = np.matrix([[1],
               [1]])
 C = np.matrix([[1, 0]])
-D = 0
+D = np.matrix([[0]])
 
 # Create frequency domain mode;
 G = sign.lti(A, B, C, D)
@@ -55,3 +55,4 @@ print '  ', P[0, :], '\n  ', P[1, :]
 
 print '\nMore properties'
 print "\nState Controllable: " + str(control)
+print 'Zeros: {0}'.format(zeros(None, A, B, C, D))
