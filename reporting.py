@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def display_export_data(data, display_type, row_head, save=False, latex=False, width=None, separator='&'):
+def display_export_data(data, display_type, row_head, save=False, latex=False, width=None, sep='|'):
     '''
     Create a table view of data. Data can also be exported for a csv file or
     LaTex tabular format. This function is ideal to display large amounts of
@@ -29,7 +29,7 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
         If the width of the rows exceed the width of a page, this number will
         limits the number of items to be displayed in a row. Multple tables are
         created. (optional).
-    Separator : char
+    sep : char
         Specify the separator operator to use in the table (optional).
     
     Returns
@@ -38,8 +38,10 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
     Print : screen output
     '''
     
-    if latex: save = True # a file needs to be saved for Latex output
-    if save: f = open(display_type + '.csv', 'wb')
+    if latex: 
+        save = True # a file needs to be saved for Latex output
+        f = open(display_type + '.tex', 'wb')
+    elif save: f = open(display_type + '.csv', 'wb')
     
     row_heading = [] # array to store heading labels
     n = np.shape(row_head)[0] # number of types of headings
@@ -79,13 +81,13 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
         
         o = len(s) # number if columns in the section
         for i in range(o): # cycle through columns
-            top +=  ' ' + separator + ' {:.3e}'.format(s[i][0]) # format independent variables
+            top +=  ' ' + sep + ' {:.3e}'.format(s[i][0]) # format independent variables
             row_count = 0
             for j in range(n): # cycle through row headings
                 m = len(data[0][j + 1]) # each heading type count could be different
                 for k in range(m): # cycle through items in heading type
                     u = s[i][j + 1][k] # extract data
-                    rows[row_count] += ' ' + separator + ' {:.3f}'.format(u[0,0]) # format dependent variable
+                    rows[row_count] += ' ' + sep + ' {:.3f}'.format(u[0,0]) # format dependent variable
                     row_count += 1
         
             tabs += 'c '
