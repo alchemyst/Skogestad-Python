@@ -13,5 +13,5 @@ zerodata = pole_zero_directions(G, [4.], 'z')
 poledata = pole_zero_directions(G, [-2.], 'p')
 rowhead = ['u','y']
 
-display_export_data(zerodata, 'Zeros', rowhead, separator='|')
-display_export_data(poledata, 'Poles', rowhead, separator='|')
+display_export_data(zerodata, 'Zeros', rowhead)
+display_export_data(poledata, 'Poles', rowhead)

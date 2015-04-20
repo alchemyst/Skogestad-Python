@@ -801,8 +801,8 @@ def RGAnumber(G, I):
     
     Parameters
     ----------
-    G : numpy matrix
-        Transfer function matrix.
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
         
     I : numpy matrix
         Pairing matrix.
@@ -816,14 +816,14 @@ def RGAnumber(G, I):
     return numpy.sum(numpy.abs(RGA(G) - I))
     
 
-def RGA(Gin):
+def RGA(G):
     """ 
     Computes the RGA (Relative Gain Array) of a matrix.
     
     Parameters
     ----------
-    Gin : numpy array
-        Transfer function matrix.
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
         
     Returns
     -------
@@ -838,7 +838,7 @@ def RGA(Gin):
            [ 3., -2.]])
 
     """
-    G = numpy.asarray(Gin)
+    G = numpy.asarray(G)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
 
@@ -880,8 +880,8 @@ def sv_dir(G, table=False):
        
     Parameters
     ----------
-    G : array of complex numbers
-        Transfer function matrix.
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
     
     table : True of False boolean
             Default set to False.
@@ -937,15 +937,15 @@ def sv_dir(G, table=False):
     return u, v
 
 
-def SVD(Gin):
+def SVD(G):
     """
     Returns the singular values (Sv) as well as the input and output
     singular vectors (V and U respectively).   
     
     Parameters
     ----------
-    Gin : matrix of complex numbers
-        Transfer function matrix.
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
     
     Returns
     -------
@@ -967,7 +967,7 @@ def SVD(Gin):
     singular values and their associated singular vectors as in Skogestad.
     
     """
-    U, Sv, VH = numpy.linalg.svd(Gin)
+    U, Sv, VH = numpy.linalg.svd(G)
     V = numpy.conj(numpy.transpose(VH))
     return U, Sv, V
 
@@ -1056,8 +1056,8 @@ def poles(G):
     
     Parameters
     ----------
-    G : transfer function numpy matrix
-        A n x n plant matrix.
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
 
     Returns
     -------
@@ -1093,8 +1093,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     
     Parameters
     ----------
-    G : transfer function numpy matrix
-        A n x n plant matrix        
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.      
     A, B, C, D : numpy matrix
         State space parameters
 
@@ -1129,7 +1129,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         top = numpy.hstack((A,B))
         bot = numpy.hstack((C,D))
         m = numpy.vstack((top, bot))
-        M = numpy.Matrix(m)
+        M = numpy.matrix(m)
         [rowsA, colsA] = numpy.shape(A)
         [rowsB, colsB] = numpy.shape(B)
         [rowsC, colsC] = numpy.shape(C)
@@ -1157,7 +1157,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     
     Parameters
     ----------
-    G : numpy matrix
+    G : numpy matrix (n x n)
         The transfer function G(s) of the system.
     vec : array
         A vector containing all the transmission poles or zeros of a system.
@@ -1184,8 +1184,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         ============   ============================
     
     e : float
-        Used in pole direction calculation, to avoid division by zero. Let
-        epsilon be very small.
+        Avoid division by zero. Let epsilon be very small (optional).
     
     Returns
     -------
@@ -1201,23 +1200,31 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     
     if dir_type == 'p':
         dt = 0
-    else:  # z
+    elif dir_type == 'z':
         dt = -1
         e = 0
+    else: raise ValueError('Incorrect dir_type parameter')
 
-    pz_dir = []
-    for d in vec:
+    N = len(vec)
+    if display_type == 'a':
+        pz_dir = []
+    else:
+        pz_dir = numpy.matrix(numpy.zeros([G(e).shape[0], N]))
+    
+    for i in range(N):
+        d = vec[i]
         g = G(d + e)
 
         U, _, V =  SVD(g)
         u = V[:,dt]
         y = U[:,dt]
         if display_type == 'u':
-            pz_dir.append(u)
+            pz_dir[:, i] = u
         elif display_type == 'y':
-            pz_dir.append(y)
-        else: # all data
+            pz_dir[:, i] = y
+        elif display_type == 'a':
             pz_dir.append((d, u, y))
+        else: raise ValueError('Incorrect display_type parameter')
         
     return pz_dir
 
@@ -1227,31 +1234,122 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
 ###############################################################################
 
 
-def BoundKS(G, Poles_G, error_poles_direction=0.00001):
-    '''
-    Equaption 6.24 (p229)
-    This calculates the peak value for KS transfer function using the stable
-    version of the plant.
+def BoundST(G, poles, zeros, deadtime=None):
+    """
+    This function will calculate the minimum peak values of S and T if the 
+    system has zeros and poles in the input or output. For standard conditions
+    Equation 6.8 (p224) is applied. Equation 6.19 (p227) is used in the
+    special case for a system with deadtime, one pole and one zero.
     
     Parameters
     ----------
-    var : type
-        Description (optional).
-
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+    poles : numpy array (number of zeros)
+        List of poles.
+    zeros : numpy array (number of zeros)
+        List of zeros.
+    deadtime : numpy array (number of outputs, number of inputs)
+        Deadtime or time delay per output.
+    
     Returns
     -------
-    var : type
-        Description.
+    Ms_min : real
+        Minimum peak value.
         
     Note
     ----
-    Only applies for a plant that has poles.
+    All the poles and zeros must be distict.        
+    """
+    Np = len(poles)
+    Nz = len(zeros)
+    Yp = pole_zero_directions(G, poles, 'p', 'y')
+    Yz = pole_zero_directions(G, zeros, 'z', 'y')
+
+    if deadtime is None:
+        yp_mat1 = numpy.matrix(numpy.diag(poles)) * numpy.matrix(numpy.ones([Np, Np]))
+        yp_mat2 = yp_mat1.T
+        Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
+        
+        yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Nz])))
+        yz_mat2 = yz_mat1.T
+        Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
+    
+        yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Np]))
+        yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * numpy.matrix(numpy.diag(poles))    
+        Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
+        
+        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * sc_linalg.sqrtm(numpy.linalg.inv(Qp))
+        # Final equation 6.8
+        Ms_min = numpy.sqrt(1 + (numpy.max(sigmas(pre_mat))) ** 2)
+
+    else:
+        # Equation 6.16 (p226) uses maximum deadtime per output channel to
+        # give tightest lowest bounds. Create vector to be used for the
+        # diagonal deadtime matrix containing each outputs' maximum dead time.
+        # This would ensure tighter bounds on T and S. The minimum function is
+        # used because all stable systems has dead time with a negative sign.
+
+        dead_time_vec_max_row = numpy.zeros(deadtime[0].shape[0])
+
+        for i in range(deadtime[0].shape[0]):
+            dead_time_vec_max_row[i] = numpy.max(deadtime[0][i, :])
+
+        def Dead_time_matrix(s, dead_time_vec_max_row):
+
+            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(
+                                       dead_time_vec_max_row, s)))
+            return dead_time_matrix
+
+        Q_dead = numpy.zeros([numpy.shape(deadtime)[0], numpy.shape(deadtime)[1]])
+
+        for i in range(Np):
+            for j in range(Np):
+                denominator_mat = (numpy.transpose(
+                                   numpy.conjugate(Yp[:, i])) *
+                   Dead_time_matrix(poles[i], dead_time_vec_max_row) *
+                   Dead_time_matrix(poles[j], dead_time_vec_max_row) *
+                   Yp[:, j])
+
+                numerator_mat = poles[i] + poles[i]
+
+                Q_dead[i, j] = denominator_mat / numerator_mat
+
+        lambda_mat = (sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) *
+                      (Qp + Qzp * numpy.linalg.pinv(Qz) *
+                      (numpy.transpose(numpy.conjugate(Qzp)))) *
+                      sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
+
+        # Final equation 6.19
+        Ms_min = numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0]))
+
+    return Ms_min
+
+
+def BoundKS(G, poles, e=0.00001):
+    '''
+    The functions uses equaption 6.24 (p229) to calculate the peak value for KS
+    transfer function using the stable version of the plant.
+    
+    Parameters
+    ----------
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+    poles : numpy array (number of zeros)
+        List of right-half plane poles.
+    e : float
+        Avoid division by zero. Let epsilon be very small (optional).
+
+    Returns
+    -------
+    KS_max : float
+        Minimum peak value.
     '''
     
     KS_PEAK = [numpy.linalg.norm(
-               numpy.linalg.svd(G(RHP_p+error_poles_direction))[2][:, 0].H *
-               numpy.linalg.pinv(G(RHP_p+error_poles_direction)), 2)
-               for RHP_p in Poles_G]
+               pole_zero_directions(G, poles, 'p', 'u').H *
+               numpy.linalg.pinv(G(RHP_p + e)), 2)
+               for RHP_p in poles]
 
     KS_max = numpy.max(KS_PEAK)
 
@@ -1260,15 +1358,15 @@ def BoundKS(G, Poles_G, error_poles_direction=0.00001):
 
 def distRej(G, gd):
     """
-    Convenience wrapper for calculation of ||gd||2, and the 
-    disturbace condition number for each disturbance in your Gd matrix.
+    Convenience wrapper for calculation of ||gd||2 (equation 6.42, p238) and
+    the disturbance condition number (equation 6.43) for each disturbance.
     
     Parameters
-    ----------    
-    G : matrix of complex numbers
-        System transfer function matrix.    
-    gd : Vector of complex numbers
-        Single disturbance vector (gdi) from your disturbance matrix Gd.
+    ----------
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+    gd : numpy matrix (m x n)
+        The transfer function Gd(s) of the distrurbances.
         
     Returns
     -------
@@ -1276,40 +1374,44 @@ def distRej(G, gd):
         The inverse of the 2-norm of a single disturbance gd.
     
     Disturbance Condition Number : float
-        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
-    
+        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)    
     """
     
-    gd1 = 1/numpy.linalg.norm(gd, 2)   #Returns largest sing value of gd(wj)
-    yd = gd1*gd
-    distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G)*yd)[0]
+    gd1 = 1 / numpy.linalg.norm(gd, 2)   #Returns largest sing value of gd(wj)
+    yd = gd1 * gd
+    distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G) * yd)[0]
     
     return gd1, distCondNum
 
 
 def distRHPZ(G, Gd, RHP_Z):
     '''
-    Equation 6.48 (p239)
-    For performance requirements imposed by disturbances. Calculate the
-    system's zeros alignment with the disturbacne matrix.
+    Applies equation 6.48 (p239) For performance requirements imposed by
+    disturbances. Calculate the system's zeros alignment with the disturbacne
+    matrix.
     
     Parameters
     ----------
-    var : type
-        Description (optional).
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+    gd : numpy matrix (n x 1)
+        The transfer function Gd(s) of the distrurbances.
+    RHP_Z : complex
+        Right-half plane zero
 
     Returns
     -------
-    Dist_RHPZ : type
-        Description.
+    Dist_RHPZ : float
+        Minimum peak value.
         
     Note
     ----
     The return value should be less than 1.
     '''
-
-    yz = pole_zero_directions(G, [RHP_Z], 'z', 'u')[0]
-    Dist_RHPZ = numpy.abs(yz.H * Gd(RHP_Z))[0,0]
+    if RHP_Z < 0: # RHP-z
+        raise ValueError('Function only applicable to RHP-zeros')
+    Yz = pole_zero_directions(G, [RHP_Z], 'z', 'y')
+    Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]
     
     return Dist_RHPZ
     

@@ -16,6 +16,6 @@ print 'Poles: {0}'.format(p)
 print 'Zeros: {0}'.format(z)
 
 pdir = pole_zero_directions(Gs, [2], 'p')
-display_export_data(pdir, 'Poles', ['u', 'y'], separator='|')
+display_export_data(pdir, 'Poles', ['u', 'y'])
 
 print '||KS|| > {:.3}'.format(BoundKS(Gs, [2]))
