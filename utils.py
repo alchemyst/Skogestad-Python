@@ -232,7 +232,6 @@ class mimotf(object):
     The object knows how to do:
 
     addition
-
     >>> G + G
     mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
      [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
@@ -243,6 +242,11 @@ class mimotf(object):
     mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
      [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
 
+    exponentiation with positive integer constants
+
+    >>> G**2
+    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
+     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
 
     """
     def __init__(self, matrix):
@@ -289,6 +293,12 @@ class mimotf(object):
         for k in range(other-1):
             r = r * self
         return r
+
+    def __getitem__(self, item):
+        return mimotf(self.matrix.__getitem__(item))
+
+    def __slice__(self, i, j):
+        return mimotf(self.matrix.__slice__(i, j))
 
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
