@@ -97,6 +97,11 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.semilogx(w, direction[i, :], color)
 
 
+###############################################################################
+#                                Chapter 2                                    #
+###############################################################################
+
+
 def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     """ 
     Shows the bode plot for a plant model
@@ -200,7 +205,12 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
     plt.axis(axlim)
     plt.grid()
     plt.ylabel("Phase")
-    plt.xlabel("Frequency [rad/s]")  
+    plt.xlabel("Frequency [rad/s]")
+
+
+###############################################################################
+#                                Chapter 4                                    #
+###############################################################################
     
 
 def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None): 
@@ -427,7 +437,12 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
     plt.axis(axlim)
     plt.xlabel('Frequency [rad/unit time]')
     plt.ylabel('$\sigma$')
-    plt.legend()  
+    plt.legend()
+
+
+###############################################################################
+#                                Chapter 6                                    #
+###############################################################################
 
 
 def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
@@ -617,12 +632,12 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     plot_type : string
         Type of plot:
         
-        ========       ============================
-        Property       Description
-        ========       ============================
+        =========      =============================
+        plot_type      Type of plot
+        =========      =============================
         all            All the pairings on one plot
         element        Each pairing has its own plot
-        =========      ============================    
+        =========      =============================    
               
     Returns
     -------
@@ -803,6 +818,66 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     plt.axis(axlim)
     plt.legend()
 
+    
+def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
+    '''
+    Use these plots to determine the constraints for perfect control in terms
+    of combined reference changes. Equation 6.52 (p241) calculates the is the
+    minimal requirement for input saturation check in terms of set point
+    tracking. A more tighter bounds is calculated with equation 6.53 (p241).
+    
+    Parameters
+    ----------
+    G : tf
+        Plant transfer function.
+    R : numpy matrix (n x n)
+        Reference changes (usually diagonal with all elements larger than 1)
+    wr : float
+        Frequency up to witch reference tracking is required
+    type_eq : string
+        Type of plot:
+        
+        =========      ==================================
+        plot_type      Type of plot
+        =========      ==================================
+        minimal        Minimal requirement, equation 6.52
+        tighter        Tighter requirement, equation 6.53
+        allo           All requirements
+        =========      ==================================
+          
+    Returns
+    -------   
+    Plot : matplotlib figure
+    
+    Note
+    ----
+    All the plots in this function needs to be larger than 1 for perfect
+    control, otherwise input saturation will occur.
+    '''
+
+    w = numpy.logspace(w_start, w_end, points)
+    s = 1j * w
+
+    lab1 = '$\sigma_{min} (G(jw))$'
+    bound1 = [utils.sigmas(G(si), 'min') for si in s]
+    lab2 = '$\sigma_{min} (R^{-1}G(jw))$'
+    bound2 = [utils.sigmas(numpy.linalg.pinv(R) * G(si), 'min') for si in s]
+
+    if plot_type == 'all':
+        plt.loglog(w, bound1, label=lab1)
+        plt.loglog(w, bound2, label=lab2)
+    elif plot_type == 'minimal':
+        plt.loglog(w, bound1, label=lab1)
+    elif plot_type == 'tighter':
+        plt.loglog(w, bound2, label=lab2)
+                                   
+    else: raise ValueError('Invalid plot_type parameter.')
+
+    mm = bound1 + bound2 + [1] # ensures that whole graph is visible
+    plt.loglog([wr, wr], [0.5 * numpy.min(mm), 5 * numpy.max(mm)], 'r', ls=':', label='Ref tracked')
+    plt.loglog([w[0], w[-1]], [1, 1], 'r', label='Bound')
+    plt.legend()
+
 
 def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000):
     '''
@@ -848,6 +923,11 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
             plt.axis(axlim)
             plt.legend()
             plot_No += 1
+
+
+###############################################################################
+#                                Chapter 2 (move to top)                      #
+###############################################################################
 
 
 def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, points=1000):
@@ -943,7 +1023,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
         Type of function to plot:
         
         ========    ==================================
-        Property    Description
+        freqtype    Type of function to plot
         ========    ==================================
         S           Sensitivity function
         T           Complementary sensitivity function

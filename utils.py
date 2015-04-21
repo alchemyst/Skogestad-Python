@@ -853,7 +853,7 @@ def RGA(G):
     return G*Ginv.T
 
 
-def sigmas(A):
+def sigmas(A, position=None):
     """
     Returns the singular values of A
     
@@ -861,6 +861,15 @@ def sigmas(A):
     ----------
     A : array
         Transfer function matrix.
+    position : string
+        Type of sigmas to return (optional).
+        
+        =========      ==================================
+        position       Type of sigmas to return
+        =========      ==================================
+        max            Maximum singular value
+        min            Minimal singular value
+        =========      ==================================
         
     Returns
     -------
@@ -877,10 +886,19 @@ def sigmas(A):
     ...                  [3, 4]])
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
-
+    >>> sigmas(A, 'min')
+    0.36596619062625746
     """
-    #TODO: This should probably be created with functools.partial
-    return numpy.linalg.svd(A, compute_uv=False)
+    
+    sigmas = numpy.linalg.svd(A, compute_uv=False)
+    if not position is None:
+        if position == 'max':
+            sigmas = sigmas[1]
+        elif position == 'min':
+            sigmas = sigmas[-1]
+        else: raise ValueError('Incorrect position parameter')
+    
+    return sigmas
 
 
 def sv_dir(G, table=False):

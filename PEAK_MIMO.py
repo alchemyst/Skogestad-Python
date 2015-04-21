@@ -3,7 +3,7 @@ import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
 
 from utils import poles, zeros
-from utilsplot import plot_freq_subplot
+from utilsplot import plot_freq_subplot, ref_perfect_const_plot
 
 
 def G(s):
@@ -55,12 +55,6 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     ----------
     var : type
         Description (optional).
-
-        ========    ==================================
-        Property    Description
-        ========    ==================================
-
-        ========    ==================================
 
     Returns
     -------
@@ -324,34 +318,12 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #checking input saturation for perfect control with reference change
     #eq 6-52 pg 241
 
-    input_sat_reference = [np.min(np.linalg.svd(np.linalg.pinv(reference_change())*G(w_i))[1]) for w_i in w]
-
     #checking input saturation for perfect control with reference change
     #another equation for checking input saturation with reference change
     #eq 6-53 pg 241
 
-    singular_min_G_ref_track = [np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
-
     plt.figure(5)
-    plt.subplot(211)
-    plt.title('min_sing(G(jw)) minimum requirement')
-    plt.loglog(w, singular_min_G_ref_track, 'r')
-    plt.loglog([w[0], w[-1]], [1, 1], 'b')
-    plt.loglog(w[0], 1.2)
-    plt.loglog(w[0], 0.8)
-    plt.loglog([wr, wr], [np.min([0.8, np.min(singular_min_G_ref_track)]), np.max([1.2, np.max(singular_min_G_ref_track)])])
-
-    plt.subplot(212)
-    plt.title('min_sing(inv(R)*G(jw)) combined changes')
-    plt.loglog(w, input_sat_reference, 'r')
-    plt.loglog([w[0], w[-1]], [1, 1], 'b')
-    plt.loglog(w[0], 1.2)
-    plt.loglog(w[0], 0.8)
-    plt.loglog([wr, wr], [np.min([0.8, np.min(input_sat_reference)]), np.max([1.2, np.max(input_sat_reference)])])
-
-    #
-    #
-    #
+    ref_perfect_const_plot(G, reference_change(), 0.01, w_start, w_end)
 
     print 'Figure 6 is the maximum and minimum singular values of G over a frequency range'
     print 'Figure 6 is also the maximum and minimum singular values of Gd over a frequency range'
