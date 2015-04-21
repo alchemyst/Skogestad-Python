@@ -853,7 +853,7 @@ def RGA(G):
     return G*Ginv.T
 
 
-def sigmas(A, position):
+def sigmas(A, position=None):
     """
     Returns the singular values of A
     
@@ -887,7 +887,7 @@ def sigmas(A, position):
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
     >>> sigmas(A, 'min')
-    0.36596619
+    0.36596619062625746
     """
     
     sigmas = numpy.linalg.svd(A, compute_uv=False)
