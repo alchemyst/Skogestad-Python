@@ -110,6 +110,12 @@ class tf(object):
             self.deadtime = 0
             self.denominator = numpy.poly1d([1])
 
+    def poles(self):
+        return self.denominator.r
+
+    def zeros(self):
+        return self.numerator.r
+
     def exp(self):
         """ If this is basically "D*s" defined as tf([D, 0], 1),
             return dead time
@@ -251,6 +257,24 @@ class mimotf(object):
     """
     def __init__(self, matrix):
         self.matrix = numpy.asmatrix(matrix)
+        self.shape = self.matrix.shape
+
+
+    def det(self):
+        return det(self.matrix)
+
+    def poles(self):
+        """ Calculate poles
+        >>> s = tf([1, 0], [1])
+        >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
+        ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
+        >>> G.poles()
+        array([-2.])
+        """
+        return self.det().poles()
+
+    def zeros(self):
+        return self.det().zeros()
 
     def __call__(self, s):
         return evalfr(self.matrix, s)
@@ -295,10 +319,19 @@ class mimotf(object):
         return r
 
     def __getitem__(self, item):
-        return mimotf(self.matrix.__getitem__(item))
+        result = mimotf(self.matrix.__getitem__(item))
+        if result.shape == (1, 1):
+            return result.matrix[0, 0]
+        else:
+            return result
 
     def __slice__(self, i, j):
-        return mimotf(self.matrix.__slice__(i, j))
+        result = mimotf(self.matrix.__slice__(i, j))
+        if result.shape == (1, 1):
+            return result.matrix[0, 0]
+        else:
+            return result
+
 
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
@@ -486,6 +519,65 @@ def listify(A):
    """
     return [A]
 
+
+def det(A):
+    """
+    Calculate determinant via elementary operations
+
+    :param A: Array-like object
+    :return: determinant
+
+    >>> det(2.)
+    2.0
+
+    >>> A = [[1., 2.],
+    ...      [1., 2.]]
+    >>> det(A)
+    0.0
+
+    >>> B = [[1., 2.],
+    ...         [3., 4.]]
+    >>> det(B)
+    -2.0
+
+    >>> C = [[1., 2., 3.],
+    ...      [1., 3., 2.],
+    ...      [3., 2., 1.]]
+    >>> det(C)
+    -12.0
+
+    # Can handle matrices of tf objects
+    # TODO: make this a little more natural (without the .matrix)
+    >>> G11 = tf([1], [1, 2])
+    >>> G = mimotf([[G11, G11], [G11, G11]])
+    >>> det(G.matrix)
+    tf([ 0.], [1])
+
+    >>> G = mimotf([[G11, 2*G11], [G11**2, 3*G11]])
+    >>> det(G.matrix)
+    tf([  3.  16.  28.  16.], [  1.  10.  40.  80.  80.  32.])
+
+    """
+
+    A = numpy.asmatrix(A)
+
+    assert A.shape[0] == A.shape[1], "Matrix must be square for determinant " \
+                                     "to exist"
+
+    # Base case, if matrix is 1x1, return value
+    if A.shape == (1, 1):
+        return A[0, 0]
+
+    # We expand by columns
+    sign = 1
+    result = 0
+    cols = rows = range(A.shape[1])
+    for i in cols:
+        submatrix = A[numpy.ix_(cols[1:], cols[:i] + cols[i+1:])]
+        result += sign*A[0,i]*det(submatrix)
+        sign *= -1
+
+    return result
 
 ###############################################################################
 #                                Chapter 2                                    #
@@ -1104,12 +1196,12 @@ def poles(G):
     ----
     Not applicable for a non-squared plant, yet.
     '''
-    
+
     s = sympy.Symbol('s')
     G = sympy.Matrix(G(s)) #convert to sympy matrix object
     det = sympy.simplify(G.det())
     pole = sympy.solve(sympy.denom(det))
-    return pole 
+    return pole
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
@@ -1451,5 +1543,6 @@ def distRHPZ(G, Gd, RHP_Z):
 if __name__ == '__main__':
     import doctest
     import sys
+
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
