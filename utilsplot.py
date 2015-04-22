@@ -946,7 +946,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
             else:
                 plt.loglog(w, sig[:, i] + one, label=('$\sigma_%s+1$' % (i + 1)))
                 plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|$' % (i + 1, j + 1)))
-                plt.loglog([w[0], w[-1]], [1, 1], 'r', label='Applicable')
+                plt.loglog([w[0], w[-1]], [1, 1], 'r', ls=':', label='Applicable')
             plt.xlabel('Frequency [rad/unit time]')
             plt.grid(True)
             plt.axis(axlim)
