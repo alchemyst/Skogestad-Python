@@ -110,6 +110,12 @@ class tf(object):
             self.deadtime = 0
             self.denominator = numpy.poly1d([1])
 
+    def poles(self):
+        return self.denominator.r
+
+    def zeros(self):
+        return self.numerator.r
+
     def exp(self):
         """ If this is basically "D*s" defined as tf([D, 0], 1),
             return dead time
@@ -252,6 +258,23 @@ class mimotf(object):
     def __init__(self, matrix):
         self.matrix = numpy.asmatrix(matrix)
         self.shape = self.matrix.shape
+
+
+    def det(self):
+        return det(self.matrix)
+
+    def poles(self):
+        """ Calculate poles
+        >>> s = tf([1, 0], [1])
+        >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
+        ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
+        >>> G.poles()
+        array([-2.])
+        """
+        return self.det().poles()
+
+    def zeros(self):
+        return self.det().zeros()
 
     def __call__(self, s):
         return evalfr(self.matrix, s)
@@ -1173,12 +1196,12 @@ def poles(G):
     ----
     Not applicable for a non-squared plant, yet.
     '''
-    
+
     s = sympy.Symbol('s')
     G = sympy.Matrix(G(s)) #convert to sympy matrix object
     det = sympy.simplify(G.det())
     pole = sympy.solve(sympy.denom(det))
-    return pole 
+    return pole
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
