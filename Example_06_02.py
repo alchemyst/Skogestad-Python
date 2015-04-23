@@ -1,11 +1,12 @@
 import numpy as np
 
-from utils import poles, zeros, pole_zero_directions, BoundST
+from utils import pole_zero_directions, BoundST, tf, mimotf
 from reporting import display_export_data
+
 
 def G(s):
     p = 3
-    z = 3
+    z = 2
     d = 30. / 180. * np.pi
     g1 = np.matrix([[1 / (s - p), 0],
                     [0, 1/ (s + 3)]])
@@ -13,17 +14,20 @@ def G(s):
                     [np.sin(d), np.cos(d)]])
     g3 = np.matrix([[(s - z) / (0.1 * s + 1), 0],
                     [0, (s + 2) / (0.1 * s + 1)]])
-    return g1 * g2 * g3
+    return g1 * g2 * g3 # mimotf scalar multiplication not avaiable yet
     
-# confirming the poles and zeros
-# TODO this solution is clearly not correct and must be fixed
-p = poles(G)
-z = zeros(G)
+s = tf([1, 0])
+G = mimotf(G(s))
+    
+p = G.poles()
+z = G.zeros()
 print 'Poles: {0}'.format(p)
 print 'Zeros: {0}'.format(z)
+print ''
 
-p = [3]
-z = [2]
+# selected p & z
+p = [3.]
+z = [2.]
 
 pdata = pole_zero_directions(G, p, 'p')
 zdata = pole_zero_directions(G, z, 'z')
