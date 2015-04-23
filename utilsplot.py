@@ -704,8 +704,8 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
 def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000):
     '''
     A subplot of disturbance conditition number to check for input saturation
-    and a subplot of to see if the disturbances fall withing the bounds on
-    the singular values of S.
+    (equation 6.43, p238). Two more subplots indicate if the disturbances fall
+    withing the bounds of S, applying equations 6.45 and 6.46 (p239).
     
     Parameters
     ----------
@@ -715,7 +715,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
         Plant disturbance model.
     S : numpy matrix
         Sensitivity function (optional, if available).
-                            
+    # TODO test S condition                        
     Returns
     -------
     Plot : matplotlib figure
@@ -737,18 +737,19 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
     
-    dim = numpy.shape(Gd(0))[1]
+    dim = numpy.shape(Gd(0))[1] # column count
     inv_norm_gd = numpy.zeros((dim, points))
+    yd = numpy.zeros((dim, points, numpy.shape(Gd(0))[0]), dtype=complex) # row count
     condtn_nm_gd = numpy.zeros((dim, points))
     for i in range(dim):
         for k in range(points):
-            inv_norm_gd[i,k], condtn_nm_gd[i,k] = utils.distRej(G(s[k]), Gd(s[k])[:,i])
+            inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = utils.distRej(G(s[k]), Gd(s[k])[:, i])
+
+    if S is None: sub = 2                
+    else: sub = 3  
     
-    if not S is None:
-        s_min = numpy.array([utils.sigmas(S(s[i]))[-1] for i in range(points)])
-        s_max = numpy.array([utils.sigmas(S(s[i]))[0] for i in range(points)])
-    
-    plt.subplot(2, 1, 1)
+    # Equation 6.43
+    plt.subplot(sub, 1, 1)
     for i in range(dim):
         plt.loglog(w, condtn_nm_gd[i], label=('$\gamma_{d%s} (G)$' % (i+1)))
     plt.axhline(1., color='red', ls=':')  
@@ -757,22 +758,36 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     plt.ylabel('$\gamma$$_d (G)$')
     plt.axhline(1., color='red', ls=':')
     plt.legend()
-    
-    plt.subplot(2, 1, 2)
+        
+    # Equation 6.44
+    plt.subplot(sub, 1, 2)
     for i in range(dim):
         plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
-    if not S is None:
-        plt.loglog(w, s_min, label='$\sigma$$_{min}$', color='green')
-        plt.loglog(w, s_max, label='$\sigma$$_{max}$', color='green', alpha = 0.5)
+        if not S is None:
+            S_yd = numpy.array([numpy.linalg.norm(S(p) * yd[i, p, :].T, 2) for p in range(points)])
+            plt.loglog(w, S_yd, label='$||Sy_d||_2$')
     plt.axis(axlim) 
     plt.xlabel('Frequency [rad/unit time]')
-    plt.ylabel('$1/||g_d||_2$')
-    plt.legend()  
+    plt.legend()
+    
+    if not S is None: # this subplot should not be repeated with S is not avaiable
+        # Equation 6.45
+        plt.subplot(3, 1, 3)
+        for i in range(dim):
+            plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
+            s_min = numpy.array([utils.sigmas(S(s[p]), 'min') for p in range(points)])
+            s_max = numpy.array([utils.sigmas(S(s[p]), 'max') for p in range(points)])
+            plt.loglog(w, s_min, label='$\sigma_{min}$')
+            plt.loglog(w, s_max, label='$\sigma_{max}$')
+        plt.axis(axlim) 
+        plt.xlabel('Frequency [rad/unit time]')
+        plt.legend()
     
 
 def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, simultaneous=False):
     '''
-    Plot for input constraints for perfect control.
+    Plot for input constraints for perfect control. Applies equation 6.50
+    (p240).
     
     Parameters
     ----------
@@ -822,8 +837,8 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
 def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
     '''
     Use these plots to determine the constraints for perfect control in terms
-    of combined reference changes. Equation 6.52 (p241) calculates the is the
-    minimal requirement for input saturation check in terms of set point
+    of combined reference changes. Equation 6.52 (p241) calculates the
+    minimal requirement for input saturation to check in terms of set point
     tracking. A more tighter bounds is calculated with equation 6.53 (p241).
     
     Parameters
@@ -879,9 +894,10 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=100
     plt.legend()
 
 
-def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000):
+def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, modified=False):
     '''
-    Subbplots for input constraints for accepatable control.
+    Subbplots for input constraints for accepatable control. Applies equation
+    6.55 (p241).
     
     Parameters
     ----------
@@ -889,10 +905,17 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
         Plant model.    
     Gd : numpy matrix
         Plant disturbance model.
+    modified : boolean
+        If true, the arguments in the equation are change to :math:`\sigma_1
+        (G) + 1 \geq |u_i^H g_d|`. This is to avoid a negative log scale.
 
     Returns
     -------   
     Plot : matplotlib figure
+    
+    Note
+    ----
+    This condition only holds for :math:`|u_i^H g_d|>1`.
     '''
 
     if axlim is None:
@@ -903,7 +926,8 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
     s = w*1j    
     
     freqresp = map(G, s) 
-    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])  
+    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
+    one = numpy.ones(points)
     
     plot_No = 1
     
@@ -914,10 +938,15 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
         for i in range(dimG):
             for k in range(points):
                 U, _, _ = utils.SVD(G(s[k]))
-                acceptable_control[j, i, k] = numpy.abs(U[:, i].H * Gd(s[k])[:, j]) - 1
+                acceptable_control[j, i, k] = numpy.abs(U[:, i].H * Gd(s[k])[:, j])
             plt.subplot(dimGd, dimG, plot_No)
-            plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
-            plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
+            if not modified:
+                plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
+                plt.plot(w, acceptable_control[j, i] - one, label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
+            else:
+                plt.loglog(w, sig[:, i] + one, label=('$\sigma_%s+1$' % (i + 1)))
+                plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|$' % (i + 1, j + 1)))
+                plt.loglog([w[0], w[-1]], [1, 1], 'r', ls=':', label='Applicable')
             plt.xlabel('Frequency [rad/unit time]')
             plt.grid(True)
             plt.axis(axlim)
@@ -962,10 +991,10 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
         
     if ((input_label == None) and (input_label == None)):
         labels = False   
-    elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
+    elif (numpy.shape(input_label)[0] == columns) and (numpy.shape(output_label)[0] == rows):
         labels = True
     else:
-        raise ValueError('Input and output label count is not equal')  
+        raise ValueError('Label count is inconsistent to plant size')  
     
     fig = adjust_spine('Time','Output magnitude', -0.05, 0.1, 0.8, 0.9)
 
