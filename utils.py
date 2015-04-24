@@ -1467,7 +1467,7 @@ def BoundKS(G, poles, e=0.00001):
     '''
     
     KS_PEAK = [numpy.linalg.norm(
-               pole_zero_directions(G, poles, 'p', 'u').H *
+               pole_zero_directions(G, [RHP_p], 'p', 'u').H *
                numpy.linalg.pinv(G(RHP_p + e)), 2)
                for RHP_p in poles]
 

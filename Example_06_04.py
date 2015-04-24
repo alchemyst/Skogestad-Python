@@ -1,21 +1,34 @@
-import numpy as np
-
-from utils import poles, zeros, pole_zero_directions, BoundKS
+from utils import pole_zero_directions, BoundKS, tf, mimotf
 from reporting import display_export_data
+import numpy as np
+s = tf([1, 0])
 
+G11 = (s - 2.5) / (s - 2)
+G12 = -(0.1 * s + 1) / (s + 2)
+G21 = (s - 2.5) / (0.1 * s + 1)
+# TODO the mimotf does not accept constants in a cell
+G22 = s # should be 1!
 
-def Gs(s):
-    return np.matrix([[(s - 2.5) / (s - 2), -(0.1 * s + 1) / (s + 2)],
-                      [(s - 2.5) / (0.1 * s + 1), 1]])
+G = mimotf([[G11, G12],
+            [G21, G22]])
 
-# confirming the poles and zeros
-# TODO this solution is clearly not correct and must be fixed
-p = poles(Gs)
-z = zeros(Gs)
+p = G.poles()
+z = G.zeros()
 print 'Poles: {0}'.format(p)
 print 'Zeros: {0}'.format(z)
+print ''
 
-pdir = pole_zero_directions(Gs, [2], 'p')
+def Gs(s):
+    G11 = (s + 2.5) / (s + 2)
+    G12 = -(0.1 * s + 1) / (s + 2)
+    G21 = (s + 2.5) / (0.1 * s + 1)   
+    G22 = 1
+    return np.matrix([[G11, G12],[G21, G22]])
+    
+# select RHP-pole
+p = [2.]
+# TODO input direction differ from textbook
+pdir = pole_zero_directions(Gs, p, 'p')
 display_export_data(pdir, 'Poles', ['u', 'y'])
 
-print '||KS|| > {:.3}'.format(BoundKS(Gs, [2]))
+print '||KS|| > {:.3}'.format(BoundKS(Gs, p))
