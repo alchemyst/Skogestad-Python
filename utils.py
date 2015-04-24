@@ -102,7 +102,10 @@ class tf(object):
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
+        assert remainder == numpy.poly1d(0), "Error in simplifying rational"
         self.denominator, remainder = self.denominator/g
+        assert remainder == numpy.poly1d(0), "Error in simplifying rational"
+
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -869,7 +872,7 @@ def Wp(wB, A, s):
     
     Parameters
     ----------
-    wB : flaot
+    wB : float
          Minimum bandwidth frequency requirment.
     
     A : float
