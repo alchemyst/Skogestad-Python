@@ -243,15 +243,39 @@ class mimotf(object):
     The object knows how to do:
 
     addition
+
     >>> G + G
     mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
      [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
 
+    >>> 0 + G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G + 0
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
     multiplication
-    #TODO: scalar multiplication doesn't work!
     >>> G * G
     mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
      [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+
+    >>> 1*G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G*1
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G*tf(1)
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> tf(1)*G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
 
     exponentiation with positive integer constants
 
@@ -288,9 +312,15 @@ class mimotf(object):
         return "mimotf({})".format(str(self.matrix))
 
     def __add__(self, other):
-        if not isinstance(other, mimotf):
-            other = mimotf(other)
-        return mimotf(self.matrix + other.matrix)
+         left = self.matrix
+         if not isinstance(other, mimotf):
+             if hasattr(other, 'shape'):
+                 right = mimotf(other).matrix
+             else:
+                 right = tf(other)
+         else:
+             right = other
+         return mimotf(left + right)
 
     def __radd__(self, other):
         return self + other
