@@ -4,16 +4,17 @@ import matplotlib.pyplot as plt
 from utilsplot import plot_freq_subplot, sv_dir_plot
 from utils import mimotf, tf
 
-def SVD_w(G, w_start, w_end):
-    """ singular value demoposition
-    freqeuncy dependant SVD of G
-    w_start = start of the logspace for the freqeuncy range"""
+
+def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):
+    """ 
+    Singular value demoposition functions    
+    """
 
     #  this is an open loop study
 
     #  w_end = end of the logspace for the frequency range
 
-    w = np.logspace(w_start, w_end, 10000)
+    w = np.logspace(w_start, w_end, points)
 
     #  getting the size of the system
     A = G(0.0001)
@@ -82,7 +83,7 @@ if __name__ == '__main__': # only executed when called directly, not executed wh
         dead = [[0, 1], [0, 3]]
         return np.exp(dead), dead
     
-    SVD_w(G, -3, 3) # TODO altenative in code shown, now remove original
+    SVD_w(G, -3, 3) # TODO remove original SVD_w routines, replace with utilsplots
     
     plt.figure('Input singular vectors')
     sv_dir_plot(G, 'input')
