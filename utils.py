@@ -102,9 +102,11 @@ class tf(object):
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert remainder == numpy.poly1d(0), "Error in simplifying rational"
+        assert numpy.allclose(remainder.coeffs, 0), \
+               "Error in simplifying rational, remainder={}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert remainder == numpy.poly1d(0), "Error in simplifying rational"
+        assert numpy.allclose(remainder.coeffs, 0), \
+               "Error in simplifying rational, remainder={}".format(remainder)
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
