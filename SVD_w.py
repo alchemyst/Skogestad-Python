@@ -1,24 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilsplot import plot_freq_subplot
+from utilsplot import plot_freq_subplot, sv_dir_plot
+from utils import mimotf, tf
 
-
-def G(w):
-    """ function to create the matrix of transfer functions"""
-    s = w*1j
-
-    # the matrix transfer function
-    G = [[1/(s+1), 1/(10*s+1)**2, 1], [0.4/(s*(s+3)), -0.1/(s**2+1), 1], [1/(s+1), 10/(s+11), 1/(s+0.001)]]
-    return G
-
-
-def Time_delay(w):
-    dead = [[0, 1], [0, 3]]
-    return np.exp(dead), dead
-
-
-def SVD_w(w_start, w_end):
+def SVD_w(G, w_start, w_end):
     """ singular value demoposition
     freqeuncy dependant SVD of G
     w_start = start of the logspace for the freqeuncy range"""
@@ -83,6 +69,24 @@ def SVD_w(w_start, w_end):
     plot_freq_subplot(plt, w, output_direction_min, "min Output", "b.", 3)
 
     #  plotting of the resulting max and min of the output vectore
-    plt.show()
 
-SVD_w(-3, 3)
+if __name__ == '__main__': # only executed when called directly, not executed when imported
+
+    def G(s):
+        G = [[1/(s+1), 1/(10*s+1)**2, 1], 
+             [0.4/(s*(s+3)), -0.1/(s**2+1), 1],
+             [1/(s+1), 10/(s+11), 1/(s+0.001)]]
+        return G
+    
+    def Time_delay(w):
+        dead = [[0, 1], [0, 3]]
+        return np.exp(dead), dead
+    
+    SVD_w(G, -3, 3) # TODO altenative in code shown, now remove original
+    
+    plt.figure('Input singular vectors')
+    sv_dir_plot(G, 'input')
+    plt.figure('Output singular vectors')
+    sv_dir_plot(G, 'output')
+    
+    plt.show()
