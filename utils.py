@@ -22,18 +22,17 @@ def astf(maybetf):
     >>> astf(1)
     tf([ 1.], [ 1.])
 
-    >>> astf(numpy.matrix([[G, 1], [0, G]]))
-    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])]],
-     [tf([ 0.], [ 1.]), tf([ 1.], [ 1.  1.])]])
+    >>> astf(numpy.matrix([[G, 1.], [0., G]]))
+    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])],
+            [tf([ 0.], [1]), tf([ 1.], [ 1.  1.])]], dtype=object)
 
     """
     if isinstance(maybetf, tf):
         return maybetf
-    elif hasattr(maybetf, 'shape'): # assume this is an array-like object
-        return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
-    else:
+    elif numpy.isscalar(maybetf):
         return tf(maybetf)
-
+    else: # Assume we have an array-like object
+        return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
 
 
 class tf(object):
@@ -264,6 +263,10 @@ class mimotf(object):
     mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
      [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
 
+    Some coercion will take place on the elements:
+    >>> mimotf([[1]])
+    mimotf([[tf([ 1.], [ 1.])]])
+
     The object knows how to do:
 
     addition
@@ -333,7 +336,7 @@ class mimotf(object):
 
     def __call__(self, s):
         """
-        >>> G = mimotf(1)
+        >>> G = mimotf([[1]])
         >>> G(0)
         matrix([[ 1.]])
 
@@ -582,7 +585,7 @@ def arrayfun(f, A):
     >>> arrayfun(f, 1)
     1.0
     """
-    if not hasattr(A, 'shape') or len(A.shape) == 0:
+    if not hasattr(A, 'shape') or numpy.isscalar(A):
         return f(A)
     else:
         return [arrayfun(f, b) for b in A]
