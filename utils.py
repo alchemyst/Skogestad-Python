@@ -10,6 +10,26 @@ import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 
+@numpy.vectorize
+def astf(maybetf):
+    """
+    :param maybetf: something which could be a tf
+    :return: a transfer function object
+
+    >>> G = tf(1, [1, 1])
+    >>> astf(G)
+    tf([ 1.], [ 1.  1.])
+
+    >>> astf(1)
+    tf([ 1.], [ 1.])
+
+    """
+    if isinstance(maybetf, tf):
+        return maybetf
+    else:
+        return tf(maybetf)
+
+
 
 class tf(object):
     """
@@ -173,8 +193,7 @@ class tf(object):
                 numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
+        other = astf(other)
         # Zero-gain functions are special
         if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
@@ -285,7 +304,9 @@ class mimotf(object):
 
     """
     def __init__(self, matrix):
-        self.matrix = numpy.asmatrix(matrix)
+        # First coerce whatever we have into a matrix
+        self.matrix = astf(numpy.asmatrix(matrix))
+        # We only support matrices of transfer functions
         self.shape = self.matrix.shape
 
 
@@ -306,6 +327,21 @@ class mimotf(object):
         return self.det().zeros()
 
     def __call__(self, s):
+        """
+        >>> G = mimotf(1)
+        >>> G(0)
+        matrix([[ 1.]])
+
+        >>> firstorder= tf(1, [1, 1])
+        >>> G = mimotf(firstorder)
+        >>> G(0)
+        matrix([[ 1.]])
+
+        >>> G2 = mimotf([[firstorder]*2]*2)
+        >>> G2(0)
+        matrix([[ 1.,  1.],
+                [ 1.,  1.]])
+        """
         return evalfr(self.matrix, s)
 
     def __repr__(self):
