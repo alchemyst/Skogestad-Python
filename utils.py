@@ -363,7 +363,7 @@ class mimotf(object):
              else:
                  right = tf(other)
          else:
-             right = other
+             right = other.matrix
          return mimotf(left + right)
 
     def __radd__(self, other):
