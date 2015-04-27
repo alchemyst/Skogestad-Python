@@ -263,7 +263,7 @@ class mimotf(object):
     mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
      [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
 
-    Some coercion will take place on the elements:
+    Some coersion will take place on the elements:
     >>> mimotf([[1]])
     mimotf([[tf([ 1.], [ 1.])]])
 
