@@ -27,7 +27,7 @@ def astf(maybetf):
             [tf([ 0.], [1]), tf([ 1.], [ 1.  1.])]], dtype=object)
 
     """
-    if isinstance(maybetf, tf):
+    if isinstance(maybetf, (tf, mimotf)):
         return maybetf
     elif numpy.isscalar(maybetf):
         return tf(maybetf)
@@ -198,6 +198,8 @@ class tf(object):
 
     def __add__(self, other):
         other = astf(other)
+        if isinstance(other, numpy.matrix):
+            return other.__add__(self)
         # Zero-gain functions are special
         if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
@@ -215,8 +217,11 @@ class tf(object):
         return other + (-self)
 
     def __mul__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
+        other = astf(other)
+        if isinstance(other, numpy.matrix):
+            return numpy.dot(other, self)
+        elif isinstance(other, mimotf):
+            return mimotf(numpy.dot(other.matrix, self))
         return tf(self.numerator*other.numerator,
                   self.denominator*other.denominator,
                   self.deadtime + other.deadtime)
@@ -247,6 +252,18 @@ class tf(object):
 def evalfr(G, s):
     return G(s)
 
+
+def matrix_as_scalar(M):
+    """
+    Return a scalar from a 1x1 matrix
+
+    :param M: matrix
+    :return: scalar part of matrix if it is 1x1 else just a matrix
+    """
+    if M.shape == (1, 1):
+        return M[0, 0]
+    else:
+        return M
 
 class mimotf(object):
     """ Represents MIMO transfer function matrix
@@ -376,14 +393,18 @@ class mimotf(object):
         return other + (-self)
 
     def __mul__(self, other):
+        left = matrix_as_scalar(self.matrix)
         if not isinstance(other, mimotf):
             other = mimotf(other)
-        return mimotf(self.matrix*other.matrix)
+        right = matrix_as_scalar(other.matrix)
+        return mimotf(left*right)
 
     def __rmul__(self, other):
+        right = matrix_as_scalar(self.matrix)
         if not isinstance(other, mimotf):
             other = mimotf(other)
-        return mimotf(other.matrix*self.matrix)
+        left = matrix_as_scalar(other.matrix)
+        return mimotf(left*right)
 
     def __div__(self, other):
         raise NotImplemented("Division doesn't make sense on matrices")
