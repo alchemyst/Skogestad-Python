@@ -1602,7 +1602,7 @@ def distRHPZ(G, Gd, RHP_Z):
     ----
     The return value should be less than 1.
     '''
-    if RHP_Z < 0: # RHP-z
+    if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]

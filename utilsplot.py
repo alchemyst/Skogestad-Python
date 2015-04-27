@@ -440,6 +440,65 @@ def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
     plt.legend()
 
 
+def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
+    '''
+    Plot the input and output singular vectors associated with the minimum and
+    maximum singular values.
+
+    Parameters
+    ----------
+    G : matrix
+        Plant model or sensitivity function.
+    plot_type : string
+        Type of plot.
+
+        =========      ============================
+        plot_type      Type of plot
+        =========      ============================
+        input          Plots input vectors
+        output         Plots output vectors
+        =========      ============================
+
+    Returns
+    -------
+    Plot : matplotlib figure
+
+    Note
+    ----
+    Can be used with the plant matrix G and the sensitivity function S
+    for controlability analysis
+    '''
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.gcf().set_facecolor('white')
+
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j
+
+    freqresp = map(G, s)
+
+    if plot_type == 'input':
+        vec = numpy.array([V for _, _, V in map(utils.SVD, freqresp)])
+        d = 'v'
+    elif plot_type == 'output':
+        vec = numpy.array([U for U, _, _ in map(utils.SVD, freqresp)])
+        d = 'u'
+    else: raise ValueError('Invalid plot_type parameter.')
+
+    dim = numpy.shape(vec)[1]
+    for i in range(dim):
+        plt.subplot(dim , 1, i + 1)
+        plt.semilogx(w, vec[:, 0, i], label= '$%s_{max}$' % d, lw=4)
+        plt.semilogx(w, vec[:, -1, i], label= '$%s_{min}$' % d, lw=4)
+        plt.axhline(0, color='red', ls=':')
+        plt.axis(axlim)
+        plt.ylabel('$%s_%s$' % (d ,i + 1))
+        plt.legend()
+
+    plt.xlabel('Frequency [rad/unit time]')
+
+
 ###############################################################################
 #                                Chapter 6                                    #
 ###############################################################################
