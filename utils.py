@@ -10,7 +10,6 @@ import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 
-@numpy.vectorize
 def astf(maybetf):
     """
     :param maybetf: something which could be a tf
@@ -23,9 +22,15 @@ def astf(maybetf):
     >>> astf(1)
     tf([ 1.], [ 1.])
 
+    >>> astf(numpy.matrix([[G, 1], [0, G]]))
+    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])]],
+     [tf([ 0.], [ 1.]), tf([ 1.], [ 1.  1.])]])
+
     """
     if isinstance(maybetf, tf):
         return maybetf
+    elif hasattr(maybetf, 'shape'): # assume this is an array-like object
+        return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
     else:
         return tf(maybetf)
 
@@ -565,9 +570,19 @@ def arrayfun(f, A):
     Returns
     -------
     arrayfun : list
-        
-   """
-    if len(A.shape) == 0:
+
+    >>> def f(x):
+    ...     return 1.
+    >>> arrayfun(f, numpy.array([1, 2, 3]))
+    [1.0, 1.0, 1.0]
+
+    >>> arrayfun(f, numpy.array([[1, 2, 3], [1, 2, 3]]))
+    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
+
+    >>> arrayfun(f, 1)
+    1.0
+    """
+    if not hasattr(A, 'shape') or len(A.shape) == 0:
         return f(A)
     else:
         return [arrayfun(f, b) for b in A]
@@ -607,7 +622,7 @@ def det(A):
     0.0
 
     >>> B = [[1., 2.],
-    ...         [3., 4.]]
+    ...      [3., 4.]]
     >>> det(B)
     -2.0
 
