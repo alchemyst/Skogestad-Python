@@ -210,22 +210,27 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
 
 ###############################################################################
 #                                Chapter 4                                    #
-###############################################################################
-    
+###############################################################################   
 
-def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None): 
+
+def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=False, sv_all=False): 
     """
-    Plots the max and min singular values of G and computes the crossover freq.
+    Plots the max and min singular values of G and computes the crossover
+    frequency.
     
-    If a controller is specified, the max and min singular values
-    of S are also plotted and the bandwidth freq computed.
+    If a controller is specified, the max and min singular values of S are also
+    plotted and the bandwidth frequency computed.
               
     Parameters
     ----------
-    Gin : numpy matrix
+    G : numpy matrix
         Matrix of plant transfer functions.
     Kin : numpy matrix
         Controller matrix (optional).
+    text : boolean
+        If true, the crossover and bandwidth frequencies are plotted (optional).
+    sv_all : boolean
+        If true, plot all the singular values of the plant (optional).
     
     Returns
     -------
@@ -266,69 +271,56 @@ def mimo_bode(Gin, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None):
     s = w*1j
     xmin = 10**w_start
     
-    if Kin is None:
+    if Kin is not None:
         plt.subplot(2, 1, 1)
+        
+    dim = numpy.shape(G(0.00001))[0]
     
-    Sv1 = numpy.zeros(len(w), dtype=complex)
-    Sv2 = numpy.zeros(len(w), dtype=complex)
-    f = 0
-    wC = 0
-    for i in range(len(w)):
-        Sv1[i] = utils.sigmas(Gin(s[i]))[0]
-        Sv2[i] = utils.sigmas(Gin(s[i]))[-1]
-        if f < 1 and Sv2[i] < 1:
-            wC = w[i]
-            f = 1
-    ymin = numpy.min(Sv2)
+    def subbode(A, text, crossover, labB, labP):        
+        Sv = numpy.zeros((len(w), dim), dtype=complex)
+        f = False
+        wA = 0
+        for j in range(dim):
+            for i in range(len(w)):
+                Sv[i, j] = utils.sigmas(G(s[i]))[j]
+                if j == dim - 1 and not f:
+                    if (labB == 'wC' and Sv[i, -1] < 1) or (labB == 'wB' and Sv[i] > 0.707):
+                        wA = w[i]
+                        f = True
+        ymin = numpy.min(Sv[:, -1])
+        
+        if not sv_all:
+            plt.loglog(w, Sv[:, 0], 'b', label=('$\sigma_{max}(%s)$') % labP)
+            plt.loglog(w, Sv[:, -1], 'g', label=('$\sigma_{min}(%s)$') % labP)
+        else:
+            for j in range(dim):
+                plt.loglog(w, Sv[:, j], label=('$\sigma_{%s}(%s)$' % (j, labP)))
+        plt.axhline(crossover, ls=':', lw=2, color='r')
+        if text:
+            plt.text(xmin, 1.1, 'Mag = 1', color='r')
+            plt.axvline(wA, ls=':', lw=2, color='r')
+            plt.text(wA*1.1, ymin*1.1, labB, color='r')
+        plt.axis(axlim)
+        plt.grid()
+        plt.xlabel('Frequency [rad/unit time]')
+        plt.ylabel('$\sigma$')
+        plt.legend()
+        return wA
     
-    plt.loglog(w, Sv1, 'k-', label='Max $\sigma$(G)')
-    plt.loglog(w, Sv2, 'k-', alpha=0.5, label='Min $\sigma$(G)')
-    plt.axhline(1, ls=':', lw=2, color='blue')
-    plt.text(xmin, 1.1, 'Mag = 1', color='blue')
-    plt.axvline(wC, ls=':', lw=2, color='blue')
-    plt.text(wC*1.1, ymin*1.1, 'wC', color='blue')
-    plt.legend(loc='upper right', fontsize = 10, ncol=1)
-    plt.xlabel('Frequency [rad/unit time]')
-    plt.ylabel('Magnitude')
-    plt.axis(axlim)
-    plt.grid(True)
+    wC = subbode(G, text, 1, 'wC', 'G')
     
     if Kin is None:
         Bandwidth = wC
-        print('Bandwidth = wC')
+        if text: print('wC = {:.3}'.format(wC))
     else:
-        def S(s):
-            L = Kin(s)*Gin(s)
-            dim = numpy.shape(Gin(0))[0]
-            return numpy.linalg.inv(numpy.eye(dim) + L)  #SVD of S = 1/(I + L)
-
-        w = numpy.logspace(w_start, w_end, points)
-        s = w*1j
-        Sv1 = numpy.zeros(len(w), dtype=complex)
-        Sv2 = numpy.zeros(len(w), dtype=complex)
-        f = 0
-        wB = 0
-        for i in range(len(w)):
-            Sv1[i] = utils.sigmas(S(s[i]))[0]
-            Sv2[i] = utils.sigmas(S(s[i]))[-1]
-            if f < 1 and Sv1[i] > 0.707:
-                wB = w[i]
-                f = 1
-                
-        plt.subplot(2, 1, 2)
-        plt.loglog(w, Sv1, 'r-', label='Max $\sigma$(S)')
-        plt.loglog(w, Sv2, 'r-', alpha=0.5, label='Min $\sigma$(S)')
-        plt.axhline(0.707, ls=':', lw=2, color='green')
-        plt.text(xmin, 0.5, 'Mag = 0.707', color='green')
-        plt.axvline(wB, ls=':', lw=2, color='green')
-        plt.text(wB*1.1, ymin*1.1, 'wB', color='green')
-        plt.legend(loc='upper right', fontsize = 10, ncol=1)
-        plt.xlabel('Frequency [rad/unit time]')
-        plt.ylabel('Magnitude')
-        plt.axis(axlim)
-        plt.grid(True)
+        L = Kin(s) * G(s)
+        S = numpy.linalg.inv(numpy.eye(dim) + L)  #SVD of S = 1/(I + L)  
+          
+        wB = subbode(S, text, 1, 'wC', 'G')
+        
         Bandwidth = wC, wB
-        print('Bandwidth is a tuple of wC, wB')
+        if text: print '(wC = {1}, wB = {2}'.format(wC, wB)
+        
     return Bandwidth
 
 
@@ -392,52 +384,6 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.plot(0, 0, 'r*', ms=10)
     plt.grid(True)
     plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
-
-
-def sv_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, sv_all=False):
-    '''
-    Plot of Maximum and minimum singular values of a matirix
-    
-    Parameters
-    ----------
-    G : numpy matrix
-        Plant model or sensitivity function.       
-    sv_all : boolean
-        If true, plot all the singular values of the plant (optional).
-              
-    Returns
-    -------
-    Plot : matplotlib figure
-    
-    Note
-    ----
-    Can be used with the plant matrix G and the sensitivity function S
-    for controlability analysis
-    '''
-
-    if axlim is None:
-        axlim = [None, None, None, None]
-    plt.gcf().set_facecolor('white')
-
-    w = numpy.logspace(w_start, w_end, points)
-    s = w*1j    
-    
-    freqresp = map(G, s)    
-    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
-    
-    if not sv_all:
-        plt.loglog(w, sig[:,0], label='$\sigma$$_{max}$')
-        plt.loglog(w, sig[:,-1], label='$\sigma$$_{min}$')
-    else:
-        dim = numpy.shape(sig)[1]
-        for sv in range(dim):
-            plt.loglog(w, sig[:,sv], label='$\sigma$$_{%s}$' % sv)
-    
-    plt.axhline(1., color='red', ls=':')
-    plt.axis(axlim)
-    plt.xlabel('Frequency [rad/unit time]')
-    plt.ylabel('$\sigma$')
-    plt.legend()
 
 
 def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
