@@ -10,6 +10,30 @@ import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 
+def astf(maybetf):
+    """
+    :param maybetf: something which could be a tf
+    :return: a transfer function object
+
+    >>> G = tf(1, [1, 1])
+    >>> astf(G)
+    tf([ 1.], [ 1.  1.])
+
+    >>> astf(1)
+    tf([ 1.], [ 1.])
+
+    >>> astf(numpy.matrix([[G, 1.], [0., G]]))
+    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])],
+            [tf([ 0.], [1]), tf([ 1.], [ 1.  1.])]], dtype=object)
+
+    """
+    if isinstance(maybetf, (tf, mimotf)):
+        return maybetf
+    elif numpy.isscalar(maybetf):
+        return tf(maybetf)
+    else: # Assume we have an array-like object
+        return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
+
 
 class tf(object):
     """
@@ -102,7 +126,12 @@ class tf(object):
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
+        assert numpy.allclose(remainder.coeffs, 0), \
+               "Error in simplifying rational, remainder={}".format(remainder)
         self.denominator, remainder = self.denominator/g
+        assert numpy.allclose(remainder.coeffs, 0), \
+               "Error in simplifying rational, remainder={}".format(remainder)
+
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -168,8 +197,9 @@ class tf(object):
                 numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
+        other = astf(other)
+        if isinstance(other, numpy.matrix):
+            return other.__add__(self)
         # Zero-gain functions are special
         if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
@@ -187,8 +217,11 @@ class tf(object):
         return other + (-self)
 
     def __mul__(self, other):
-        if not isinstance(other, tf):
-            other = tf(other)
+        other = astf(other)
+        if isinstance(other, numpy.matrix):
+            return numpy.dot(other, self)
+        elif isinstance(other, mimotf):
+            return mimotf(numpy.dot(other.matrix, self))
         return tf(self.numerator*other.numerator,
                   self.denominator*other.denominator,
                   self.deadtime + other.deadtime)
@@ -220,6 +253,18 @@ def evalfr(G, s):
     return G(s)
 
 
+def matrix_as_scalar(M):
+    """
+    Return a scalar from a 1x1 matrix
+
+    :param M: matrix
+    :return: scalar part of matrix if it is 1x1 else just a matrix
+    """
+    if M.shape == (1, 1):
+        return M[0, 0]
+    else:
+        return M
+
 class mimotf(object):
     """ Represents MIMO transfer function matrix
 
@@ -235,18 +280,46 @@ class mimotf(object):
     mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
      [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
 
+    Some coersion will take place on the elements:
+    >>> mimotf([[1]])
+    mimotf([[tf([ 1.], [ 1.])]])
+
     The object knows how to do:
 
     addition
+
     >>> G + G
     mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
      [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
 
+    >>> 0 + G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G + 0
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
     multiplication
-    #TODO: scalar multiplication doesn't work!
     >>> G * G
     mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
      [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+
+    >>> 1*G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G*1
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> G*tf(1)
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+
+    >>> tf(1)*G
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
+     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
 
     exponentiation with positive integer constants
 
@@ -256,7 +329,9 @@ class mimotf(object):
 
     """
     def __init__(self, matrix):
-        self.matrix = numpy.asmatrix(matrix)
+        # First coerce whatever we have into a matrix
+        self.matrix = astf(numpy.asmatrix(matrix))
+        # We only support matrices of transfer functions
         self.shape = self.matrix.shape
 
 
@@ -277,15 +352,36 @@ class mimotf(object):
         return self.det().zeros()
 
     def __call__(self, s):
+        """
+        >>> G = mimotf([[1]])
+        >>> G(0)
+        matrix([[ 1.]])
+
+        >>> firstorder= tf(1, [1, 1])
+        >>> G = mimotf(firstorder)
+        >>> G(0)
+        matrix([[ 1.]])
+
+        >>> G2 = mimotf([[firstorder]*2]*2)
+        >>> G2(0)
+        matrix([[ 1.,  1.],
+                [ 1.,  1.]])
+        """
         return evalfr(self.matrix, s)
 
     def __repr__(self):
         return "mimotf({})".format(str(self.matrix))
 
     def __add__(self, other):
-        if not isinstance(other, mimotf):
-            other = mimotf(other)
-        return mimotf(self.matrix + other.matrix)
+         left = self.matrix
+         if not isinstance(other, mimotf):
+             if hasattr(other, 'shape'):
+                 right = mimotf(other).matrix
+             else:
+                 right = tf(other)
+         else:
+             right = other.matrix
+         return mimotf(left + right)
 
     def __radd__(self, other):
         return self + other
@@ -297,14 +393,18 @@ class mimotf(object):
         return other + (-self)
 
     def __mul__(self, other):
+        left = matrix_as_scalar(self.matrix)
         if not isinstance(other, mimotf):
             other = mimotf(other)
-        return mimotf(self.matrix*other.matrix)
+        right = matrix_as_scalar(other.matrix)
+        return mimotf(left*right)
 
     def __rmul__(self, other):
+        right = matrix_as_scalar(self.matrix)
         if not isinstance(other, mimotf):
             other = mimotf(other)
-        return mimotf(other.matrix*self.matrix)
+        left = matrix_as_scalar(other.matrix)
+        return mimotf(left*right)
 
     def __div__(self, other):
         raise NotImplemented("Division doesn't make sense on matrices")
@@ -494,9 +594,19 @@ def arrayfun(f, A):
     Returns
     -------
     arrayfun : list
-        
-   """
-    if len(A.shape) == 0:
+
+    >>> def f(x):
+    ...     return 1.
+    >>> arrayfun(f, numpy.array([1, 2, 3]))
+    [1.0, 1.0, 1.0]
+
+    >>> arrayfun(f, numpy.array([[1, 2, 3], [1, 2, 3]]))
+    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
+
+    >>> arrayfun(f, 1)
+    1.0
+    """
+    if not hasattr(A, 'shape') or numpy.isscalar(A):
         return f(A)
     else:
         return [arrayfun(f, b) for b in A]
@@ -536,7 +646,7 @@ def det(A):
     0.0
 
     >>> B = [[1., 2.],
-    ...         [3., 4.]]
+    ...      [3., 4.]]
     >>> det(B)
     -2.0
 
@@ -869,7 +979,7 @@ def Wp(wB, A, s):
     
     Parameters
     ----------
-    wB : flaot
+    wB : float
          Minimum bandwidth frequency requirment.
     
     A : float
@@ -1467,7 +1577,7 @@ def BoundKS(G, poles, e=0.00001):
     '''
     
     KS_PEAK = [numpy.linalg.norm(
-               pole_zero_directions(G, poles, 'p', 'u').H *
+               pole_zero_directions(G, [RHP_p], 'p', 'u').H *
                numpy.linalg.pinv(G(RHP_p + e)), 2)
                for RHP_p in poles]
 
@@ -1531,7 +1641,7 @@ def distRHPZ(G, Gd, RHP_Z):
     ----
     The return value should be less than 1.
     '''
-    if RHP_Z < 0: # RHP-z
+    if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]

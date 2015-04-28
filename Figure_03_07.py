@@ -1,26 +1,26 @@
-import numpy as np
 import matplotlib.pyplot as plt
 
-from utilsplot import sv_plot, condtn_nm_plot
+from utilsplot import mimo_bode, condtn_nm_plot
+from utils import tf, mimotf
 
-def G1(s):
-    """def the function for Figure 3.7)a the distillation process"""
-    return 1/(75*s + 1)*np.matrix([[87.8, -86.4], 
-                                  [108.2, -109.6]])
+s= tf([1, 0])
 
-def G2(s):
-    """def the function for Figure 3.7)b the spinning satellite"""
-    return 1/(s**2 + 10**2)*np.matrix([[s - 1e2, 10*(s + 1)], 
-                                       [-10*(s + 1), s - 1e2]])
+s1 = 1 / (75 * s + 1)
+G1 = mimotf([[s1 * 87.8, s1 * -86.4], 
+             [s1 * 108.2, s1 * -109.6]])
 
-processes = [[G1, 'Distillation process 3.7(a)', -4, 1],
-             [G2, 'Spinning satellite 3.7(b)', -2, 2]]
+s2 = 1/(s**2 + 10**2)
+G2 = mimotf([[s2 * (s - 1e2), s2 * (10 * (s + 1))], 
+             [s2 * (-10 * (s + 1)), s2 * (s - 1e2)]])
+
+processes = [[G1, '(a) Distillation process', -4, 1],
+             [G2, '(b) Spinning satellite', -2, 2]]
 
 plt.figure('Figure 3.7')
 for i, [G, title, minw, maxw] in enumerate(processes):
     plt.subplot(2, 2, i + 1)
     plt.title(title)
-    sv_plot(G, minw, maxw)
+    mimo_bode(G, minw, maxw)
     
     #this is an additional plot to the textbook
     plt.subplot(2, 2, 3 + i)
