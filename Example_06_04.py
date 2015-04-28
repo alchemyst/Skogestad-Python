@@ -27,7 +27,7 @@ Gs = mimotf([[G11, G12],
 # select RHP-pole
 p = [2.]
 # TODO input direction differ from textbook
-#pdir = pole_zero_directions(Gs, p, 'p')
-#display_export_data(pdir, 'Poles', ['u', 'y'])
+pdir = pole_zero_directions(Gs, p, 'p')
+display_export_data(pdir, 'Poles', ['u', 'y'])
 
-#print '||KS|| > {:.3}'.format(BoundKS(Gs, p))
+print '||KS|| > {:.3}'.format(BoundKS(Gs, p))
