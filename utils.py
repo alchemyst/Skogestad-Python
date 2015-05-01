@@ -1420,12 +1420,19 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     -------
     pz_dir : array
         Pole or zero direction in the form:
-        (pole/zero, input direction, output direction)
+        (pole/zero, input direction, output direction, valid)
+        
+    valid : integer array
+        If 1 the directions are valid, else if 0 the directions are not valid.
         
     Note
     ----
     This method is going to give incorrect answers if the function G has pole
     zero cancellation. The proper method is to use the state-space.
+    
+    The validity of the directions is determined by checking that the dot
+    product of the two vectors is equal to the product of their norms. Another
+    method is to work out element-wise ratios and see if they are all the same.
     """
     
     if dir_type == 'p':
@@ -1440,6 +1447,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         pz_dir = []
     else:
         pz_dir = numpy.matrix(numpy.zeros([G(e).shape[0], N]))
+        valid = []
     
     for i in range(N):
         d = vec[i]
@@ -1448,15 +1456,32 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         U, _, V =  SVD(g)
         u = V[:,dt]
         y = U[:,dt]
+        
+        t1 = numpy.dot(u.T, y)[0,0]
+        t2 = numpy.linalg.norm(u) * numpy.linalg.norm(y)        
+        t = (numpy.abs(t2) - numpy.abs(t1)) / t2
+        print t1, t2, t # debug script
+        if t < 0.005: # 5% error margin
+            v = 1.
+        else:
+            v = 0.
+        
         if display_type == 'u':
             pz_dir[:, i] = u
+            valid.append(v)
         elif display_type == 'y':
             pz_dir[:, i] = y
+            valid.append(v)
         elif display_type == 'a':
-            pz_dir.append((d, u, y))
+            pz_dir.append((d, u, y, [v]))
         else: raise ValueError('Incorrect display_type parameter')
         
-    return pz_dir
+    if display_type == 'a':
+        display = pz_dir
+    else:
+        display = pz_dir, valid
+     
+    return display
 
 
 ###############################################################################
@@ -1493,8 +1518,8 @@ def BoundST(G, poles, zeros, deadtime=None):
     """
     Np = len(poles)
     Nz = len(zeros)
-    Yp = pole_zero_directions(G, poles, 'p', 'y')
-    Yz = pole_zero_directions(G, zeros, 'z', 'y')
+    Yp, _ = pole_zero_directions(G, poles, 'p', 'y')
+    Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
 
     if deadtime is None:
         yp_mat1 = numpy.matrix(numpy.diag(poles)) * numpy.matrix(numpy.ones([Np, Np]))
@@ -1556,7 +1581,7 @@ def BoundST(G, poles, zeros, deadtime=None):
     return Ms_min
 
 
-def BoundKS(G, poles, e=0.00001):
+def BoundKS(G, poles, up, e=0.00001):
     '''
     The functions uses equaption 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
@@ -1565,8 +1590,10 @@ def BoundKS(G, poles, e=0.00001):
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-    poles : numpy array (number of zeros)
+    poles : numpy array (number of poles)
         List of right-half plane poles.
+    up : numpy array (number of poles)
+        List of input pole directions.
     e : float
         Avoid division by zero. Let epsilon be very small (optional).
 
@@ -1575,10 +1602,8 @@ def BoundKS(G, poles, e=0.00001):
     KS_max : float
         Minimum peak value.
     '''
-    
-    KS_PEAK = [numpy.linalg.norm(
-               pole_zero_directions(G, [RHP_p], 'p', 'u').H *
-               numpy.linalg.pinv(G(RHP_p + e)), 2)
+
+    KS_PEAK = [numpy.linalg.norm(up.H * numpy.linalg.pinv(G(RHP_p + e)), 2)
                for RHP_p in poles]
 
     KS_max = numpy.max(KS_PEAK)
@@ -1643,7 +1668,7 @@ def distRHPZ(G, Gd, RHP_Z):
     '''
     if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
-    Yz = pole_zero_directions(G, [RHP_Z], 'z', 'y')
+    Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]
     
     return Dist_RHPZ

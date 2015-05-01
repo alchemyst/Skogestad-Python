@@ -13,8 +13,8 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
         The transfer function G(s) of the system. The first item (data[0]) in
         the array must be an array of independent variables. From the second 
         item onward (data[1], data[2], ...), an array of dependent variables
-        are defined. The dependent varaiable array can have more than one
-        column.
+        are defined. The dependent varaiable array should be defined as an
+        array itself.
     display_type : string
         Choose the main display label and file name to use.
     row_head : array
@@ -87,7 +87,9 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
                 m = len(data[0][j + 1]) # each heading type count could be different
                 for k in range(m): # cycle through items in heading type
                     u = s[i][j + 1][k] # extract data
-                    rows[row_count] += ' ' + sep + ' {:.3f}'.format(u[0,0]) # format dependent variable
+                    if not isinstance(u, (float)): # if the data is not a matrix
+                        u = u[0,0]
+                    rows[row_count] += ' ' + sep + ' {:.3f}'.format(u) # format dependent variable
                     row_count += 1
         
             tabs += 'c '
