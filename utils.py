@@ -127,10 +127,10 @@ class tf(object):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
         assert numpy.allclose(remainder.coeffs, 0), \
-               "Error in simplifying rational, remainder={}".format(remainder)
+               "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
         assert numpy.allclose(remainder.coeffs, 0), \
-               "Error in simplifying rational, remainder={}".format(remainder)
+               "Error in simplifying rational, remainder=\n{}".format(remainder)
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -972,18 +972,22 @@ def marginsclosedloop(L):
     return GM, PM, wc, wb, wbt, valid
  
 
-def Wp(wB, A, s):
+def Wp(wB, M, A, s):
     """
-    Computes the magnitude of the performance weighting function 
-    as a function of s => `|Wp(s)|`.
+    Computes the magnitude of the performance weighting function. Based on
+    Equation 2.105 (p62).
     
     Parameters
     ----------
     wB : float
-         Minimum bandwidth frequency requirment.
+        Approximate bandwidth requirement. Asymptote crosses 1 at this
+        frequency.
+
+    M : float
+        Maximum frequency.
     
     A : float
-        Maximum steady state tracking error.
+        Maximum steady state tracking error. Typically 0.
     
     s : complex 
         Typically `w*1j`.
@@ -991,15 +995,15 @@ def Wp(wB, A, s):
     Returns
     -------
     `|Wp(s)|` : float
-        The magnitude of the performance weighting fucntion at a specific frequency (s).
+        The magnitude of the performance weighting fucntion at a specific
+        frequency (s).
         
     NOTE
     ----
-    This is based on Skogestad eq 2.105 and is just one example of a performance weighting function.
-    
+    This is just one example of a performance weighting function.
     """
-    M = 2
-    return numpy.abs((s/M + wB) / (s + wB*A))
+
+    return (s / M + wB) / (s + wB * A)
 
 
 ###############################################################################
@@ -1457,14 +1461,8 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         u = V[:,dt]
         y = U[:,dt]
         
-        t1 = numpy.dot(u.T, y)[0,0]
-        t2 = numpy.linalg.norm(u) * numpy.linalg.norm(y)        
-        t = (numpy.abs(t2) - numpy.abs(t1)) / t2
-        print t1, t2, t # debug script
-        if t < 0.005: # 5% error margin
-            v = 1.
-        else:
-            v = 0.
+# TODO complete validation test
+        v = True
         
         if display_type == 'u':
             pz_dir[:, i] = u
