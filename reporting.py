@@ -87,9 +87,12 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
                 m = len(data[0][j + 1]) # each heading type count could be different
                 for k in range(m): # cycle through items in heading type
                     u = s[i][j + 1][k] # extract data
-                    if not isinstance(u, (float)): # if the data is not a matrix
-                        u = u[0,0]
-                    rows[row_count] += ' ' + sep + ' {:.3f}'.format(u) # format dependent variable
+                    if isinstance(u, (float)): # data is float
+                        u = ' {:.3f}'.format(u)
+                    elif isinstance(u, (str, bool, int)): # data is string or boolean
+                        u = ' {}'.format(u)
+                    else: u = ' {:.3f}'.format(u[0,0]) # data is matrix
+                    rows[row_count] += ' ' + sep + u # format dependent variable
                     row_count += 1
         
             tabs += 'c '
