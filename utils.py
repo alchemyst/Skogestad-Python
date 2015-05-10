@@ -126,10 +126,10 @@ class tf(object):
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0), \
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
                "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0), \
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
                "Error in simplifying rational, remainder=\n{}".format(remainder)
 
         # Zero-gain transfer functions are special.  They effectively have no
@@ -982,13 +982,10 @@ def Wp(wB, M, A, s):
     wB : float
         Approximate bandwidth requirement. Asymptote crosses 1 at this
         frequency.
-
     M : float
         Maximum frequency.
-    
     A : float
         Maximum steady state tracking error. Typically 0.
-    
     s : complex 
         Typically `w*1j`.
         
@@ -1019,7 +1016,6 @@ def RGAnumber(G, I):
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-        
     I : numpy matrix
         Pairing matrix.
         
@@ -1111,12 +1107,11 @@ def sv_dir(G, table=False):
     """
     Returns the input and output singular vectors associated with the
     minimum and maximum singular values.
-       
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-    
     table : True of False boolean
             Default set to False.
             
@@ -1185,10 +1180,8 @@ def SVD(G):
     -------
     U : matrix of complex numbers
         Unitary matrix of output singular vectors.
-        
     Sv : array
         Singular values of `Gin` arranged in decending order.
-        
     V : matrix of complex numbers
         Unitary matrix of input singular vectors. 
     
