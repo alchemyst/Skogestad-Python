@@ -1,13 +1,39 @@
 import numpy as np
-
 import utils
 
 
 '''Use this file to add more MIMO functions for robust stability and performance'''
 
+
+def wI(tau, ro, rinf, s):
+    '''
+    Uncertainity weight function. Based on equation 7.38 (p273) and 8.28 (p297).
+
+    Parameters
+    ----------
+    tau : float
+        tau = 1 / x at y = 1.
+    ro : float
+        ro = y at x-low.
+    rinf : float
+        rinf = y at x-high.
+
+    Returns
+    -------
+    wI : float
+        Uncertainity weight.
+
+    NOTE
+    ----
+    This is just one example of a uncertainity weight function.
+    '''
+
+    return np.abs((tau * s + ro) / (tau / rinf * s + 1))
+
+
 def UnstructuredDelta(M, DeltaStructure):
     '''    
-    Function to calculate the unstructured delta stracture for a pertubation
+    Function to calculate the unstructured delta stracture for a pertubation.
     
     Parameters
     ----------
@@ -33,6 +59,3 @@ def UnstructuredDelta(M, DeltaStructure):
         delta = 'NA'
     else: delta = 0
     return delta
-
-    
-

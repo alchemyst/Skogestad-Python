@@ -126,11 +126,11 @@ class tf(object):
     def simplify(self):
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0), \
-               "Error in simplifying rational, remainder={}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
+               "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0), \
-               "Error in simplifying rational, remainder={}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
+               "Error in simplifying rational, remainder=\n{}".format(remainder)
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -972,34 +972,35 @@ def marginsclosedloop(L):
     return GM, PM, wc, wb, wbt, valid
  
 
-def Wp(wB, A, s):
+def Wp(wB, M, A, s):
     """
-    Computes the magnitude of the performance weighting function 
-    as a function of s => `|Wp(s)|`.
+    Computes the magnitude of the performance weighting function. Based on
+    Equation 2.105 (p62).
     
     Parameters
     ----------
     wB : float
-         Minimum bandwidth frequency requirment.
-    
+        Approximate bandwidth requirement. Asymptote crosses 1 at this
+        frequency.
+    M : float
+        Maximum frequency.
     A : float
-        Maximum steady state tracking error.
-    
+        Maximum steady state tracking error. Typically 0.
     s : complex 
         Typically `w*1j`.
         
     Returns
     -------
     `|Wp(s)|` : float
-        The magnitude of the performance weighting fucntion at a specific frequency (s).
+        The magnitude of the performance weighting fucntion at a specific
+        frequency (s).
         
     NOTE
     ----
-    This is based on Skogestad eq 2.105 and is just one example of a performance weighting function.
-    
+    This is just one example of a performance weighting function.
     """
-    M = 2
-    return numpy.abs((s/M + wB) / (s + wB*A))
+
+    return (s / M + wB) / (s + wB * A)
 
 
 ###############################################################################
@@ -1015,7 +1016,6 @@ def RGAnumber(G, I):
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-        
     I : numpy matrix
         Pairing matrix.
         
@@ -1107,12 +1107,11 @@ def sv_dir(G, table=False):
     """
     Returns the input and output singular vectors associated with the
     minimum and maximum singular values.
-       
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-    
     table : True of False boolean
             Default set to False.
             
@@ -1181,10 +1180,8 @@ def SVD(G):
     -------
     U : matrix of complex numbers
         Unitary matrix of output singular vectors.
-        
     Sv : array
         Singular values of `Gin` arranged in decending order.
-        
     V : matrix of complex numbers
         Unitary matrix of input singular vectors. 
     
@@ -1420,12 +1417,19 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     -------
     pz_dir : array
         Pole or zero direction in the form:
-        (pole/zero, input direction, output direction)
+        (pole/zero, input direction, output direction, valid)
+        
+    valid : integer array
+        If 1 the directions are valid, else if 0 the directions are not valid.
         
     Note
     ----
     This method is going to give incorrect answers if the function G has pole
     zero cancellation. The proper method is to use the state-space.
+    
+    The validity of the directions is determined by checking that the dot
+    product of the two vectors is equal to the product of their norms. Another
+    method is to work out element-wise ratios and see if they are all the same.
     """
     
     if dir_type == 'p':
@@ -1440,6 +1444,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         pz_dir = []
     else:
         pz_dir = numpy.matrix(numpy.zeros([G(e).shape[0], N]))
+        valid = []
     
     for i in range(N):
         d = vec[i]
@@ -1448,15 +1453,26 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         U, _, V =  SVD(g)
         u = V[:,dt]
         y = U[:,dt]
+        
+# TODO complete validation test
+        v = True
+        
         if display_type == 'u':
             pz_dir[:, i] = u
+            valid.append(v)
         elif display_type == 'y':
             pz_dir[:, i] = y
+            valid.append(v)
         elif display_type == 'a':
-            pz_dir.append((d, u, y))
+            pz_dir.append((d, u, y, [v]))
         else: raise ValueError('Incorrect display_type parameter')
         
-    return pz_dir
+    if display_type == 'a':
+        display = pz_dir
+    else:
+        display = pz_dir, valid
+     
+    return display
 
 
 ###############################################################################
@@ -1493,8 +1509,8 @@ def BoundST(G, poles, zeros, deadtime=None):
     """
     Np = len(poles)
     Nz = len(zeros)
-    Yp = pole_zero_directions(G, poles, 'p', 'y')
-    Yz = pole_zero_directions(G, zeros, 'z', 'y')
+    Yp, _ = pole_zero_directions(G, poles, 'p', 'y')
+    Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
 
     if deadtime is None:
         yp_mat1 = numpy.matrix(numpy.diag(poles)) * numpy.matrix(numpy.ones([Np, Np]))
@@ -1556,7 +1572,7 @@ def BoundST(G, poles, zeros, deadtime=None):
     return Ms_min
 
 
-def BoundKS(G, poles, e=0.00001):
+def BoundKS(G, poles, up, e=0.00001):
     '''
     The functions uses equaption 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
@@ -1565,8 +1581,10 @@ def BoundKS(G, poles, e=0.00001):
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-    poles : numpy array (number of zeros)
+    poles : numpy array (number of poles)
         List of right-half plane poles.
+    up : numpy array (number of poles)
+        List of input pole directions.
     e : float
         Avoid division by zero. Let epsilon be very small (optional).
 
@@ -1575,10 +1593,8 @@ def BoundKS(G, poles, e=0.00001):
     KS_max : float
         Minimum peak value.
     '''
-    
-    KS_PEAK = [numpy.linalg.norm(
-               pole_zero_directions(G, [RHP_p], 'p', 'u').H *
-               numpy.linalg.pinv(G(RHP_p + e)), 2)
+
+    KS_PEAK = [numpy.linalg.norm(up.H * numpy.linalg.pinv(G(RHP_p + e)), 2)
                for RHP_p in poles]
 
     KS_max = numpy.max(KS_PEAK)
@@ -1643,7 +1659,7 @@ def distRHPZ(G, Gd, RHP_Z):
     '''
     if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
-    Yz = pole_zero_directions(G, [RHP_Z], 'z', 'y')
+    Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]
     
     return Dist_RHPZ
