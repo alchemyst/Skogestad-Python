@@ -3,23 +3,12 @@ import matplotlib.pyplot as plt
 
 from utils import tf, margins
 
-
-s = tf([1, 0], 1)
-
-# Example plant based on Example 2.9 and Example 2.16
-G = (s + 200) / ((10 * s + 1) * (0.05 * s + 1)**2)
-Gd = 33 / (10 * s + 1)
-K = 0.4 * ((s + 2) / s) * (0.075 * s + 1)
-R = 3.0
-wr = 10
-Gm = 1 #Measurement model
-
-''' 
-All of the below function are from pages 206-207 and the associated rules that 
+'''
+All of the below function are from pages 206-207 and the associated rules that
 analyse the controllability of SISO problems
 '''
 
-
+# TODO merge all siso_controllability.py routines with this file
 def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     '''
     This is rule one of chapter five
@@ -98,8 +87,6 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         
     return valid1, wc, wd
 
-#rule1(G, Gd, K, True, True)
-
 
 def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
     '''
@@ -144,6 +131,7 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
     invref = 1/R   
     
     if message:
+        print 'Rule 2:'
         print 'Conditions requires |S(jw)| <= ', invref
         
     if plot:
@@ -166,8 +154,6 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
         plt.show()
     
     return invref
-
-#rule2(G, R, K, 50, True, True)
 
 
 def rule3(G, Gd, message=False, w1=-4, w2=2):
@@ -207,6 +193,7 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
     mag_gd = np.abs(Gd(s))
     
     if message:
+        print 'Rule 3:'
         print 'Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|'            
         print 'Perfect control conditions require |G(jw)| > |Gd(jw)|'
         
@@ -230,10 +217,8 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
     plt.ylabel('Magnitude')
     plt.show()    
 
-#rule3(G, Gd)
 
-
-def rule4(G, R, wr, w1=-4, w2=2):
+def rule4(G, R, wr, message=False, w1=-4, w2=2):
     '''
     This is rule four of chapter five
     
@@ -266,6 +251,10 @@ def rule4(G, R, wr, w1=-4, w2=2):
     mag_g = np.abs(G(s)) 
     mag_rr = (R - 1) * np.ones(len(w))
     
+    if message:
+        print 'Rule 4:'
+
+    plt.figure('Rule 4')
     plt.loglog(w, mag_g)
     plt.loglog(w,  mag_rr, ls = '--')
     plt.loglog(wr * np.ones(2), [np.max(mag_g), np.min(mag_g)], ls=':')
@@ -275,8 +264,6 @@ def rule4(G, R, wr, w1=-4, w2=2):
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')     
     plt.show()
-
-#rule4(G, R, wr)
 
 
 def rule5(G, Gm=1, message=False):
@@ -317,6 +304,7 @@ def rule5(G, Gm=1, message=False):
         valid5 = wc < wtd 
     
     if message:
+        print 'Rule 5:'
         if TimeDelay == 0:
             print 'There isn t any deadtime in the system'
         if valid5:
@@ -325,9 +313,6 @@ def rule5(G, Gm=1, message=False):
             print 'wc > 1 / theta :', wc , '>' , wtd
             
     return valid5, wtd
-
-#G.deadtime = 0.002
-#rule5(G, Gm, True)
 
 
 def rule6(G, Gm, message=False):
@@ -376,14 +361,13 @@ def rule6(G, Gm, message=False):
     else: valid6 = False
     
     if message:
+        print 'Rule 6:'
         if wz != 0:
             print 'These are the roots of the transfer function matrix GGm' , zeros
         if valid6:    
             print 'The critical frequency of S for the system to be controllable is' , wz
         else: print 'No zeros in the system to evaluate'
     return valid6, wz
-    
-#rule6(G, Gm, message=True)
 
 
 def rule7(G, Gm, message=False):
@@ -424,14 +408,13 @@ def rule7(G, Gm, message=False):
     valid7 = wc < w_180   
     
     if message: 
+        print 'Rule 7:'
         if valid7:
             print 'wc < wu :' , wc , '<' , w_180
         else:
             print 'wc > wu :' , wc , '>' , w_180
     
     return valid7
-    
-#rule7(G, Gm, True)
 
 
 def rule8(G, message=False):
@@ -471,6 +454,7 @@ def rule8(G, message=False):
     else: valid8 = False
         
     if message:
+        print 'Rule 8:'
         if valid8:
             print 'wc > 2p :', wc , '>' , wp
         else:
@@ -478,4 +462,31 @@ def rule8(G, message=False):
 
     return valid8, wp
 
-#rule8(G, True)
+
+def allSISOrules(G, deadtime, Gd, K, R, wr, Gm):
+
+    rule1(G, Gd, K, True, True)
+    rule2(G, R, K, 50, True, True)
+    rule3(G, Gd, True)
+    rule4(G, R, wr, True)
+    G.deadtime = deadtime
+    rule5(G, Gm, True)
+    rule6(G, Gm, True)
+    rule7(G, Gm, True)
+    rule8(G, True)
+
+
+if __name__ == '__main__': # only executed when called directly, not executed when imported
+
+    s = tf([1, 0], 1)
+
+    # Example plant based on Example 2.9 and Example 2.16
+    G = (s + 200) / ((10 * s + 1) * (0.05 * s + 1)**2)
+    deadtime = 0.002
+    Gd = 33 / (10 * s + 1)
+    K = 0.4 * ((s + 2) / s) * (0.075 * s + 1)
+    R = 3.0
+    wr = 10
+    Gm = 1 #Measurement model
+
+    allSISOrules(G, deadtime, Gd, K, R, wr, Gm)
