@@ -10,8 +10,8 @@ def norms(G):
     Frob_norm = np.linalg.norm(G, 'fro')
     B = np.cumsum(abs(G))
     Sum_norm = B[0, G.size-1]
-    Columnsum = np.max(np.cumsum(abs(G),axis=0))
-    Rowsum = np.max(np.cumsum(abs(G),axis=1))
+    Columnsum = np.max(np.sum(abs(G),axis=0))
+    Rowsum = np.max(np.sum(abs(G),axis=1))
     [U, S, V] = np.linalg.svd(G)
     Max_singularval = max(S)
 
@@ -31,11 +31,12 @@ def norms(G):
     Frob_norm = np.linalg.norm(G, 'fro')
     B = np.cumsum(abs(G))
     Sum_norm = B[0, G.size-1]
-    Columnsum = np.max(np.cumsum(abs(G),axis=0))
-    Rowsum = np.max(np.cumsum(abs(G),axis=1))
+    Columnsum = np.max(np.sum(abs(G),axis=0))
+    Rowsum = np.max(np.sum(abs(G),axis=1))
     [U, S, V] = np.linalg.svd(G)
     Max_singularval = max(S)
 
+    print ''    
     print 'Matrix 3.30'
     print 'Spectral radius =', spectrad
     print 'Frobenius norm =', Frob_norm
