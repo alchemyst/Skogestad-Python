@@ -129,7 +129,7 @@ class tf(object):
         assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
                "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-4), \
                "Error in simplifying rational, remainder=\n{}".format(remainder)
 
         # Zero-gain transfer functions are special.  They effectively have no
