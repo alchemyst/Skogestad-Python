@@ -24,7 +24,7 @@ K = Kc*(10*s+1)*(5*s+1)/(s*(2*s+1)*(0.33*s+1))
 #closed-loop transfer function
 L = G*K
 
-#magnitude and phase
+#magnitude and phase of L
 plt.figure('Figure 2.19')
 bode(L, -2, 1)
 
@@ -41,10 +41,16 @@ print 'wbt:' , np.round(wbt, 4)
 #Response to step in reference for loop shaping design
 #y = Tr, r(t) = 1 for t > 0
 
+plt.figure('Figure 2.20')
 T = feedback(L, 1)
 tspan = np.linspace(0, 50, 100)
 [t, y] = T.step(0, tspan)
 plt.plot(t, y)
-plt.xlabel('Time (s)')
+plt.xlabel('Time [s]')
+plt.legend(['y(t)'])
 plt.grid()
+
+#magnitude and phase of K
+plt.figure('Figure 2.21')
+bode(K, -2, 1)
 plt.show()
