@@ -351,6 +351,38 @@ class mimotf(object):
     def zeros(self):
         return self.det().zeros()
 
+    def cofactor_mat(self):
+        A = self.matrix
+        m = A.shape[0]
+        n = A.shape[1]
+        C = numpy.zeros((m,n),dtype=object)
+        for i in range(m):
+            for j in range(n):
+                minorij = det(numpy.delete(numpy.delete(A,i,axis=0),j,axis=1))    
+                C[i,j] = (-1.)**(i+1+j+1)*minorij
+        return C
+            
+    def inverse(self):
+        """ Calculate inverse of mimotf object
+        
+        >>> s = tf([1, 0], 1)
+        >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
+        ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
+        >>> G.inverse()
+        matrix([[tf([ 2. -2.], [ 2. -8.]), tf([-4.], [ 2. -8.])],
+                [tf([-4.5], [ 2. -8.]), tf([ 1. -1.], [ 2. -8.])]], dtype=object)
+        
+        >>> G.inverse()*G.matrix
+        matrix([[tf([ 4.], [ 4.]), tf([ 0.], [1])],
+                [tf([ 0.], [1]), tf([ 4.], [ 4.])]], dtype=object)
+        
+        """
+        detA = det(self.matrix)
+        C_T = self.cofactor_mat().T
+        inv = (1./detA)*C_T
+        return inv
+
+
     def __call__(self, s):
         """
         >>> G = mimotf([[1]])
