@@ -5,12 +5,13 @@ Created on Jan 27, 2012
 @author: Carl Sandrock
 '''
 
-import numpy #do not abbreviate this module as np in utils.py
-import sympy #do not abbreviate this module as sp in utils.py
+import numpy  # do not abbreviate this module as np in utils.py
+import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
+
 
 def astf(maybetf):
     """
@@ -33,7 +34,7 @@ def astf(maybetf):
         return maybetf
     elif numpy.isscalar(maybetf):
         return tf(maybetf)
-    else: # Assume we have an array-like object
+    else:  # Assume we have an array-like object
         return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
 
 
@@ -122,42 +123,40 @@ class tf(object):
         return tf(self.denominator, self.numerator, -self.deadtime)
 
     def step(self, *args):
-        """ Step response """ 
+        """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
-    
-    def simplify(self,dec=5):
-        
-        #Polynomial simplification        
+
+    def simplify(self, dec=5):
+
+        # Polynomial simplification
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-               "Error in simplifying rational, remainder=\n{}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-               "Error in simplifying rational, remainder=\n{}".format(remainder)
-        
-        #Round numerator and denominator for coefficient simplification
-        self.numerator = numpy.poly1d(numpy.round(self.numerator,dec))
-        self.denominator = numpy.poly1d(numpy.round(self.denominator,dec)) 
-        
-        #Determine most digits in numerator & denominator
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
+
+        # Round numerator and denominator for coefficient simplification
+        self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
+        self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
+
+        # Determine most digits in numerator & denominator
         num_dec = 0
-        den_dec = 0       
+        den_dec = 0
         for i in range(len(self.numerator.coeffs)):
-            num_dec = max(num_dec,decimals(self.numerator.coeffs[i]))
+            num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
         for j in range(len(self.denominator.coeffs)):
-            den_dec = max(den_dec,decimals(self.denominator.coeffs[j]))
-        
-        #Convert coefficients to integers
-        self.numerator = self.numerator*10**(max(num_dec,den_dec))
-        self.denominator = self.denominator*10**(max(num_dec,den_dec)) 
-        
-        #decimal-less representation of coefficients
+            den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
+
+        # Convert coefficients to integers
+        self.numerator = self.numerator*10**(max(num_dec, den_dec))
+        self.denominator = self.denominator*10**(max(num_dec, den_dec))
+
+        # Decimal-less representation of coefficients
         num_gcd = gcd(self.numerator.coeffs)
         den_gcd = gcd(self.denominator.coeffs)
-        tf_gcd = gcd([num_gcd,den_gcd])
+        tf_gcd = gcd([num_gcd, den_gcd])
         self.numerator = self.numerator/tf_gcd
-        self.denominator = self.denominator/tf_gcd        
+        self.denominator = self.denominator/tf_gcd
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -179,7 +178,7 @@ class tf(object):
         >>> s = tf([1, 0], 1)
         >>> numpy.exp(-2*s)
         tf([ 1.], [ 1.], deadtime=2.0)
-        
+
         """
         # Check that denominator is 1:
         if self.denominator != numpy.poly1d([1]):
@@ -193,7 +192,7 @@ class tf(object):
         D = ratio.numerator.coeffs[0]
 
         return tf(1, 1, deadtime=D)
-    
+
     def __repr__(self):
         if self.name:
             r = str(self.name) + "\n"
@@ -220,8 +219,7 @@ class tf(object):
         1.0
         """
         return (numpy.polyval(self.numerator, s) /
-                numpy.polyval(self.denominator, s) *
-                numpy.exp(-s * self.deadtime))
+                numpy.polyval(self.denominator, s) * numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
         other = astf(other)
@@ -232,7 +230,8 @@ class tf(object):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
-                  other.numerator*self.denominator, gcd, self.deadtime + other.deadtime)
+                  other.numerator*self.denominator, gcd, self.deadtime + 
+                  other.deadtime)
 
     def __radd__(self, other):
         return self + other
@@ -291,6 +290,7 @@ def matrix_as_scalar(M):
         return M[0, 0]
     else:
         return M
+
 
 class mimotf(object):
     """ Represents MIMO transfer function matrix
@@ -361,7 +361,6 @@ class mimotf(object):
         # We only support matrices of transfer functions
         self.shape = self.matrix.shape
 
-
     def det(self):
         return det(self.matrix)
 
@@ -382,11 +381,11 @@ class mimotf(object):
         A = self.matrix
         m = A.shape[0]
         n = A.shape[1]
-        C = numpy.zeros((m,n),dtype=object)
+        C = numpy.zeros((m, n), dtype=object)
         for i in range(m):
             for j in range(n):
-                minorij = det(numpy.delete(numpy.delete(A,i,axis=0),j,axis=1))    
-                C[i,j] = (-1.)**(i+1+j+1)*minorij
+                minorij = det(numpy.delete(numpy.delete(A, i, axis=0), j, axis=1))
+                C[i, j] = (-1.)**(i+1+j+1)*minorij
         return C
             
     def inverse(self):
@@ -408,7 +407,6 @@ class mimotf(object):
         C_T = self.cofactor_mat().T
         inv = (1./detA)*C_T
         return inv
-
 
     def __call__(self, s):
         """
@@ -432,15 +430,15 @@ class mimotf(object):
         return "mimotf({})".format(str(self.matrix))
 
     def __add__(self, other):
-         left = self.matrix
-         if not isinstance(other, mimotf):
-             if hasattr(other, 'shape'):
-                 right = mimotf(other).matrix
-             else:
-                 right = tf(other)
-         else:
-             right = other.matrix
-         return mimotf(left + right)
+        left = self.matrix
+        if not isinstance(other, mimotf):
+            if hasattr(other, 'shape'):
+                right = mimotf(other).matrix
+            else:
+                right = tf(other)
+        else:
+            right = other.matrix
+        return mimotf(left + right)
 
     def __radd__(self, other):
         return self + other
@@ -492,7 +490,6 @@ class mimotf(object):
             return result
 
 
-
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
@@ -504,7 +501,8 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
         Transfer function (input[u] or output[y]) to evauate step response.
         
     Y : tf
-        Transfer function output[y] to evaluate constrain step response (optional)(required if constraint is specified).
+        Transfer function output[y] to evaluate constrain step response 
+        (optional) (required if constraint is specified).
         
     t_end : integer
         length of time to evaluate step response (optional).
@@ -538,7 +536,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     timedata = numpy.linspace(0, t_end, points)    
     
     if constraint is None:
-        deadtime =G.deadtime        
+        deadtime = G.deadtime        
         [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
         t_stepsize = max(timedata)/(timedata.size-1)
         t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
@@ -548,7 +546,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     else:
         if method == 'numeric':
             A1, B1, C1, D1 = signal.tf2ss(G.numerator, G.denominator)
-            #adjust the shape for complex state space functions
+            # adjust the shape for complex state space functions
             x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
             
             if constraint is not None:
@@ -566,23 +564,23 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 y1 = C1*x1 + D1*u
                 
                 if constraint is not None:
-                    if (y1[0,0] > constraint) or bconst:
-                        y1[0,0] = constraint  
-                        bconst = True # once constraint the system is oversaturated
-                        u = 0 # TODO : incorrect, find the correct switching condition
+                    if (y1[0, 0] > constraint) or bconst:
+                        y1[0, 0] = constraint  
+                        bconst = True  # once constraint the system is oversaturated
+                        u = 0  # TODO : incorrect, find the correct switching condition
                     dxdt2 = A2*x2 + B2*u
                     y2 = C2*x2 + D2*u
                     x2 = x2 + dxdt2 * dt      
-                    processdata2.append(y2[0,0])
+                    processdata2.append(y2[0, 0])
                   
                 x1 = x1 + dxdt1 * dt                
-                processdata1.append(y1[0,0])
+                processdata1.append(y1[0, 0])
             if constraint:
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
         elif method == 'analytic':
             # TODO: caluate intercept of step and constraint line
-            timedata, processdata = [0,0]
+            timedata, processdata = [0, 0]
         else: raise ValueError('Invalid function parameters')
         
     # TODO: calculate time response
@@ -616,8 +614,10 @@ def circle(cx, cy, r):
     x = cx + numpy.cos(theta)*r
     return x, y
 
+
 def gcd(ar):
     return reduce(fractions.gcd, ar)
+
 
 def decimals(fl):
     fl = str(fl)
@@ -751,7 +751,7 @@ def det(A):
     cols = rows = range(A.shape[1])
     for i in cols:
         submatrix = A[numpy.ix_(cols[1:], cols[:i] + cols[i+1:])]
-        result += sign*A[0,i]*det(submatrix)
+        result += sign*A[0, i]*det(submatrix)
         sign *= -1
 
     return result
@@ -843,7 +843,7 @@ def feedback(forward, backward=None, positive=False):
         backward = 1
     if positive:
         backward = -backward
-    return  forward * 1/(1 + backward * forward)
+    return forward * 1/(1 + backward * forward)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
@@ -1032,7 +1032,7 @@ def marginsclosedloop(L):
     # calculate the freqeuncy at |T(jw)| = 0.707 from above (start searching from 1)
     wbt = optimize.fsolve(modT, 1) 
 
-    #"Frequency range wb < wc < wbt    
+    # Frequency range wb < wc < wbt    
     if (PM < 90) and (wb < wc) and (wc < wbt):
         valid = True
     else: valid = False
@@ -1212,17 +1212,15 @@ def sv_dir(G, table=False):
     u = [U[:, 0]] + [U[:, -1]]
     v = [V[:, 0]] + [V[:, -1]]
 
-
     if table:
         Headings = ['Maximum', 'Minimum']
-
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
             print '-' * 24
             
             print('Output vector')
-            for k in range(len(u[i])):  #change to len of u[i]
+            for k in range(len(u[i])):  # change to len of u[i]
                 print('%.5f %+.5fi' % (u[i][k].real, u[i][k].imag))
             print('Input vector')
             for k in range(len(v[i])):
@@ -1332,7 +1330,7 @@ def state_controllability(A, B):
     ev, vl = sc_linalg.eig(A, left=True, right=False)
     u_p = []
     for i in range(vl.shape[1]):
-        vli = numpy.asmatrix(vl[:,i]) 
+        vli = numpy.asmatrix(vl[:, i]) 
         u_p.append(B.H*vli.T) 
     state_control = not any(numpy.linalg.norm(x) == 0.0 for x in u_p)
 
@@ -1372,7 +1370,7 @@ def poles(G):
     '''
 
     s = sympy.Symbol('s')
-    G = sympy.Matrix(G(s)) #convert to sympy matrix object
+    G = sympy.Matrix(G(s))  # convert to sympy matrix object
     det = sympy.simplify(G.det())
     pole = sympy.solve(sympy.denom(det))
     return pole
@@ -1414,14 +1412,14 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     
     if not G is None:
         s = sympy.Symbol('s')
-        G = sympy.Matrix(G(s)) #convert to sympy matrix object
+        G = sympy.Matrix(G(s))  # convert to sympy matrix object
         det = sympy.simplify(G.det())
         zero = sympy.solve(sympy.numer(det))
     
     elif not A is None:
         z = sympy.Symbol('z')
-        top = numpy.hstack((A,B))
-        bot = numpy.hstack((C,D))
+        top = numpy.hstack((A, B))
+        bot = numpy.hstack((C, D))
         m = numpy.vstack((top, bot))
         M = numpy.matrix(m)
         [rowsA, colsA] = numpy.shape(A)
@@ -1518,8 +1516,8 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         g = G(d + e)
 
         U, _, V =  SVD(g)
-        u = V[:,dt]
-        y = U[:,dt]
+        u = V[:, dt]
+        y = U[:, dt]
         
 # TODO complete validation test
         v = True
@@ -1580,19 +1578,24 @@ def BoundST(G, poles, zeros, deadtime=None):
     Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
 
     if deadtime is None:
-        yp_mat1 = numpy.matrix(numpy.diag(poles)) * numpy.matrix(numpy.ones([Np, Np]))
+        yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
+                    numpy.matrix(numpy.ones([Np, Np]))
         yp_mat2 = yp_mat1.T
         Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
         
-        yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Nz])))
+        yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
+                    numpy.matrix(numpy.ones([Nz, Nz])))
         yz_mat2 = yz_mat1.T
         Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
     
-        yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Np]))
-        yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * numpy.matrix(numpy.diag(poles))    
+        yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
+                    numpy.matrix(numpy.ones([Nz, Np]))
+        yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
+                    numpy.matrix(numpy.diag(poles))    
         Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
         
-        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * sc_linalg.sqrtm(numpy.linalg.inv(Qp))
+        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * \
+                    sc_linalg.sqrtm(numpy.linalg.inv(Qp))
         # Final equation 6.8
         Ms_min = numpy.sqrt(1 + (numpy.max(sigmas(pre_mat))) ** 2)
 
@@ -1614,7 +1617,8 @@ def BoundST(G, poles, zeros, deadtime=None):
                                        dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros([numpy.shape(deadtime)[0], numpy.shape(deadtime)[1]])
+        Q_dead = numpy.zeros([numpy.shape(deadtime)[0], 
+                              numpy.shape(deadtime)[1]])
 
         for i in range(Np):
             for j in range(Np):
@@ -1693,7 +1697,7 @@ def distRej(G, gd):
         Disturbance direction.
     """
     
-    gd1 = 1 / numpy.linalg.norm(gd, 2)   #Returns largest sing value of gd(wj)
+    gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
     yd = gd1 * gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G) * yd)[0]
     
@@ -1727,7 +1731,7 @@ def distRHPZ(G, Gd, RHP_Z):
     if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
-    Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]
+    Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0, 0]
     
     return Dist_RHPZ
     
