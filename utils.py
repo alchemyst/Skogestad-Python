@@ -131,11 +131,9 @@ class tf(object):
         # Polynomial simplification
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
 
         # Round numerator and denominator for coefficient simplification
         self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
@@ -184,14 +182,12 @@ class tf(object):
         """
         # Check that denominator is 1:
         if self.denominator != numpy.poly1d([1]):
-            raise ValueError('Can only exponentiate multiples of s, not {}'
-                            .format(self))
+            raise ValueError('Can only exponentiate multiples of s, not {}'.format(self))
         s = tf([1, 0], 1)
         ratio = -self/s
 
         if len(ratio.numerator.coeffs) != 1:
-            raise ValueError('Can not determine dead time associated with {}'
-                            .format(self))
+            raise ValueError('Can not determine dead time associated with {}'.format(self))
 
         D = ratio.numerator.coeffs[0]
 
@@ -202,8 +198,7 @@ class tf(object):
             r = str(self.name) + "\n"
         else:
             r = ''
-        r += "tf(" + str(self.numerator.coeffs) + ", " + \
-                str(self.denominator.coeffs)
+        r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
         if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
         if self.u:
@@ -224,16 +219,14 @@ class tf(object):
         1.0
         """
         return (numpy.polyval(self.numerator, s) /
-                numpy.polyval(self.denominator, s) *
-                numpy.exp(-s * self.deadtime))
+                numpy.polyval(self.denominator, s) * numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
         other = astf(other)
         if isinstance(other, numpy.matrix):
             return other.__add__(self)
         # Zero-gain functions are special
-        if self.deadtime != other.deadtime and \
-        not (self.zerogain or other.zerogain):
+        if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
@@ -391,9 +384,8 @@ class mimotf(object):
         C = numpy.zeros((m, n), dtype=object)
         for i in range(m):
             for j in range(n):
-                minorij = det(numpy.delete(numpy.delete(A, i, axis=0), j,
-                                           axis=1))
-                C[i,j] = (-1.)**(i+1+j+1)*minorij
+                minorij = det(numpy.delete(numpy.delete(A, i, axis=0), j, axis=1))
+                C[i, j] = (-1.)**(i+1+j+1)*minorij
         return C
             
     def inverse(self):
@@ -498,8 +490,7 @@ class mimotf(object):
             return result
 
 
-def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, 
-            method='numeric'):
+def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
     time and constraints. A unit step response is generated.  
@@ -573,17 +564,17 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None,
                 y1 = C1*x1 + D1*u
                 
                 if constraint is not None:
-                    if (y1[0,0] > constraint) or bconst:
-                        y1[0,0] = constraint  
+                    if (y1[0, 0] > constraint) or bconst:
+                        y1[0, 0] = constraint  
                         bconst = True  # once constraint the system is oversaturated
                         u = 0  # TODO : incorrect, find the correct switching condition
                     dxdt2 = A2*x2 + B2*u
                     y2 = C2*x2 + D2*u
                     x2 = x2 + dxdt2 * dt      
-                    processdata2.append(y2[0,0])
+                    processdata2.append(y2[0, 0])
                   
                 x1 = x1 + dxdt1 * dt                
-                processdata1.append(y1[0,0])
+                processdata1.append(y1[0, 0])
             if constraint:
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
@@ -760,7 +751,7 @@ def det(A):
     cols = rows = range(A.shape[1])
     for i in cols:
         submatrix = A[numpy.ix_(cols[1:], cols[:i] + cols[i+1:])]
-        result += sign*A[0,i]*det(submatrix)
+        result += sign*A[0, i]*det(submatrix)
         sign *= -1
 
     return result
@@ -1221,17 +1212,15 @@ def sv_dir(G, table=False):
     u = [U[:, 0]] + [U[:, -1]]
     v = [V[:, 0]] + [V[:, -1]]
 
-
     if table:
         Headings = ['Maximum', 'Minimum']
-
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
             print '-' * 24
             
             print('Output vector')
-            for k in range(len(u[i])):  #change to len of u[i]
+            for k in range(len(u[i])):  # change to len of u[i]
                 print('%.5f %+.5fi' % (u[i][k].real, u[i][k].imag))
             print('Input vector')
             for k in range(len(v[i])):
@@ -1341,7 +1330,7 @@ def state_controllability(A, B):
     ev, vl = sc_linalg.eig(A, left=True, right=False)
     u_p = []
     for i in range(vl.shape[1]):
-        vli = numpy.asmatrix(vl[:,i]) 
+        vli = numpy.asmatrix(vl[:, i]) 
         u_p.append(B.H*vli.T) 
     state_control = not any(numpy.linalg.norm(x) == 0.0 for x in u_p)
 
@@ -1381,7 +1370,7 @@ def poles(G):
     '''
 
     s = sympy.Symbol('s')
-    G = sympy.Matrix(G(s)) #convert to sympy matrix object
+    G = sympy.Matrix(G(s))  # convert to sympy matrix object
     det = sympy.simplify(G.det())
     pole = sympy.solve(sympy.denom(det))
     return pole
@@ -1423,14 +1412,14 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     
     if not G is None:
         s = sympy.Symbol('s')
-        G = sympy.Matrix(G(s)) #convert to sympy matrix object
+        G = sympy.Matrix(G(s))  # convert to sympy matrix object
         det = sympy.simplify(G.det())
         zero = sympy.solve(sympy.numer(det))
     
     elif not A is None:
         z = sympy.Symbol('z')
-        top = numpy.hstack((A,B))
-        bot = numpy.hstack((C,D))
+        top = numpy.hstack((A, B))
+        bot = numpy.hstack((C, D))
         m = numpy.vstack((top, bot))
         M = numpy.matrix(m)
         [rowsA, colsA] = numpy.shape(A)
@@ -1527,8 +1516,8 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         g = G(d + e)
 
         U, _, V =  SVD(g)
-        u = V[:,dt]
-        y = U[:,dt]
+        u = V[:, dt]
+        y = U[:, dt]
         
 # TODO complete validation test
         v = True
@@ -1708,7 +1697,7 @@ def distRej(G, gd):
         Disturbance direction.
     """
     
-    gd1 = 1 / numpy.linalg.norm(gd, 2)   #Returns largest sing value of gd(wj)
+    gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
     yd = gd1 * gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G) * yd)[0]
     
@@ -1742,7 +1731,7 @@ def distRHPZ(G, Gd, RHP_Z):
     if numpy.real(RHP_Z) < 0: # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
-    Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0,0]
+    Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0, 0]
     
     return Dist_RHPZ
     
