@@ -43,6 +43,9 @@ w = np.logspace(-2, 2, 100)
 s = w*1j
 fr = G_P(2.5, 2.5, 2.5, s)
 plt.plot(np.real(fr), np.imag(fr), 'r-')
+plt.xlabel('Real part (Re)')
+plt.ylabel('Imaginery part (Im)')
+
 
 plt.figure(2)
 frn = G(s)
@@ -54,5 +57,7 @@ for i in xrange(N):
 
 plt.loglog(w, distance, 'b--')
 plt.loglog(w, map(abs, w_A(s)), 'r')
+plt.xlabel('Frequency')
+plt.legend(['Distance','w_A'])
 
 plt.show()

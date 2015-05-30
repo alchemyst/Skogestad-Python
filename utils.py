@@ -9,6 +9,8 @@ import numpy #do not abbreviate this module as np in utils.py
 import sympy #do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
+import fractions
+from decimal import Decimal
 
 def astf(maybetf):
     """
@@ -98,7 +100,7 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y=''):
+    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=5):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -108,7 +110,7 @@ class tf(object):
         self.denominator = numpy.poly1d(denominator)
         self.deadtime = deadtime
         self.zerogain = False
-        self.simplify()
+        self.simplify(dec=prec)
         self.name = name
         self.u = u
         self.y = y
@@ -122,8 +124,10 @@ class tf(object):
     def step(self, *args):
         """ Step response """ 
         return signal.lti(self.numerator, self.denominator).step(*args)
-
-    def simplify(self):
+    
+    def simplify(self,dec=5):
+        
+        #Polynomial simplification        
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
         assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
@@ -131,6 +135,29 @@ class tf(object):
         self.denominator, remainder = self.denominator/g
         assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
                "Error in simplifying rational, remainder=\n{}".format(remainder)
+        
+        #Round numerator and denominator for coefficient simplification
+        self.numerator = numpy.poly1d(numpy.round(self.numerator,dec))
+        self.denominator = numpy.poly1d(numpy.round(self.denominator,dec)) 
+        
+        #Determine most digits in numerator & denominator
+        num_dec = 0
+        den_dec = 0       
+        for i in range(len(self.numerator.coeffs)):
+            num_dec = max(num_dec,decimals(self.numerator.coeffs[i]))
+        for j in range(len(self.denominator.coeffs)):
+            den_dec = max(den_dec,decimals(self.denominator.coeffs[j]))
+        
+        #Convert coefficients to integers
+        self.numerator = self.numerator*10**(max(num_dec,den_dec))
+        self.denominator = self.denominator*10**(max(num_dec,den_dec)) 
+        
+        #decimal-less representation of coefficients
+        num_gcd = gcd(self.numerator.coeffs)
+        den_gcd = gcd(self.denominator.coeffs)
+        tf_gcd = gcd([num_gcd,den_gcd])
+        self.numerator = self.numerator/tf_gcd
+        self.denominator = self.denominator/tf_gcd        
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -351,6 +378,38 @@ class mimotf(object):
     def zeros(self):
         return self.det().zeros()
 
+    def cofactor_mat(self):
+        A = self.matrix
+        m = A.shape[0]
+        n = A.shape[1]
+        C = numpy.zeros((m,n),dtype=object)
+        for i in range(m):
+            for j in range(n):
+                minorij = det(numpy.delete(numpy.delete(A,i,axis=0),j,axis=1))    
+                C[i,j] = (-1.)**(i+1+j+1)*minorij
+        return C
+            
+    def inverse(self):
+        """ Calculate inverse of mimotf object
+        
+        >>> s = tf([1, 0], 1)
+        >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
+        ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
+        >>> G.inverse()
+        matrix([[tf([-1.  1.], [-1.  4.]), tf([ 2.], [-1.  4.])],
+                [tf([ 9.], [ -4.  16.]), tf([-1.  1.], [-2.  8.])]], dtype=object)
+        
+        >>> G.inverse()*G.matrix
+        matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
+                [tf([ 0.], [1]), tf([ 1.], [ 1.])]], dtype=object)
+        
+        """
+        detA = det(self.matrix)
+        C_T = self.cofactor_mat().T
+        inv = (1./detA)*C_T
+        return inv
+
+
     def __call__(self, s):
         """
         >>> G = mimotf([[1]])
@@ -557,7 +616,15 @@ def circle(cx, cy, r):
     x = cx + numpy.cos(theta)*r
     return x, y
 
+def gcd(ar):
+    return reduce(fractions.gcd, ar)
 
+def decimals(fl):
+    fl = str(fl)
+    dec = abs(Decimal(fl).as_tuple().exponent)
+    return dec
+    
+    
 def polygcd(a, b):
     """
     Find the Greatest Common Divisor of two polynomials
