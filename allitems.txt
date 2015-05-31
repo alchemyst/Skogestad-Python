@@ -115,6 +115,7 @@ Exercise 6.6
 Exercise 6.7
 Exercise 6.8
 Exercise 6.9
+Exercise 6.10
 Exercise 7.1
 Exercise 7.2
 Exercise 7.3
