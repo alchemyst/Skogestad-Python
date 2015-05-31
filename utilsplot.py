@@ -1102,7 +1102,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     plt.axis(axlim)
     plt.grid(b=None, which='both', axis='both')
     plt.xlabel('Frequency [rad/unit time]')
-    plt.legend(["Kc=0.2", "Kc=0.5", "Kc=0.8"],loc=4)
+    plt.legend(["Kc = %1.2f" % k for k in Kc],loc=4)
                
     plt.subplot(1, 2, 2)
     plt.title('(b) Response to step in reference')
