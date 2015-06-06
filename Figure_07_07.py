@@ -43,7 +43,7 @@ rea = np.real(g0)
 img = np.imag(g0)
 plt.plot(rea, img, '--')
 
-# M1 Simpliefied nominal model with no time delay
+# M1 Simplified nominal model with no time delay
 g1 = Gp(2.5, 2.5, 0)
 r1 = np.max(np.abs(g1 - g0))
 [c1x, c1y] = circle(np.real(g1), np.imag(g1), r1)
@@ -64,13 +64,6 @@ result = minimize(maxrad, [np.real(g2), np.imag(g2)])
 g3 = complex(*result.x)
 r3 = np.max(np.abs(g3 - g0))
 [c3x, c3y] = circle(np.real(g3), np.imag(g3), r3)
-
-plt.plot(c3x, c3y, 'c')
-
-plt.ylabel('Imaginary')
-plt.xlabel('Real')
-plt.legend(['Uncertainty disc', 'M1', 'M2', 'M3'],
-           bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=4)
 
 plt.plot(c3x, c3y, 'c')
 
