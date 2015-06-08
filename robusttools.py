@@ -28,7 +28,7 @@ def wI(tau, ro, rinf, s):
     This is just one example of a uncertainity weight function.
     '''
 
-    return np.abs((tau * s + ro) / (tau / rinf * s + 1))
+    return (tau * s + ro) / (tau / rinf * s + 1)
 
 
 def UnstructuredDelta(M, DeltaStructure):
