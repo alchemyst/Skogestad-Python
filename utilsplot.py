@@ -219,7 +219,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
     frequency.
     
     If a controller is specified, the max and min singular values of S are also
-    plotted and the bandwidth frequency computed.
+    plotted and the bandwidth frequency computed (p81).
               
     Parameters
     ----------
@@ -269,8 +269,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
     
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
-    xmin = 10**w_start
-    
+
     if Kin is not None:
         plt.subplot(2, 1, 1)
         
@@ -280,13 +279,12 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
         Sv = numpy.zeros((len(w), dim), dtype=complex)
         f = False
         wA = 0
-        for j in range(dim):
-            for i in range(len(w)):
-                Sv[i, j] = utils.sigmas(G(s[i]))[j]
-                if j == dim - 1 and not f:
-                    if (labB == 'wC' and Sv[i, -1] < 1) or (labB == 'wB' and Sv[i] > 0.707):
-                        wA = w[i]
-                        f = True
+        for i in range(len(w)):
+            Sv[i, :] = utils.sigmas(G(s[i]))
+            if not f:
+                if (labB == 'wC' and Sv[i, -1] < 1) or (labB == 'wB' and Sv[i, 0] > 0.707):
+                    wA = w[i]
+                    f = True
         ymin = numpy.min(Sv[:, -1])
         
         if not sv_all:
@@ -297,7 +295,6 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
                 plt.loglog(w, Sv[:, j], label=('$\sigma_{%s}(%s)$' % (j, labP)))
         plt.axhline(crossover, ls=':', lw=2, color='r')
         if text:
-            plt.text(xmin, 1.1, 'Mag = 1', color='r')
             plt.axvline(wA, ls=':', lw=2, color='r')
             plt.text(wA*1.1, ymin*1.1, labB, color='r')
         plt.axis(axlim)
@@ -316,7 +313,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
         L = Kin(s) * G(s)
         S = numpy.linalg.inv(numpy.eye(dim) + L)  #SVD of S = 1/(I + L)  
           
-        wB = subbode(S, text, 1, 'wC', 'G')
+        wB = subbode(S, text, 0.707, 'wC', 'G')
         
         Bandwidth = wC, wB
         if text: print '(wC = {1}, wB = {2}'.format(wC, wB)
