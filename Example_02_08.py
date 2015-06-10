@@ -40,15 +40,13 @@ print 'wbt:' , np.round(wbt, 4)
 
 #Response to step in reference for loop shaping design
 #y = Tr, r(t) = 1 for t > 0
+#u = KSr, r(t) = 1 for t > 0
 
 plt.figure('Figure 2.20')
 T = feedback(L, 1)
-tspan = np.linspace(0, 50, 100)
-[t, y] = T.step(0, tspan)
-plt.plot(t, y)
-plt.xlabel('Time [s]')
-plt.legend(['y(t)'])
-plt.grid()
+S = feedback(1, L)
+u = K*S
+step_response_plot(T, u, 50, 0)
 
 #magnitude and phase of K
 plt.figure('Figure 2.21')
