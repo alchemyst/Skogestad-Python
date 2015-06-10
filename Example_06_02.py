@@ -31,13 +31,15 @@ z = [2.]
 
 pdata = pole_zero_directions(G, p, 'p')
 zdata = pole_zero_directions(G, z, 'z')
-rowhead = ['   u','   y','   e ']
+rowhead = ['u','y','e ']
 display_export_data(pdata, 'Poles', rowhead)
 display_export_data(zdata, 'Zeros', rowhead)
 
+zdata,_ = pole_zero_directions(G, z, 'z', 'y')
 print 'M_S,min = M_T,min = {:.2f}'.format(BoundST(G, p, z))
 
-print '\nPeak example for deadtime:'
+# TODO fix BoundST with deadtime
+#print '\nPeak example for deadtime:'
 deadtime = np.matrix([[-1, 0],
-                      [-2. -3]])
-print 'M_T,min = {:.2f}'.format(BoundST(G, p, z), deadtime)
+                      [-2., -3]])
+#print 'M_T,min = {:.2f}'.format(BoundST(G, p, z, deadtime))

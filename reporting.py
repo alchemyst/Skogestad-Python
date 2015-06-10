@@ -51,9 +51,9 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
         for j in range(m):
             if m > 1: # increment heading label
                 if latex:
-                    row_heading.append('${0}_{1}$'.format(row_head[i], j))
+                    row_heading.append('${0}_{1}$'.format(row_head[i], j + 1))
                 else:
-                    row_heading.append('{0}{1}'.format(row_head[i], j))
+                    row_heading.append('{0}{1}'.format(row_head[i], j + 1))
             else:
                 if latex:
                     row_heading.append('${0}$'.format(row_head[i]))
@@ -88,10 +88,20 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
                 for k in range(m): # cycle through items in heading type
                     u = s[i][j + 1][k] # extract data
                     if isinstance(u, (float)): # data is float
-                        u = ' {:.3f}'.format(u)
+                        u = '{:.3e}'.format(u)
                     elif isinstance(u, (str, bool, int)): # data is string or boolean
                         u = ' {}'.format(u)
-                    else: u = ' {:.3f}'.format(u[0,0]) # data is matrix
+                    else: # data is matrix
+                        if latex: # improves formating
+                            if u.imag == 0:
+                                u = ' \\num{' + '{:.3e}'.format(u[0,0]) + '}'
+                            else:
+                                u = ' \\num{' + '{:.3e}'.format(u[0,0].real) + '} \\num{' + '{:.3e}'.format(u[0,0].imag) + '}i'
+                        else:
+                            if u.imag == 0:
+                                u = '{:.3e}'.format(u[0,0])
+                            else:
+                                u = '{:.3e}'.format(u[0,0].real) + '{:.3e}'.format(u[0,0].imag)
                     rows[row_count] += ' ' + sep + u # format dependent variable
                     row_count += 1
         
@@ -101,15 +111,15 @@ def display_export_data(data, display_type, row_head, save=False, latex=False, w
             header = '\\begin{tabular}{%sc}\n' % tabs # add an extra c
             header += '\\toprule\n'
             header += top + '\\\\\n'
-            header += '\\midrule'
+            header += '\\midrule\n'
             f.write(header)
         elif save: f.write(top + '\n')
-        print top
-        print ''
+        if not latex: print top
+        if not latex: print ''
         for i in range(len(rows)):
-            print rows[i]
+            if not latex: print rows[i]
             if save: f.write(rows[i] + '\\\\\n')
-        print ''
+        if not latex: print ''
         if latex:
             footer = '\\bottomrule\n'
             footer += '\\end{tabular}\n\n'
