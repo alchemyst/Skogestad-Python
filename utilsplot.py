@@ -941,7 +941,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
             for k in range(points):
                 U, _, _ = utils.SVD(G(s[k]))
                 acceptable_control[j, i, k] = numpy.abs(U[:, i].H * Gd(s[k])[:, j])
-            plt.subplot(dimGd, dimG, plot_No)
+            plt.subplot(dimG, dimGd, plot_No)
             if not modified:
                 plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
                 plt.plot(w, acceptable_control[j, i] - one, label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
