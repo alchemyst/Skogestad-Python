@@ -6,42 +6,7 @@ from utils import poles, zeros
 from utilsplot import plot_freq_subplot, ref_perfect_const_plot
 
 
-def G(s):
-    """ give the transfer matrix of the system"""
-    return np.matrix([[1 / (s + 1), 1], 
-                      [1 / (s + 2) ** 2, (s - 1) / (s + 2)]])
-
-def Gd(s):
-    return np.matrix([[1 / (s + 1)],
-                      [1 / (s + 20)]])
-
-def reference_change():
-    """Reference change matrix/vector for use in eq 6-52 pg 242 to check input saturation"""
-    R = np.matrix([[1, 0], [0, 1]])
-    return R/np.linalg.norm(R, 2)
-
-def Zeros_Poles_RHP():
-    """ Give a vector with all the RHP zeros and poles
-    RHP zeros and poles are calculated from sage program"""
-
-    # TODO change to correct values
-    Zeros_G = [1, 5]
-    Poles_G = [2, 3]
-    Zeros_Gd = []
-    Poles_Gd = []
-    return Zeros_G, Poles_G, Zeros_Gd, Poles_Gd
-
-def deadtime():
-    """ vector of the deadtime of the system"""
-    #individual time delays
-    dead_G = np.matrix([[0, -2], [-1, -4]])
-    dead_Gd = np.matrix([])
-    return dead_G, dead_Gd
-
-print 'Poles: ' , poles(G)
-print 'Zeros: ' , zeros(G)
-
-# TODO redefine this function with utils functions
+# TODO redefine this function with utils and utilsplot functions
 def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     '''
     This function is for multivariable system analysis of controllability.
@@ -62,10 +27,11 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
         Description.
     '''
 
-    #importing most of the zeros and poles data
-    [Zeros_G, Poles_G, Zeros_Gd, Poles_Gd] = Zeros_Poles_RHP()
-
-
+    # TODO use mimotf functions
+    Zeros_G = zeros(G)
+    Poles_G = poles(G)
+    print 'Poles: ' , Zeros_G,
+    print 'Zeros: ' , Poles_G
 
     #just to save unnecessary calculations that is not needed
     #sensitivity peak of closed loop. eq 6-8 pg 224 skogestad
@@ -364,4 +330,29 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     return Ms_min
 
 
-PEAK_MIMO(-4, 5, 0.00001, 0.1, 1)
+if __name__ == '__main__': # only executed when called directly, not executed when imported
+
+    def G(s):
+        """ give the transfer matrix of the system"""
+        return np.matrix([[1 / (s + 1), 1],
+                          [1 / (s + 2) ** 2, (s - 1) / (s + 2)]])
+
+    def Gd(s):
+        return np.matrix([[1 / (s + 1)],
+                          [1 / (s + 20)]])
+
+    def reference_change():
+        """Reference change matrix/vector for use in eq 6-52 pg 242 to check input saturation"""
+        R = np.matrix([[1, 0], [0, 1]])
+        return R/np.linalg.norm(R, 2)
+
+
+    def deadtime():
+        """ vector of the deadtime of the system"""
+        #individual time delays
+        dead_G = np.matrix([[0, -2], [-1, -4]])
+        dead_Gd = np.matrix([])
+        return dead_G, dead_Gd
+
+
+    PEAK_MIMO(-4, 5, 0.00001, 0.1, 1)

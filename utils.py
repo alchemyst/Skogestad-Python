@@ -1549,8 +1549,8 @@ def BoundST(G, poles, zeros, deadtime=None):
     """
     This function will calculate the minimum peak values of S and T if the 
     system has zeros and poles in the input or output. For standard conditions
-    Equation 6.8 (p224) is applied. Equation 6.19 (p227) is used in the
-    special case for a system with deadtime, one pole and one zero.
+    Equation 6.8 (p224) is applied. Equation 6.16 (p226) is used when deadtime
+    is included.
     
     Parameters
     ----------
@@ -1560,8 +1560,8 @@ def BoundST(G, poles, zeros, deadtime=None):
         List of poles.
     zeros : numpy array (number of zeros)
         List of zeros.
-    deadtime : numpy array (number of outputs, number of inputs)
-        Deadtime or time delay per output.
+    deadtime : numpy matrix (n, n)
+        Deadtime or time delay for G.
     
     Returns
     -------

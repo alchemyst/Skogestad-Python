@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from utils import tf, feedback, marginsclosedloop
-from utilsplot import bode
+from utilsplot import bode, step_response_plot
 
 
 # Loop shaping is an iterative procedure where the designer

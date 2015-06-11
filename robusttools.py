@@ -59,3 +59,24 @@ def UnstructuredDelta(M, DeltaStructure):
         delta = 'NA'
     else: delta = 0
     return delta
+
+
+def SpecRad(A):
+    '''
+    Function to calculate the spectral radius, which is the magnitude of the
+    largest eigenvalue of a matrix.
+
+    Parameters
+    ----------
+    M : matrix (n by n)
+
+    Returns
+    -------
+    rho : float
+        Spectral radius.
+
+    Note
+    ----
+    The spectral norm provides a lower bound for any matrix norm.
+    '''
+    return max(np.linalg.eigvals(A))
