@@ -16,9 +16,7 @@ g2 = mimotf([[np.cos(d), -np.sin(d)],
 g3 = mimotf([[(s - z) / (0.1 * s + 1), 0],
              [0, (s + 2) / (0.1 * s + 1)]])
 G = g1 * g2 * g3
-    
-G = mimotf(G(s))
-    
+
 p = G.poles()
 z = G.zeros()
 print 'Poles: {0}'.format(p)
