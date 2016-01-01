@@ -5,3 +5,4 @@ scipy
 sympy
 mock
 
+numpydoc
