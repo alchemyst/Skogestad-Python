@@ -4,5 +4,4 @@ numpy
 scipy
 sympy
 mock
-
 numpydoc

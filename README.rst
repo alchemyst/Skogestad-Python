@@ -10,8 +10,14 @@ Python code for Multivariable Feedback Control
    :target: https://travis-ci.org/alchemyst/Skogestad-Python
    :alt: Build status
 
+.. image:: https://codeclimate.com/github/alchemyst/Skogestad-Python/badges/gpa.svg
+   :target: https://codeclimate.com/github/alchemyst/Skogestad-Python
+   :alt: Code Climate
+
 .. image:: https://coveralls.io/repos/alchemyst/Skogestad-Python/badge.svg
   :target: https://coveralls.io/r/alchemyst/Skogestad-Python
+
+
 
 .. image:: https://graphs.waffle.io/alchemyst/Skogestad-Python/throughput.svg 
  :target: https://waffle.io/alchemyst/Skogestad-Python/metrics 
