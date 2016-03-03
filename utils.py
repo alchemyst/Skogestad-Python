@@ -10,6 +10,7 @@ import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
+import functools
 from decimal import Decimal
 
 
@@ -255,12 +256,12 @@ class tf(object):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
         return self * other.inverse()
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         return tf(other)/self
 
     def __neg__(self):
@@ -616,7 +617,7 @@ def circle(cx, cy, r):
 
 
 def gcd(ar):
-    return reduce(fractions.gcd, ar)
+    return functools.reduce(fractions.gcd, ar)
 
 
 def decimals(fl):
@@ -843,7 +844,7 @@ def feedback(forward, backward=None, positive=False):
         backward = 1
     if positive:
         backward = -backward
-    return forward * 1/(1 + backward * forward)
+    return forward / (1 + backward * forward)
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
@@ -1217,7 +1218,7 @@ def sv_dir(G, table=False):
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
-            print '-' * 24
+            print ('-' * 24)
             
             print('Output vector')
             for k in range(len(u[i])):  # change to len of u[i]
