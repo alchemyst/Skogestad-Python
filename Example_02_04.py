@@ -9,10 +9,10 @@ s = tf([1, 0], 1)
 G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
 
 [Kc, Taui, Ku, Pu] = ControllerTuning(G, method='ZN') 
-print 'Kc:', np.round(Ku/2.2, 3)
-print 'Taui:', np.round(Pu/1.2, 3)
-print 'Ku:', np.round(Ku, 3)
-print 'Pu:', np.round(Pu, 3)
+print('Kc:', np.round(Ku/2.2, 3))
+print('Taui:', np.round(Pu/1.2, 3))
+print('Ku:', np.round(Ku, 3))
+print('Pu:', np.round(Pu, 3))
 
 K1 = Kc * (1 + 1 / (Taui * s))
 K = K1[0] # use this code to remove array
@@ -30,11 +30,11 @@ bodeclosedloop(G, K, -2, 1, margin=True)
 plt.show()
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
-print 'GM:' , np.round(GM, 2)
-print "PM: ", np.round(PM, 1) , "deg or",  np.round(PM / 180 * np.pi, 2), "rad"
-print 'wb:' , np.round(wb, 2)
-print 'wc:' , np.round(wc, 2)
-print 'wbt:' , np.round(wbt, 2)
+print('GM:' , np.round(GM, 2))
+print("PM: ", np.round(PM, 1) , "deg or",  np.round(PM / 180 * np.pi, 2), "rad")
+print('wb:' , np.round(wb, 2))
+print('wc:' , np.round(wc, 2))
+print('wbt:' , np.round(wbt, 2))
 
-if valid: print "Frequency range wb < wc < wbt is valid"
-else: print "Frequency range wb < wc < wbt is not valid"
+if valid: print("Frequency range wb < wc < wbt is valid")
+else: print("Frequency range wb < wc < wbt is not valid")
