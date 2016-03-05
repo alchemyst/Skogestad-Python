@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as scs
+import __future__
 
 # Example 2.7 compares w_B and w_BT as indicators of performance
 # it illustrates that w_B might be a better indicator, but care
