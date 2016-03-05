@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import feedback, tf, marginsclosedloop
 from utilsplot import step_response_plot, bodeclosedloop
+import __future__
 
 s = tf([1, 0], 1)
 G = 4 /((s - 1) * (0.02 * s + 1)**2)
@@ -23,8 +24,8 @@ plt.show()
 #TODO there is a descrepancy with the phase plots
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
-print 'GM:' , np.round(GM, 2)
-print 'PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg"
-print 'wb:' , np.round(wb, 2)
-print 'wc:' , np.round(wc, 2)
-print 'wbt:' , np.round(wbt, 4)
+print('GM:' , np.round(GM, 2))
+print('PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg")
+print('wb:' , np.round(wb, 2))
+print('wc:' , np.round(wc, 2))
+print('wbt:' , np.round(wbt, 4))
