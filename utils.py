@@ -11,7 +11,8 @@ from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
-
+import functools #python 3 reduce function included in functools
+import __future__
 
 def astf(maybetf):
     """
@@ -255,12 +256,12 @@ class tf(object):
     def __rmul__(self, other):
         return self * other
 
-    def __div__(self, other):
+    def __truediv__(self, other):      #python 3 two types of division,specify
         if not isinstance(other, tf):
             other = tf(other)
         return self * other.inverse()
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):    #python 3 two types of division, specify
         return tf(other)/self
 
     def __neg__(self):
@@ -463,7 +464,7 @@ class mimotf(object):
         left = matrix_as_scalar(other.matrix)
         return mimotf(left*right)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         raise NotImplemented("Division doesn't make sense on matrices")
 
     def __neg__(self):
@@ -614,10 +615,8 @@ def circle(cx, cy, r):
     x = cx + numpy.cos(theta)*r
     return x, y
 
-
 def gcd(ar):
-    return reduce(fractions.gcd, ar)
-
+    return functools.reduce(fractions.gcd, ar)
 
 def decimals(fl):
     fl = str(fl)
@@ -1069,6 +1068,16 @@ def Wp(wB, M, A, s):
 
     return (s / M + wB) / (s + wB * A)
 
+def maxpeak(G, w_start=-2, w_end=2, points=1000):
+    """
+    Computes the maximum bode magnitude peak of a transfer function
+    """
+    w = numpy.logspace(w_start, w_end, points)
+    s = 1j*w
+    
+    M = numpy.max(numpy.abs(G(s)))    
+
+    return M
 
 ###############################################################################
 #                                Chapter 3                                    #
@@ -1217,7 +1226,7 @@ def sv_dir(G, table=False):
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
-            print '-' * 24
+            print('-' * 24)
             
             print('Output vector')
             for k in range(len(u[i])):  # change to len of u[i]
