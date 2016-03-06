@@ -1155,8 +1155,8 @@ def sigmas(A, position=None):
     ...                  [3, 4]])
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
-    >>> sigmas(A, 'min')
-    0.36596619062625746
+    >>> round(sigmas(A, 'min'), 6)
+    0.365966
     """
 
     sigmas = numpy.linalg.svd(A, compute_uv=False)
