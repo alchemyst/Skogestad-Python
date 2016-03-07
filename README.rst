@@ -27,7 +27,10 @@ This project aims to create Python code for the various code examples in the tex
 
 * Skogestad, S., I. Postlethwaite; Multivariable Feedback Control: Analysis and Design; John Wiley & Sons, 2005.
 
-# Python 2/3 compatability branch
+---
+Python 2/3 compatability branch
+---
+
 The master branch currently requires Python 2 and is tested on Python 2.7. This branch aims to be runnable from Python 2.7 as well as Python 3.5.
 
 We are aiming to use `Python-Future`_ as our compatability layer.
