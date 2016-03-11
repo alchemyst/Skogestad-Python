@@ -4,7 +4,7 @@ import numpy as np
 G_3_29 = np.matrix([[5, 4], [3, 2]])
 G_3_30 = np.matrix([[0, 100], [0, 0]])
 
-def norms(G):
+def norms(G, Matrix_input):
     """Function to calculate norms"""
     spectrad = max(np.linalg.eigvals(G))
     Frob_norm = np.linalg.norm(G, 'fro')
@@ -15,34 +15,17 @@ def norms(G):
     [U, S, V] = np.linalg.svd(G)
     Max_singularval = max(S)
 
-    print 'Matrix 3.29'
-    print 'Spectral radius =', spectrad
-    print 'Frobenius norm =', Frob_norm
-    print 'Sum norm =', Sum_norm
-    print 'Maximum column sum =', Columnsum
-    print 'Maximum row sum =', Rowsum
-    print 'Maximum singular value =', Max_singularval
+    print Matrix_input
+    print 'Spectral radius =', np.round(spectrad,2)
+    print 'Frobenius norm =', np.round(Frob_norm,2)
+    print 'Sum norm =', np.round(Sum_norm,2)
+    print 'Maximum column sum =', np.round(Columnsum,2)
+    print 'Maximum row sum =', np.round(Rowsum,2)
+    print 'Maximum singular value =', np.round(Max_singularval,2)
 
-norms(G_3_29)
+norms(G_3_29, "Matrix 3.29")
+print ''
+norms(G_3_30, "Matrix 3.30")
 
-def norms(G):
-    """Function to calculate norms"""
-    spectrad = max(np.linalg.eigvals(G))
-    Frob_norm = np.linalg.norm(G, 'fro')
-    B = np.cumsum(abs(G))
-    Sum_norm = B[0, G.size-1]
-    Columnsum = np.max(np.sum(abs(G),axis=0))
-    Rowsum = np.max(np.sum(abs(G),axis=1))
-    [U, S, V] = np.linalg.svd(G)
-    Max_singularval = max(S)
 
-    print ''    
-    print 'Matrix 3.30'
-    print 'Spectral radius =', spectrad
-    print 'Frobenius norm =', Frob_norm
-    print 'Sum norm =', Sum_norm
-    print 'Maximum column sum =', Columnsum
-    print 'Maximum row sum =', Rowsum
-    print 'Maximum singular value =', Max_singularval
 
-norms(G_3_30)
