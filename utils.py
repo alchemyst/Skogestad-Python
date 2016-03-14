@@ -233,7 +233,7 @@ class tf(object):
             raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
-                  other.numerator*self.denominator, gcd, self.deadtime + 
+                  other.numerator*self.denominator, gcd, self.deadtime +
                   other.deadtime)
 
     def __radd__(self, other):
@@ -390,21 +390,21 @@ class mimotf(object):
                 minorij = det(numpy.delete(numpy.delete(A, i, axis=0), j, axis=1))
                 C[i, j] = (-1.)**(i+1+j+1)*minorij
         return C
-            
+
     def inverse(self):
         """ Calculate inverse of mimotf object
-        
+
         >>> s = tf([1, 0], 1)
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
         matrix([[tf([-1.  1.], [-1.  4.]), tf([ 2.], [-1.  4.])],
                 [tf([ 9.], [ -4.  16.]), tf([-1.  1.], [-2.  8.])]], dtype=object)
-        
+
         >>> G.inverse()*G.matrix
         matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
                 [tf([ 0.], [1]), tf([ 1.], [ 1.])]], dtype=object)
-        
+
         """
         detA = det(self.matrix)
         C_T = self.cofactor_mat().T
@@ -496,87 +496,87 @@ class mimotf(object):
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
-    time and constraints. A unit step response is generated.  
-    
+    time and constraints. A unit step response is generated.
+
     Parameters
     ----------
     G : tf
         Transfer function (input[u] or output[y]) to evauate step response.
-        
+
     Y : tf
-        Transfer function output[y] to evaluate constrain step response 
+        Transfer function output[y] to evaluate constrain step response
         (optional) (required if constraint is specified).
-        
+
     t_end : integer
         length of time to evaluate step response (optional).
-    
+
     initial_val : integer
         starting value to evalaute step response (optional).
-        
+
     points : integer
         number of iteration that will be calculated (optional).
-        
+
     constraint : real
         The upper limit the step response cannot exceed. Is only calculated
         if a value is specified (optional).
-        
+
     method : ['numeric','analytic']
         The method that is used to calculate a constrainted response. A
         constraint value is required (optional).
-          
+
     Returns
     -------
     timedata : array
-        Array of floating time values.  
-        
+        Array of floating time values.
+
     process : array (1 or 2 dim)
         1 or 2 dimensional array of floating process values.
-    """ 
+    """
     # Surpress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
-    
-    timedata = numpy.linspace(0, t_end, points)    
-    
+
+    timedata = numpy.linspace(0, t_end, points)
+
     if constraint is None:
-        deadtime = G.deadtime        
+        deadtime = G.deadtime
         [timedata, processdata] = numpy.real(G.step(initial_val, timedata))
         t_stepsize = max(timedata)/(timedata.size-1)
         t_startindex = int(max(0, numpy.round(deadtime/t_stepsize, 0)))
         processdata = numpy.roll(processdata, t_startindex)
         processdata[0:t_startindex] = initial_val
-        
+
     else:
         if method == 'numeric':
             A1, B1, C1, D1 = signal.tf2ss(G.numerator, G.denominator)
             # adjust the shape for complex state space functions
             x1 = numpy.zeros((numpy.shape(A1)[1], numpy.shape(B1)[1]))
-            
+
             if constraint is not None:
                 A2, B2, C2, D2 = signal.tf2ss(Y.numerator, Y.denominator)
                 x2 = numpy.zeros((numpy.shape(A2)[1], numpy.shape(B2)[1]))
-            
+
             dt = timedata[1]
             processdata1 = []
             processdata2 = []
             bconst = False
             u = 1
-            
+
             for t in timedata:
                 dxdt1 = A1*x1 + B1*u
                 y1 = C1*x1 + D1*u
-                
+
                 if constraint is not None:
                     if (y1[0, 0] > constraint) or bconst:
-                        y1[0, 0] = constraint  
+                        y1[0, 0] = constraint
                         bconst = True  # once constraint the system is oversaturated
                         u = 0  # TODO : incorrect, find the correct switching condition
                     dxdt2 = A2*x2 + B2*u
                     y2 = C2*x2 + D2*u
-                    x2 = x2 + dxdt2 * dt      
+                    x2 = x2 + dxdt2 * dt
                     processdata2.append(y2[0, 0])
-                  
-                x1 = x1 + dxdt1 * dt                
+
+                x1 = x1 + dxdt1 * dt
                 processdata1.append(y1[0, 0])
             if constraint:
                 processdata = [processdata1, processdata2]
@@ -585,31 +585,31 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
             # TODO: caluate intercept of step and constraint line
             timedata, processdata = [0, 0]
         else: raise ValueError('Invalid function parameters')
-        
+
     # TODO: calculate time response
     return timedata, processdata
-        
+
 
 def circle(cx, cy, r):
-    """ 
+    """
     Return the coordinates of a circle
-    
+
     Parameters
     ----------
     cx : float
         Center x coordinate.
-        
+
     cy : float
         Center x coordinate.
-        
+
     r : float
         Radius.
-    
+
     Returns
     -------
     x, y : float
         Circle coordinates.
-        
+
    """
     npoints = 100
     theta = numpy.linspace(0, 2*numpy.pi, npoints)
@@ -624,8 +624,8 @@ def decimals(fl):
     fl = str(fl)
     dec = abs(Decimal(fl).as_tuple().exponent)
     return dec
-    
-    
+
+
 def polygcd(a, b):
     """
     Find the Greatest Common Divisor of two polynomials
@@ -650,15 +650,15 @@ def polygcd(a, b):
 
 
 def arrayfun(f, A):
-    """ 
+    """
     Recurses down to scalar elements in A, then applies f, returning lists
     containing the result.
-    
+
     Parameters
     ----------
     A : array
     f : function
-    
+
     Returns
     -------
     arrayfun : list
@@ -681,19 +681,19 @@ def arrayfun(f, A):
 
 
 def listify(A):
-    """ 
+    """
     Transform a gain value into a transfer function.
-    
+
     Parameters
     ----------
     K : float
         Gain.
-    
+
     Returns
     -------
     gaintf : tf
         Transfer function.
-        
+
    """
     return [A]
 
@@ -763,42 +763,42 @@ def det(A):
 
 
 def gaintf(K):
-    """ 
+    """
     Transform a gain value into a transfer function.
-    
+
     Parameters
     ----------
     K : float
         Gain.
-    
+
     Returns
     -------
     gaintf : tf
         Transfer function.
-        
+
    """
     r = tf(arrayfun(listify, K), arrayfun(listify, numpy.ones_like(K)))
     return r
 
 
 def findst(G, K):
-    """ 
+    """
     Find S and T given a value for G and K.
-    
+
     Parameters
     ----------
     G : numpy array
         Matrix of transfer functions.
     K : numpy array
         Matrix of controller functions.
-    
+
     Returns
     -------
     S : numpy array
         Matrix of sensitivities.
     T : numpy array
         Matrix of complementary sensitivities.
-        
+
    """
     L = G*K
     I = numpy.eye(G.outputs, G.inputs)
@@ -808,9 +808,9 @@ def findst(G, K):
 
 
 def phase(G, deg=False):
-    """ 
+    """
     Return the phase angle in degrees or radians
-    
+
     Parameters
     ----------
     G : tf
@@ -818,16 +818,16 @@ def phase(G, deg=False):
     deg : booleans
         True if radians result is required, otherwise degree is default
         (optional).
-    
+
     Returns
     -------
     phase : float
         Phase angle.
-        
+
    """
-    return numpy.unwrap(numpy.angle(G, deg=deg), 
+    return numpy.unwrap(numpy.angle(G, deg=deg),
                         discont=180 if deg else numpy.pi)
-        
+
 
 def feedback(forward, backward=None, positive=False):
     """
@@ -848,24 +848,24 @@ def feedback(forward, backward=None, positive=False):
 
 
 def Closed_loop(Kz, Kp, Gz, Gp):
-    """ 
+    """
     Return zero and pole polynomial for a closed loop function.
-    
+
     Parameters
     ----------
     Kz & Gz : list
         Polynomial constants in the numerator.
     Kz & Gz : list
         Polynomial constants in the denominator.
-    
+
     Returns
     -------
     Zeros_poly : list
         List of zero polynomial for closed loop function.
-        
+
     Poles_poly : list
         List of pole polynomial for closed loop function.
-        
+
    """
 
     # calculating the product of the two polynomials in the numerator
@@ -880,7 +880,7 @@ def Closed_loop(Kz, Kp, Gz, Gp):
     return Zeros_poly, Poles_poly
 
 
-def omega(w_start, w_end):  
+def omega(w_start, w_end):
     """
     Convenience wrapper
     Defines the frequency range for calculation of frequency response
@@ -888,21 +888,21 @@ def omega(w_start, w_end):
     """
     omega = numpy.logspace(w_start, w_end, 1000)
     return omega
-    
-    
+
+
 def freq(G):
-    """ 
+    """
     Calculate the frequency response for an optimisation problem
-    
+
     Parameters
     ----------
     G : tf
-        plant model 
-          
+        plant model
+
     Returns
     -------
-    Gw : frequency response function           
-    """ 
+    Gw : frequency response function
+    """
 
     def Gw(w):
         return G(1j*w)
@@ -910,35 +910,35 @@ def freq(G):
 
 
 def ControllerTuning(G, method='ZN'):
-    """ 
+    """
     Calculates either the Ziegler-Nichols or Tyreus-Luyben
     tuning parameters for a PI controller based on the continuous
     cycling method.
-    
+
     Parameters
     ----------
     G : tf
         plant model
-    
+
     method : Use 'ZN' for Ziegler-Nichols tuning parameters and
              'TT' for Tyreus-Luyben parameters. The default is to
              return Ziegler-Nichols tuning parameters.
-          
+
     Returns
     -------
-    Kc : array containing a real number         
+    Kc : array containing a real number
         proportional gain
     Taui : array containing a real number
         integral gain
     Ku : array containing a real number
         ultimate P controller gain
     Pu : array containing a real number
-        corresponding period of oscillations                   
-    """  
-    
-    settings = {'ZN' : [0.45, 0.83], 'TT' : [0.31, 2.2]}   
-    
-    GM, PM, wc, w_180 = margins(G)  
+        corresponding period of oscillations
+    """
+
+    settings = {'ZN' : [0.45, 0.83], 'TT' : [0.31, 2.2]}
+
+    GM, PM, wc, w_180 = margins(G)
     Ku = numpy.abs(1 / G(1j * w_180))
     Pu = numpy.abs(2 * numpy.pi / w_180)
     Kc = Ku * settings.get(method)[0]
@@ -948,17 +948,17 @@ def ControllerTuning(G, method='ZN'):
 
 
 def margins(G):
-    """ 
+    """
     Calculates the gain and phase margins, together with the gain and phase
     crossover frequency for a plant model
-    
+
     Parameters
     ----------
     G : tf
-        plant model         
-          
+        plant model
+
     Returns
-    -------    
+    -------
     GM : array containing a real number
         gain margin
     PM : array containing a real number
@@ -992,59 +992,59 @@ def margins(G):
 
 
 def marginsclosedloop(L):
-    """ 
+    """
     Calculates the gain and phase margins, together with the gain and phase
     crossover frequency for a control model
-    
+
     Parameters
     ----------
     L : tf
-        loop transfer function        
-          
+        loop transfer function
+
     Returns
     -------
-    GM : real      
+    GM : real
         gain margin
-    PM : real           
+    PM : real
         phase margin
-    wc : real           
+    wc : real
         gain crossover frequency for L
-    wb : real           
+    wb : real
         closed loop bandwidth for S
-    wbt : real 
-        closed loop bandwidth for T                  
+    wbt : real
+        closed loop bandwidth for T
     """
-    
-    GM, PM, wc, w_180 = margins(L)      
+
+    GM, PM, wc, w_180 = margins(L)
     S = feedback(1, L)
-    T = feedback(L, 1)   
-        
+    T = feedback(L, 1)
+
     Sw = freq(S)
     Tw = freq(T)
-    
+
     def modS(x):
         return numpy.abs(Sw(x)) - 1/numpy.sqrt(2)
-        
+
     def modT(x):
-        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)        
+        return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)
 
     # calculate the freqeuncy at |S(jw)| = 0.707 from below (start searching from 0)
-    wb = optimize.fsolve(modS, 0)  
+    wb = optimize.fsolve(modS, 0)
     # calculate the freqeuncy at |T(jw)| = 0.707 from above (start searching from 1)
-    wbt = optimize.fsolve(modT, 1) 
+    wbt = optimize.fsolve(modT, 1)
 
-    # Frequency range wb < wc < wbt    
+    # Frequency range wb < wc < wbt
     if (PM < 90) and (wb < wc) and (wc < wbt):
         valid = True
     else: valid = False
     return GM, PM, wc, wb, wbt, valid
- 
+
 
 def Wp(wB, M, A, s):
     """
     Computes the magnitude of the performance weighting function. Based on
     Equation 2.105 (p62).
-    
+
     Parameters
     ----------
     wB : float
@@ -1054,15 +1054,15 @@ def Wp(wB, M, A, s):
         Maximum frequency.
     A : float
         Maximum steady state tracking error. Typically 0.
-    s : complex 
+    s : complex
         Typically `w*1j`.
-        
+
     Returns
     -------
     `|Wp(s)|` : float
         The magnitude of the performance weighting fucntion at a specific
         frequency (s).
-        
+
     NOTE
     ----
     This is just one example of a performance weighting function.
@@ -1087,39 +1087,39 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 
 
 def RGAnumber(G, I):
-    """ 
+    """
     Computes the RGA (Relative Gain Array) number of a matrix.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
     I : numpy matrix
         Pairing matrix.
-        
+
     Returns
     -------
     RGA number : float
         RGA number.
 
-    """    
+    """
     return numpy.sum(numpy.abs(RGA(G) - I))
-    
+
 
 def RGA(G):
-    """ 
+    """
     Computes the RGA (Relative Gain Array) of a matrix.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-        
+
     Returns
     -------
     RGA matrix : matrix
         RGA matrix of complex numbers.
-    
+
     Example
     -------
     >>> G = numpy.array([[1, 2],[3, 4]])
@@ -1136,21 +1136,21 @@ def RGA(G):
 def sigmas(A, position=None):
     """
     Returns the singular values of A
-    
+
     Parameters
     ----------
     A : array
         Transfer function matrix.
     position : string
         Type of sigmas to return (optional).
-        
+
         =========      ==================================
         position       Type of sigmas to return
         =========      ==================================
         max            Maximum singular value
         min            Minimal singular value
         =========      ==================================
-        
+
     Returns
     -------
     :math:`\sigma` (A) : array
@@ -1161,15 +1161,15 @@ def sigmas(A, position=None):
 
     Example
     -------
-    
+
     >>> A = numpy.array([[1, 2],
     ...                  [3, 4]])
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
-    >>> sigmas(A, 'min')
-    0.36596619062625746
+    >>> round(sigmas(A, 'min'), 6)
+    0.365966
     """
-    
+
     sigmas = numpy.linalg.svd(A, compute_uv=False)
     if not position is None:
         if position == 'max':
@@ -1177,7 +1177,7 @@ def sigmas(A, position=None):
         elif position == 'min':
             sigmas = sigmas[-1]
         else: raise ValueError('Incorrect position parameter')
-    
+
     return sigmas
 
 
@@ -1192,34 +1192,34 @@ def sv_dir(G, table=False):
         The transfer function G(s) of the system.
     table : True of False boolean
             Default set to False.
-            
+
     Returns
     -------
     u : list of arrays containing complex numbers
         Output vector associated with the maximum and minium singular
         values. The maximum singular output vector is the first entry u[0] and
         the minimum is the second u[1].
-    
+
     v : list of arrays containing complex numbers
         Input vector associated with the maximum and minium singular
         values. The maximum singular intput vector is the first entry u[0] and
         the minimum is the second u[1].
-    
+
     table : If table is True then the output and input vectors are summarised
             and returned as a table in the command window. Values are reported
             to five significant figures.
-        
+
     NOTE
     ----
     If G is evaluated at a pole, u[0] is the input and v[0] is the output
     directions associated with that pole, respectively.
-    
+
     If G is evaluated at a zero, u[1] is the input and v[1] is the output
-    directions associated with that zero.    
-    
+    directions associated with that zero.
+
     """
     U, Sv, V = SVD(G)
-    
+
     u = [U[:, 0]] + [U[:, -1]]
     v = [V[:, 0]] + [V[:, -1]]
 
@@ -1228,30 +1228,35 @@ def sv_dir(G, table=False):
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
+<<<<<<< HEAD
             print('-' * 24)
             
+=======
+            print '-' * 24
+
+>>>>>>> refs/remotes/alchemyst/master
             print('Output vector')
             for k in range(len(u[i])):  # change to len of u[i]
                 print('%.5f %+.5fi' % (u[i][k].real, u[i][k].imag))
             print('Input vector')
             for k in range(len(v[i])):
                 print('%.5f %+.5fi' % (v[i][k].real, v[i][k].imag))
-                
+
             print(' ')
-    
+
     return u, v
 
 
 def SVD(G):
     """
     Returns the singular values (Sv) as well as the input and output
-    singular vectors (V and U respectively).   
-    
+    singular vectors (V and U respectively).
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
-    
+
     Returns
     -------
     U : matrix of complex numbers
@@ -1259,8 +1264,8 @@ def SVD(G):
     Sv : array
         Singular values of `Gin` arranged in decending order.
     V : matrix of complex numbers
-        Unitary matrix of input singular vectors. 
-    
+        Unitary matrix of input singular vectors.
+
     NOTE
     ----
     `SVD(G) = U Sv VH`  where `VH` is the complex conjugate transpose of `V`.
@@ -1268,13 +1273,13 @@ def SVD(G):
 
     This is a convenience wrapper to enable easy calculation of
     singular values and their associated singular vectors as in Skogestad.
-    
+
     """
     U, Sv, VH = numpy.linalg.svd(G)
     V = numpy.conj(numpy.transpose(VH))
     return U, Sv, V
 
-   
+
 def feedback_mimo(forward, backward=None, positive=False):
     """
     Calculates a feedback loop
@@ -1309,7 +1314,7 @@ def state_controllability(A, B):
     '''
     This method checks if the state space description of the system is state
     controllable according to Definition 4.1 (p127).
-    
+
     Parameters
     ----------
     A : numpy matrix
@@ -1325,24 +1330,24 @@ def state_controllability(A, B):
         Input pole vectors for the states u_p_i
     control_matrix : numpy matrix
         State Controllability Matrix
-        
+
     Note
     ----
     This does not check for state controllability for systems with repeated
     poles.
     '''
-    
+
     state_control = True
 
     A = numpy.asmatrix(A)
     B = numpy.asmatrix(B)
-        
+
     # Compute all input pole vectors.
     ev, vl = sc_linalg.eig(A, left=True, right=False)
     u_p = []
     for i in range(vl.shape[1]):
-        vli = numpy.asmatrix(vl[:, i]) 
-        u_p.append(B.H*vli.T) 
+        vli = numpy.asmatrix(vl[:, i])
+        u_p.append(B.H*vli.T)
     state_control = not any(numpy.linalg.norm(x) == 0.0 for x in u_p)
 
     # compute the controllability matrix
@@ -1350,13 +1355,13 @@ def state_controllability(A, B):
     control_matrix = numpy.hstack(c_plus)
 
     return state_control, u_p, control_matrix
-    
-    
+
+
 def poles(G):
     '''
     Return the poles of a multivariable transfer function system. Applies
     Theorem 4.4 (p135).
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
@@ -1366,7 +1371,7 @@ def poles(G):
     -------
     zero : array
         List of zeros.
-        
+
     Example
     -------
     >>> def G(s):
@@ -1393,11 +1398,11 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     transfer functions or state-space. For transfer functions, Theorem 4.5
     (p139) is used. For state-space, the method from Equations 4.66 and 4.67
     (p138) is applied.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
-        The transfer function G(s) of the system.      
+        The transfer function G(s) of the system.
     A, B, C, D : numpy matrix
         State space parameters
 
@@ -1405,7 +1410,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     -------
     pole : array
         List of poles.
-        
+
     Example
     -------
     >>> def G(s):
@@ -1420,13 +1425,13 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     have values if A is defined.
     '''
     # TODO create a beter function to accept paramters and switch between tf and ss
-    
+
     if not G is None:
         s = sympy.Symbol('s')
         G = sympy.Matrix(G(s))  # convert to sympy matrix object
         det = sympy.simplify(G.det())
         zero = sympy.solve(sympy.numer(det))
-    
+
     elif not A is None:
         z = sympy.Symbol('z')
         top = numpy.hstack((A, B))
@@ -1448,8 +1453,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         zIg = z * Ig
         f = zIg - M
         zf = f.det()
-        zero = sympy.solve(zf, z)    
-    
+        zero = sympy.solve(zf, z)
+
     return zero
 
 
@@ -1457,27 +1462,27 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     """
     Crude method to calculate the input and output direction of a pole or zero,
     from the SVD.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
     vec : array
         A vector containing all the transmission poles or zeros of a system.
-        
+
     dir_type : string
-        Type of direction to calculate.  
-            
+        Type of direction to calculate.
+
         ==========     ============================
         dir_type       Choose
         ==========     ============================
         'p'            Poles
         'z'            Zeros
         ==========     ============================
-        
+
     display_type : string
-        Choose the type of directional data to return (optional).  
-        
+        Choose the type of directional data to return (optional).
+
         ============   ============================
         display_type   Directional data to return
         ============   ============================
@@ -1485,29 +1490,29 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         'u'            Only input direction
         'y'            Only output direction
         ============   ============================
-    
+
     e : float
         Avoid division by zero. Let epsilon be very small (optional).
-    
+
     Returns
     -------
     pz_dir : array
         Pole or zero direction in the form:
         (pole/zero, input direction, output direction, valid)
-        
+
     valid : integer array
         If 1 the directions are valid, else if 0 the directions are not valid.
-        
+
     Note
     ----
     This method is going to give incorrect answers if the function G has pole
     zero cancellation. The proper method is to use the state-space.
-    
+
     The validity of the directions is determined by checking that the dot
     product of the two vectors is equal to the product of their norms. Another
     method is to work out element-wise ratios and see if they are all the same.
     """
-    
+
     if dir_type == 'p':
         dt = 0
     elif dir_type == 'z':
@@ -1521,7 +1526,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     else:
         pz_dir = numpy.matrix(numpy.zeros([G(e).shape[0], N]))
         valid = []
-    
+
     for i in range(N):
         d = vec[i]
         g = G(d + e)
@@ -1529,10 +1534,10 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         U, _, V =  SVD(g)
         u = V[:, dt]
         y = U[:, dt]
-        
+
 # TODO complete validation test
         v = True
-        
+
         if display_type == 'u':
             pz_dir[:, i] = u
             valid.append(v)
@@ -1542,12 +1547,12 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         elif display_type == 'a':
             pz_dir.append((d, u, y, [v]))
         else: raise ValueError('Incorrect display_type parameter')
-        
+
     if display_type == 'a':
         display = pz_dir
     else:
         display = pz_dir, valid
-     
+
     return display
 
 
@@ -1558,11 +1563,11 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
 
 def BoundST(G, poles, zeros, deadtime=None):
     """
-    This function will calculate the minimum peak values of S and T if the 
+    This function will calculate the minimum peak values of S and T if the
     system has zeros and poles in the input or output. For standard conditions
     Equation 6.8 (p224) is applied. Equation 6.16 (p226) is used when deadtime
     is included.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
@@ -1573,15 +1578,15 @@ def BoundST(G, poles, zeros, deadtime=None):
         List of zeros.
     deadtime : numpy matrix (n, n)
         Deadtime or time delay for G.
-    
+
     Returns
     -------
     Ms_min : real
         Minimum peak value.
-        
+
     Note
     ----
-    All the poles and zeros must be distict.        
+    All the poles and zeros must be distict.
     """
     Np = len(poles)
     Nz = len(zeros)
@@ -1593,18 +1598,18 @@ def BoundST(G, poles, zeros, deadtime=None):
                     numpy.matrix(numpy.ones([Np, Np]))
         yp_mat2 = yp_mat1.T
         Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
-        
+
         yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
                     numpy.matrix(numpy.ones([Nz, Nz])))
         yz_mat2 = yz_mat1.T
         Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
-    
+
         yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
                     numpy.matrix(numpy.ones([Nz, Np]))
         yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
-                    numpy.matrix(numpy.diag(poles))    
+                    numpy.matrix(numpy.diag(poles))
         Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
-        
+
         pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * \
                     sc_linalg.sqrtm(numpy.linalg.inv(Qp))
         # Final equation 6.8
@@ -1628,7 +1633,7 @@ def BoundST(G, poles, zeros, deadtime=None):
                                        dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros([numpy.shape(deadtime)[0], 
+        Q_dead = numpy.zeros([numpy.shape(deadtime)[0],
                               numpy.shape(deadtime)[1]])
 
         for i in range(Np):
@@ -1658,7 +1663,7 @@ def BoundKS(G, poles, up, e=0.00001):
     '''
     The functions uses equaption 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
@@ -1688,30 +1693,30 @@ def distRej(G, gd):
     """
     Convenience wrapper for calculation of ||gd||2 (equation 6.42, p238) and
     the disturbance condition number (equation 6.43) for each disturbance.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
     gd : numpy matrix (m x n)
         The transfer function Gd(s) of the distrurbances.
-        
+
     Returns
     -------
     1/||gd|| :math:`_2` : float
         The inverse of the 2-norm of a single disturbance gd.
-    
+
     distCondNum : float
-        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd) 
-        
+        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
+
     yd : numpy matrix
         Disturbance direction.
     """
-    
+
     gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
     yd = gd1 * gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G) * yd)[0]
-    
+
     return gd1, numpy.array(yd).reshape(-1,).tolist(), distCondNum
 
 
@@ -1720,7 +1725,7 @@ def distRHPZ(G, Gd, RHP_Z):
     Applies equation 6.48 (p239) For performance requirements imposed by
     disturbances. Calculate the system's zeros alignment with the disturbacne
     matrix.
-    
+
     Parameters
     ----------
     G : numpy matrix (n x n)
@@ -1734,7 +1739,7 @@ def distRHPZ(G, Gd, RHP_Z):
     -------
     Dist_RHPZ : float
         Minimum peak value.
-        
+
     Note
     ----
     The return value should be less than 1.
@@ -1743,11 +1748,11 @@ def distRHPZ(G, Gd, RHP_Z):
         raise ValueError('Function only applicable to RHP-zeros')
     Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0, 0]
-    
-    return Dist_RHPZ
-    
 
-# according to convention this procedure should stay at the bottom       
+    return Dist_RHPZ
+
+
+# according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
     import doctest
     import sys
