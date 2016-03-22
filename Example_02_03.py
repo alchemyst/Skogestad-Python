@@ -1,8 +1,9 @@
+from __future__ import print_function
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-from __future__ import print_function
 
 # TODO: This should be reworked!
 # This version is not really a rework, but provides clearer output
