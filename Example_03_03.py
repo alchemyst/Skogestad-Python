@@ -15,20 +15,20 @@ y3 = G*d3
 y4 = G*d4
 y5 = G*d5
 
-print "2 norms of the outputs"
-print "||y1||2:" , np.round(np.linalg.norm(y1), 2)
-print "||y2||2:" , np.round(np.linalg.norm(y2), 2)
-print "||y3||2:" , np.round(np.linalg.norm(y3), 2)
-print "||y4||2:" , np.round(np.linalg.norm(y4), 2)
-print "||y5||2:" , np.round(np.linalg.norm(y5), 2)
+print ("2 norms of the outputs")
+print ("||y1||2:" , np.round(np.linalg.norm(y1), 2))
+print ("||y2||2:" , np.round(np.linalg.norm(y2), 2))
+print ("||y3||2:" , np.round(np.linalg.norm(y3), 2))
+print ("||y4||2:" , np.round(np.linalg.norm(y4), 2))
+print ("||y5||2:" , np.round(np.linalg.norm(y5), 2))
 
 # SVD decomposition
 [U, S, T] = np.linalg.svd(G)
 SVD = np.matrix(S)
 
-print ""
-print "Minimum Gain:" , np.round(np.matrix.min(SVD), 2)
-print "Maximum Gain:" , np.round(np.matrix.max(SVD), 2)
+print ("")
+print ("Minimum Gain:" , np.round(np.matrix.min(SVD), 2))
+print ("Maximum Gain:" , np.round(np.matrix.max(SVD), 2))
 
 # first function is to create the unit circle
 def Unit_circle():
