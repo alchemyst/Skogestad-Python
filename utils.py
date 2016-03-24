@@ -11,6 +11,7 @@ from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
+import __future__
 
 
 def astf(maybetf):
@@ -1217,7 +1218,7 @@ def sv_dir(G, table=False):
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
-            print '-' * 24
+            print('-' * 24)
 
             print('Output vector')
             for k in range(len(u[i])):  # change to len of u[i]
