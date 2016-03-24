@@ -19,10 +19,11 @@ def Gd(s):
 
 
 plt.figure(1)
-plt.loglog(w, [abs(G(thisw)) for thisw in w])
-plt.loglog(w, [abs(Gd(thisw)) for thisw in w])
+plt.loglog(w, [abs(G(thisw)) for thisw in w],color="green", label="|G|")
+plt.loglog(w, [abs(Gd(thisw)) for thisw in w],color="black", label="|Gd|")
 plt.loglog(w, np.ones(len(w)), '-.')
-plt.title('|G| & |Gd| over frequency')
+plt.legend(loc = 1)
+#plt.title('|G| & |Gd| over frequency')
 plt.xlabel('frequency [rad/s]')
 plt.ylabel('Magnitude') 
 plt.show()    
