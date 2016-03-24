@@ -5,7 +5,6 @@ Created on Jan 27, 2012
 @author: Carl Sandrock
 '''
 from __future__ import print_function
-from __future__ import division
 import numpy  # do not abbreviate this module as np in utils.py
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
@@ -13,7 +12,6 @@ import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
 from functools import reduce
-
 
 
 
@@ -259,12 +257,12 @@ class tf(object):
     def __rmul__(self, other):
         return self * other
 
-    def __truediv__(self, other):
+    def __div__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
         return self * other.inverse()
 
-    def __rtruediv__(self, other):
+    def __rdiv__(self, other):
         return tf(other)/self
 
     def __neg__(self):
