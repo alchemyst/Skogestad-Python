@@ -11,6 +11,7 @@ from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
+from functools import reduce
 
 
 
