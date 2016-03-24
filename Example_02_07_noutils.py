@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy 
 import matplotlib.pyplot as plt
 import scipy.signal as scs
@@ -25,6 +26,7 @@ plt.ylabel('y(t)')
 plt.xlabel('Time [s]')
 
 
+
 ##This produces Figure 2.18
 s = omega*1j
 T = (-s + z)/((s + z)*(tau*s + 1))
@@ -50,11 +52,13 @@ plt.loglog(omega, magT)
 plt.legend(["|T|","|S|"])   
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
-print "w_b is = " + str(numpy.round(w_b,3))
-print "w_c is = " + str(numpy.round(w_c,3))
-print "w_bt is = " + str(numpy.round(w_bt,3))
-print "GM is = " + str(numpy.round(1/AR_180,1))
-print "PM is = " + str(numpy.round(PM,1))
-print "Ms is = " + str(Ms)
-print "Mt is = " + str(Mt)
+plt.show()
+
+print("w_b is = " + str(numpy.round(w_b,3)))
+print("w_c is = " + str(numpy.round(w_c,3)))
+print("w_bt is = " + str(numpy.round(w_bt,3)))
+print("GM is = " + str(numpy.round(1/AR_180,1)))
+print("PM is = " + str(numpy.round(PM,1)))
+print("Ms is = " + str(Ms))
+print("Mt is = " + str(Mt))
 
