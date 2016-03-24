@@ -11,7 +11,7 @@ from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
-import __future__
+from __future__ import print_function
 
 
 def astf(maybetf):
