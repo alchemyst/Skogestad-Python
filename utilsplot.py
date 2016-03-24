@@ -36,7 +36,7 @@ your_utilsplot_functionC(G)
 plt.show()
 
 """
-
+from __future__ import print_function
 import numpy #do not abbreviate this module as np in utilsplot.py
 import matplotlib.pyplot as plt
 import utils
@@ -316,7 +316,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
         wB = subbode(S, text, 0.707, 'wC', 'G')
 
         Bandwidth = wC, wB
-        if text: print '(wC = {1}, wB = {2}'.format(wC, wB)
+        if text: print('(wC = {1}, wB = {2}'.format(wC, wB))
 
     return Bandwidth
 
