@@ -17,6 +17,7 @@ Example 3.6
 Example 3.7
 Example 3.8
 Example 3.9
+Example 3.10
 Example 4.1
 Example 4.2
 Example 4.3
