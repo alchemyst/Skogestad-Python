@@ -4,14 +4,14 @@ Created on Jan 27, 2012
 
 @author: Carl Sandrock
 '''
-
+from __future__ import print_function
 import numpy  # do not abbreviate this module as np in utils.py
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
-from __future__ import print_function
+
 
 
 def astf(maybetf):
