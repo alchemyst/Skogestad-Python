@@ -68,6 +68,9 @@ for i in range(len(d1)):
     plt.subplot(122)
     plt.plot(y_out[0], y_out[1], 'b.')
     
+plt.figure(1)
+plt.axhline(np.matrix.min(SVD),color='red')
+plt.axhline(np.matrix.max(SVD),color='red')
 
 # plotting of the vectors for the largest gain and smallest gain
 plt.figure(2)
@@ -76,13 +79,13 @@ plt.plot([0, -T[0, 0]], [0, -T[0, 1]], 'b-')
 plt.plot([0, T[1, 0]], [0, T[1, 1]], 'b-')
 plt.text(0.3, 0.3, r'$\bar v$', fontsize=15)
 plt.text(0.3, -0.7, r'$\underbar{v}$', fontsize=22)
-plt.title('Outputs')
-plt.xlabel(r'$y_{10}$')
-plt.ylabel(r'$y_{20}$')  
-
-plt.subplot(122)
 plt.title('Inputs')
 plt.xlabel(r'$d_{10}$')
-plt.ylabel(r'$d_{20}$') 
+plt.ylabel(r'$d_{20}$')  
+
+plt.subplot(122)
+plt.title('Outputs')
+plt.xlabel(r'$y_{10}$')
+plt.ylabel(r'$y_{20}$') 
 
 plt.show()
