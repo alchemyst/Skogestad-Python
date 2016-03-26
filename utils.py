@@ -4,13 +4,16 @@ Created on Jan 27, 2012
 
 @author: Carl Sandrock
 '''
-
+from __future__ import division
+from __future__ import print_function
 import numpy  # do not abbreviate this module as np in utils.py
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
+from functools import reduce
+
 
 
 def astf(maybetf):
@@ -255,6 +258,14 @@ class tf(object):
     def __rmul__(self, other):
         return self * other
 
+    def __truediv__(self, other):
+        if not isinstance(other, tf):
+            other = tf(other)
+        return self * other.inverse()
+
+    def __rtruediv__(self, other):
+        return tf(other)/self
+    
     def __div__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
@@ -1217,7 +1228,7 @@ def sv_dir(G, table=False):
         for i in range(2):
             print(' ')
             print('Directions of %s SV' % Headings[i])
-            print '-' * 24
+            print('-' * 24)
 
             print('Output vector')
             for k in range(len(u[i])):  # change to len of u[i]
