@@ -608,7 +608,7 @@ def circle(cx, cy, r):
         Center x coordinate.
 
     cy : float
-        Center x coordinate.
+        Center y coordinate.
 
     r : float
         Radius.
@@ -1080,6 +1080,16 @@ def Wp(wB, M, A, s):
 
     return (s / M + wB) / (s + wB * A)
 
+def maxpeak(G, w_start=-2, w_end=2, points=1000):
+    """
+    Computes the maximum bode magnitude peak of a transfer function
+    """
+    w = numpy.logspace(w_start, w_end, points)
+    s = 1j*w
+    
+    M = numpy.max(numpy.abs(G(s)))    
+
+    return M
 
 ###############################################################################
 #                                Chapter 3                                    #
