@@ -1,5 +1,6 @@
 *.pyc
 .project
 .pydevproject
-*~.idea
+*~
+.idea
 .settings
