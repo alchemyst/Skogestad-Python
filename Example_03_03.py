@@ -69,15 +69,12 @@ for i in range(len(d1)):
     plt.plot(y_out[0], y_out[1], 'b.')
 
 plt.figure(1)
-<<<<<<< HEAD
 plt.axhline(np.matrix.min(SVD),color='red')
 plt.axhline(np.matrix.max(SVD),color='red')
 plt.text(-3,np.matrix.max(SVD)-0.35,r'$\bar \sigma (G)$')
 plt.text(2,np.matrix.min(SVD)+0.25,r'$\underbar{\sigma} (G)$')
-=======
 plt.axhline(np.matrix.min(SVD), color='red')
 plt.axhline(np.matrix.max(SVD), color='red')
->>>>>>> refs/remotes/alchemyst/master
 
 # plotting of the vectors for the largest gain and smallest gain
 plt.figure(2)
