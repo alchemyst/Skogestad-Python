@@ -41,7 +41,7 @@ def plot_slope(sys, *args, **dict):
 
     Parameter: sys => a transfer function object
                *args, **dict => the usual plotting parameters
-    Returns:   a matplotlib figure contraining the slope as a function
+    Returns:   a matplotlib figure containing the slope as a function
     of frequency
 
     Notes: This function assumes you input the loop transfer function (L(s)).
