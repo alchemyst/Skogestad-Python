@@ -71,6 +71,8 @@ for i in range(len(d1)):
 plt.figure(1)
 plt.axhline(np.matrix.min(SVD),color='red')
 plt.axhline(np.matrix.max(SVD),color='red')
+plt.text(-3,np.matrix.max(SVD)-0.35,r'$\bar \sigma (G)$')
+plt.text(2,np.matrix.min(SVD)+0.25,r'$\underbar{\sigma} (G)$')
 
 # plotting of the vectors for the largest gain and smallest gain
 plt.figure(2)
@@ -87,5 +89,9 @@ plt.subplot(122)
 plt.title('Outputs')
 plt.xlabel(r'$y_{10}$')
 plt.ylabel(r'$y_{20}$') 
+plt.plot([0, -U[0, 0]*np.matrix.max(SVD)], [0, -U[0, 1]*np.matrix.max(SVD)], 'k-')
+plt.plot([0, U[1, 0]*np.matrix.min(SVD)], [0, U[1, 1]*np.matrix.min(SVD)], 'k-')
+plt.text(3,3.5,r'$\bar \sigma (G)$')
+plt.text(-2,0.5,r'$\underbar{\sigma} (G)$')
 
 plt.show()
