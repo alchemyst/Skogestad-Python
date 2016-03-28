@@ -14,6 +14,7 @@ The example used here is the same as in the reference
 """
 
 from utils import tf, feedback, tf_step
+from __future__ import print_function
 
 # First example in reference to demonstrate working of tf object
 
@@ -116,6 +117,6 @@ in1 = line('a', F, C)
 in2 = line('b', C, G)
 sum1 = sumblk('sum1', 'c', in1, in2)
 
-print in1
-print in2
-print sum1
+print(in1)
+print(in2)
+print(sum1)
