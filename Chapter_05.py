@@ -428,9 +428,6 @@ def rule8(G, message=False):
     G : tf
         plant model
 
-    Gd : tf
-        plant disturbance model
-
     message : boolean
         show the rule message (optional)
 
