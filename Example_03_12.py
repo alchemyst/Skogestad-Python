@@ -1,5 +1,5 @@
+from __future__ import print_function
 import numpy as np
-
 from utils import RGA
 
 
@@ -32,4 +32,4 @@ ItR = IterRGA(G, 4)
 numR = RGAnumber(G)
 numC = condnum(S)
 
-print 'RGA:\n', R, '\nIterative RGA:\n', ItR, '\nCondition Number:\n', numC
+print('RGA:\n', R, '\nIterative RGA:\n', ItR, '\nCondition Number:\n', numC)

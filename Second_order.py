@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as scs
@@ -14,9 +15,9 @@ def Analyses_second_order(v, t, max_peeks):
     time_max = []
     plt.plot(t, v)
 
-    if np.max(v)>= 1:
+    if np.max(v) >= 1:
         for k in range(max_peeks):
-            if len(v)-2>= 1:
+            if len(v)-2 >= 1:
                 # give indices from min to max value of the output vector
                 sort = np.argsort(v)
                 # store the maximum value and time where the maximum occurs of the system
@@ -45,21 +46,19 @@ def Analyses_second_order(v, t, max_peeks):
     max_v, min_v = np.matrix(max_v), np.matrix(min_v)
 
     # the analysis of rise time, overshoot decay ratio
-    if max_peeks>1:
+    if max_peeks > 1:
         decay_ratio = (max_v[0, 0]-1)/(max_v[1, 0]-1)
         overshoot = max_v[0, 0]
 
-    print 'decay ratio = ', decay_ratio
-    print 'overshoot = ', overshoot
+    print('decay ratio = ', decay_ratio)
+    print('overshoot = ', overshoot)
 
     total_varaince = np.sum(np.abs(np.diff(y)))
-    print 'Total Varaince ', total_varaince
+    print('Total Varaince ', total_varaince)
 
     plt.plot(time_max, max_v, 'rD')
     plt.plot(time_min, min_v, 'bD')
     plt.show()
-
-
 
 # example
 # time constant = 1 dampening coefficient = 0.7 and steady state gain = 1
