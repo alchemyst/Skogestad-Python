@@ -106,7 +106,7 @@ def cross_over_freq(sys, tol=0.05):
         if index != -1:
             flag = False
         else:
-            tol = 1.2 * tol
+            tol *= 1.2
 
     return omega[index]
 
@@ -132,7 +132,7 @@ def weight_function(option, w_B, M=2, A=0):
     if option == 2.72:
         wp = cn.tf([1, M * w_B], [M, M * A * w_B])
     elif option == 2.73:
-        wp = cn.tf([1, 2 * (M ** 0.5) * w_B, M * (w_B ** 2)], [M, w_B * M * 2 * (A ** 0.5), A * M *(w_B**2)])
+        wp = cn.tf([1, 2 * (M ** 0.5) * w_B, M * (w_B ** 2)], [M, w_B * M * 2 * (A ** 0.5), A * M * (w_B**2)])
     elif option == 5.37:
         wp = cn.tf([1], [M]) + cn.tf([1, 0], [0, w_B])
     elif option == 5.45:
