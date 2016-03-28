@@ -14,7 +14,7 @@ from utils import feedback
 
 w = np.logspace(-1, 2, 1000)
 s = control.tf([1, 0], 1)
-G = 4 /((s - 1)*(0.02*s + 1)**2)
+G = 4 / ((s - 1)*(0.02*s + 1)**2)
 Kc = 1.25
 tau1 = 1.5
 K = Kc*(1+1/(tau1*s))
