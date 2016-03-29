@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 import scipy.signal as scs
 
-##The normal tools we got for plotting Bode takes the inputs G and K, which 
+##The normal tools we got for plotting Bode takes the inputs G and K, which are
 # not available in this example. 
 
 # define the constants
