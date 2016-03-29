@@ -27,3 +27,8 @@ This project aims to create Python code for the various code examples in the tex
 
 * Skogestad, S., I. Postlethwaite; Multivariable Feedback Control: Analysis and Design; John Wiley & Sons, 2005.
 
+The code is tested on Python 2.7 and 3.5
+
+We are aiming to use `Python-Future`_ as our compatability layer.
+
+.. _`Python-Future`: http://python-future.org/

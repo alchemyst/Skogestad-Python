@@ -52,15 +52,15 @@ def mu_ubound(G):
 omega = np.logspace(-3, 2, 1000)
 s = 1j * omega
 
-T_Is = map(T_I, s)
+T_Is = list(map(T_I, s))
 
 print('Robust Stability (RS) is attained if mu(T_I(jw)) < 1/|w_I(jw)| for all applicable omega range')
 
 plt.rc('text', usetex=True)
-plt.loglog(omega, map(maxsigma, T_Is))
+plt.loglog(omega, list(map(maxsigma, T_Is)))
 plt.loglog(omega, 1 / np.abs(w_I(s)))
-plt.loglog(omega, map(specrad, T_Is))
-plt.loglog(omega, map(mu_ubound, T_Is))
+plt.loglog(omega, list(map(specrad, T_Is)))
+plt.loglog(omega, list(map(mu_ubound, T_Is)))
 plt.legend((r'$\bar\sigma(T_I)$',
             r'$\frac{1}{|w_I(jw)|}$',
             r'$\rho(T_I)$',

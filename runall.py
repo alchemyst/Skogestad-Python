@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from past.builtins import execfile
 import os
 import traceback
 import re
@@ -37,7 +39,7 @@ if __name__ == "__main__":
             try:
                 execfile(filename)
                 status = 'Success'
-            except Exception, err:
+            except Exception as err:
                 status = 'Failed'
                 message = traceback.format_exc()
         else:
@@ -46,16 +48,16 @@ if __name__ == "__main__":
         statuscounter[status] += 1
 
         if status != 'Not implemented':
-            print kind, chapter, number, status
+            print(kind, chapter, number, status)
 
         if status == 'Failed':
             faillist.append([kind, chapter, number])
-            print message
+            print(message)
 
-    for items in statuscounter.iteritems():
-        print "{}: {}".format(*items)
-    print "Failed items:"
+    for items in statuscounter.items():
+        print("{}: {}".format(*items))
+    print("Failed items:")
     for items in faillist:
-        print "  {} {} {}".format(*items)
+        print("  {} {} {}".format(*items))
 
     sys.exit(statuscounter['Failed'])

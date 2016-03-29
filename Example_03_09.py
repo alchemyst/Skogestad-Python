@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from utils import RGA
@@ -17,7 +18,7 @@ from utils import RGA
 # G(s) = np.matrix([[1, 1], [(1-x*)/F* -x*/F*]])
 # after substitution
 G = np.matrix([[1, 1], [0.4, -0.1]])
-print RGA(G)
+print(RGA(G))
 
 # pairing rule 1: prefer pairing on RGA elements close to 1
 # RGA = [[0.2, 0.8], [0.8, 0.2]]

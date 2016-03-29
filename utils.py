@@ -759,7 +759,7 @@ def det(A):
     # We expand by columns
     sign = 1
     result = 0
-    cols = rows = range(A.shape[1])
+    cols = rows = list(range(A.shape[1]))
     for i in cols:
         submatrix = A[numpy.ix_(cols[1:], cols[:i] + cols[i+1:])]
         result += sign*A[0, i]*det(submatrix)
@@ -1176,7 +1176,7 @@ def sigmas(A, position=None):
     ...                  [3, 4]])
     >>> sigmas(A)
     array([ 5.4649857 ,  0.36596619])
-    >>> round(sigmas(A, 'min'), 6)
+    >>> print("{:0.6}".format(sigmas(A, 'min')))
     0.365966
     """
 

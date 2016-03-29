@@ -58,7 +58,7 @@ for i in range(len(w)):
 figure = plt.figure()
 plt.hold
 plt.loglog(w, Sv_G_min, label='$\sigma_{min}(G)$')
-plt.loglog([w[wB_index], w[wB_index]], [plt.ylim()[0], plt.ylim()[1]], '--')
+plt.axhline(w[wB_index], linestyle='--')
 plt.legend()
 plt.xlabel('Frequency  [rad/s]')
 plt.ylabel('Magnitude')
