@@ -590,7 +590,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
         elif method == 'analytic':
-            # TODO: caluate intercept of step and constraint line
+            # TODO: calculate intercept of step and constraint line
             timedata, processdata = [0, 0]
         else: raise ValueError('Invalid function parameters')
 
