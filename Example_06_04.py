@@ -1,3 +1,4 @@
+from __future__ import print_function
 from utils import pole_zero_directions, BoundKS, tf, mimotf
 from reporting import display_export_data
 
@@ -35,5 +36,5 @@ display_export_data(pdir, 'Poles', ['   u','   y','   e '])
 # e is 0, thus the calculated vectors are not valid
 up = np.matrix([[0.966],
                 [-0.258]])
-print '||KS|| > {:.3}'.format(BoundKS(Gs, p, up))
+print('||KS|| > {:.3}'.format(BoundKS(Gs, p, up)))
 
