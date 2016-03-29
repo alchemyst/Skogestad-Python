@@ -36,7 +36,7 @@ if __name__ == "__main__":
         if os.path.exists(filename):
             try:
                 execfile(filename)
-                status= 'Success'
+                status = 'Success'
             except Exception, err:
                 status = 'Failed'
                 message = traceback.format_exc()

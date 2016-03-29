@@ -590,7 +590,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
         elif method == 'analytic':
-            # TODO: caluate intercept of step and constraint line
+            # TODO: calculate intercept of step and constraint line
             timedata, processdata = [0, 0]
         else: raise ValueError('Invalid function parameters')
 
@@ -608,7 +608,7 @@ def circle(cx, cy, r):
         Center x coordinate.
 
     cy : float
-        Center x coordinate.
+        Center y coordinate.
 
     r : float
         Radius.
@@ -1080,6 +1080,16 @@ def Wp(wB, M, A, s):
 
     return (s / M + wB) / (s + wB * A)
 
+def maxpeak(G, w_start=-2, w_end=2, points=1000):
+    """
+    Computes the maximum bode magnitude peak of a transfer function
+    """
+    w = numpy.logspace(w_start, w_end, points)
+    s = 1j*w
+    
+    M = numpy.max(numpy.abs(G(s)))    
+
+    return M
 
 ###############################################################################
 #                                Chapter 3                                    #

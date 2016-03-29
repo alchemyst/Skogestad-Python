@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy as sc
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ def Nyquist(w_start, w_end):
         return np.abs(G(w))-1
 
     w_start_n = sc.optimize.fsolve(mod, 0.001)
-    print w_start_n
+    print(w_start_n)
 
     plt.plot(np.real(G(w_start_n)), np.imag(G(w_start_n)), 'rD')
     w_start = np.log(w_start_n)
@@ -35,12 +36,12 @@ def Nyquist(w_start, w_end):
     # plotting a unit circle
     x = np.linspace(-1, 1, 200)
 
-    y_upper = np.sqrt(1- x**2)
-    y_down = -1*np.sqrt(1- x**2)
+    y_upper = np.sqrt(1 - x**2)
+    y_down = -1*np.sqrt(1 - x**2)
     plt.plot(x, y_upper, 'r-', x, y_down, 'r-')
 
     plt.show()
 
-    print "finished"
+    print("finished")
 
 Nyquist(-3, 5)

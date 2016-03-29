@@ -39,10 +39,10 @@ Sgain = np.abs([TF(Tnum, Tden, (1j*i))-1 for i in w])
 plt.subplot(2, 1, 2)
 plt.loglog(w, Tgain)
 plt.loglog(w, Sgain)
-#TODO plot w180, wbt
-plt.legend(["|T|","|S|"])   
+# TODO plot w180, wbt
+plt.legend(["|T|", "|S|"])
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
 plt.show()
 
-#TODO GM, PM, Ms, Mt, wb, wc
+# TODO GM, PM, Ms, Mt, wb, wc
