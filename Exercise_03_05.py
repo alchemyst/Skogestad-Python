@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 # Define functions
@@ -16,37 +17,15 @@ def norms(G):
     [U, S, V] = np.linalg.svd(G)
     Max_singularval = max(S)
 
-    print 'Matrix 3.29'
-    print 'Spectral radius =', spectrad
-    print 'Frobenius norm =', Frob_norm
-    print 'Sum norm =', Sum_norm
-    print 'Maximum column sum =', Columnsum
-    print 'Maximum row sum =', Rowsum
-    print 'Maximum singular value =', Max_singularval
+    print('Spectral radius = %s' % spectrad)
+    print('Frobenius norm = %s' % Frob_norm)
+    print('Sum norm = %s' % Sum_norm)
+    print('Maximum column sum = %s' % Columnsum)
+    print('Maximum row sum = %s' % Rowsum)
+    print('Maximum singular value = %s \n' % Max_singularval)
 
-
+print('Matrix 3.29')
 norms(G_3_29)
-
-
-def norms(G):
-    """Function to calculate norms"""
-    spectrad = max(np.linalg.eigvals(G))
-    Frob_norm = np.linalg.norm(G, 'fro')
-    B = np.cumsum(abs(G))
-    Sum_norm = B[0, G.size - 1]
-    Columnsum = np.max(np.sum(abs(G), axis=0))
-    Rowsum = np.max(np.sum(abs(G), axis=1))
-    [U, S, V] = np.linalg.svd(G)
-    Max_singularval = max(S)
-
-    print ''
-    print 'Matrix 3.30'
-    print 'Spectral radius =', spectrad
-    print 'Frobenius norm =', Frob_norm
-    print 'Sum norm =', Sum_norm
-    print 'Maximum column sum =', Columnsum
-    print 'Maximum row sum =', Rowsum
-    print 'Maximum singular value =', Max_singularval
-
-
+print('Matrix 3.30')
 norms(G_3_30)
+
