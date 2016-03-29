@@ -24,8 +24,8 @@ for w in ws:
     omegas.append(1 / np.abs(omega_p(s, 1.0, 2.0)))
 
 plt.loglog(ws, omegas)
-plt.xlabel("Freq")
-plt.ylabel("1/W_p")
+plt.xlabel("Frequency")
+plt.ylabel("$\ 1/W_p $")
 plt.show()
 
 for k in ks:
