@@ -10,16 +10,14 @@ import numpy as np
 
 import siso_controllability as scont
 
-
-
 # Scaling: x* refers to the unscaled perturbation variable
 # q = q*/1
 # T_0 = T_0*/10
 # T = T*/10
 
 # this is the only tf which changes due to scaling => equates to *0.1
-G = cn.tf([0.8],[60, 1])*cn.tf([1], [12, 1])
-Gd = cn.tf([20*0.6, 0.6],[60, 1])*cn.tf([1],[12,1])
+G = cn.tf([0.8], [60, 1]) * cn.tf([1], [12, 1])
+Gd = cn.tf([20 * 0.6, 0.6], [60, 1]) * cn.tf([1], [12, 1])
 # remember the dead time in measurement which is 3 seconds
 freqs = np.arange(0.001, 1, 0.001)
 plt.figure(1)
