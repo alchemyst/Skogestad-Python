@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import numpy.linalg as lin
 import scipy.linalg as LA
@@ -37,22 +38,22 @@ P = LA.solve_lyapunov(A, -B * B.T)
 
 
 # Display results
-print '\nThe transfer function realization is:'
-print 'G(s) = '
-print np.poly1d(G.num[0], variable='s')
-print "----------------"
-print np.poly1d(G.den, variable='s')
+print('\nThe transfer function realization is:')
+print('G(s) = ')
+print(np.poly1d(G.num[0], variable='s'))
+print("----------------")
+print(np.poly1d(G.den, variable='s'))
 
-print '\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1]
-print '   with eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1]
-print '   Input pole vectors are: up1 = ', in_vecs[0], 'and up2 = ', in_vecs[1]
+print('\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1])
+print('   with eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1])
+print('   Input pole vectors are: up1 = ', in_vecs[0], 'and up2 = ', in_vecs[1])
 
-print '\n2) The controlabillity matrix has rank', n, 'and is given as:'
-print c_matrix
+print('\n2) The controlabillity matrix has rank', n, 'and is given as:')
+print(c_matrix)
 
-print '\n3) The controllability Gramian ='
-print '  ', P[0, :], '\n  ', P[1, :]
+print('\n3) The controllability Gramian =')
+print('  ', P[0, :], '\n  ', P[1, :])
 
-print '\nMore properties'
-print "\nState Controllable: " + str(control)
-print 'Zeros: {0}'.format(zeros(None, A, B, C, D))
+print('\nMore properties')
+print("\nState Controllable: " + str(control))
+print('Zeros: {0}'.format(zeros(None, A, B, C, D)))

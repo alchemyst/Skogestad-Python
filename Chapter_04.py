@@ -22,7 +22,7 @@ def state_observability(A, C):
     ev, vr = spla.eig(A, left=False, right=True)
     out_pole_vec = [np.around(C.dot(x), 3) for x in vr.T]
     # TODO: is this calculation correct?
-    state_obsr = not any(np.sum(x)==0.0 for x in out_pole_vec)
+    state_obsr = not any(np.sum(x) == 0.0 for x in out_pole_vec)
 
     # compute observability matrix
     o_plus = [C*A**n for n in range(A.shape[1])]

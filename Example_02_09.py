@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,7 +25,7 @@ plt.xlabel('Frequency (rad/s)')
 
 # numeric solution to find wc
 wc = w[np.flatnonzero(np.abs(Gdfr) < 1)[0]]
-print 'wc:', wc
+print('wc:', wc)
 # the solution of wc: 10 is an estimate in the handbook
 
 s = tf([1, 0], 1)
