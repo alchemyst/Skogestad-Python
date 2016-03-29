@@ -10,7 +10,7 @@ from utils import RGA
 # Examples 3.13-15 are all similar
 
 def condnum(A):
-    gamma = A[0] / A[-1]
+    gamma = A[0]/A[-1]
     return gamma
 
 

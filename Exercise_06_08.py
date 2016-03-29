@@ -12,32 +12,32 @@ import matplotlib.pyplot as plt
 import numpy.linalg as la
 
 w = np.logspace(-2, 2, 1000)
-s = 1j * w
+s = 1j*w
 
 
 def G(s):
-    return (1 / (s ** 2 + 100)) * np.matrix([[(1 / (0.01 * s + 1)), 1],
-                                             [((s + 0.1) / (s + 1)), 1]])
+    return (1/(s** 2 + 100))*np.matrix([[(1/(0.01*s + 1)), 1],
+                                             [((s + 0.1)/(s + 1)), 1]])
 
 
 def g11(s):
-    return (1 / (s ** 2 + 100)) * (1 / (0.01 * s + 1))
+    return (1/(s**2 + 100))*(1/(0.01*s + 1))
 
 
 def g12(s):
-    return 1 / (s ** 2 + 100)
+    return 1/(s**2 + 100)
 
 
 def g21(s):
-    return (1 / (s ** 2 + 100)) * ((s + 0.1) / (s + 1))
+    return (1/(s**2 + 100))*((s + 0.1)/(s + 1))
 
 
 def g22(s):
-    return 1 / (s ** 2 + 100)
+    return 1/(s**2 + 100)
 
 
 def lambda11(s):
-    return 1 / (1 - ((g12(s) * g21(s)) / (g11(s) * g22(s))))
+    return 1/(1 - ((g12(s)*g21(s))/(g11(s)*g22(s))))
 
 
 # Lambda11=Lambda22

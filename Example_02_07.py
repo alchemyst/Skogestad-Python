@@ -11,7 +11,7 @@ import scipy.signal as scs
 # Creates a general transfer function based on the coefficients
 # of the numerator and denominator
 def TF(num, den, s):
-    TF = np.polyval(num, s) / np.polyval(den, s)
+    TF = np.polyval(num, s)/np.polyval(den, s)
     return TF
 
 
@@ -22,7 +22,7 @@ tau = 1
 
 # Coeff found in sage of the T function
 Tnum = [-1, z]
-Tden = [tau, tau * z + 1, z]
+Tden = [tau, tau*z + 1, z]
 
 # Time domain output of a step response
 [Tim, yout, xout] = scs.lsim((Tnum, Tden), np.ones(np.size(w)), w)
@@ -33,9 +33,9 @@ plt.ylabel('y(t)')
 plt.xlabel('Time [s]')
 
 # Gain of both S and T transfer functions
-Tgain = np.abs([TF(Tnum, Tden, (1j * i)) for i in w])
+Tgain = np.abs([TF(Tnum, Tden, (1j*i)) for i in w])
 
-Sgain = np.abs([TF(Tnum, Tden, (1j * i)) - 1 for i in w])
+Sgain = np.abs([TF(Tnum, Tden, (1j*i)) - 1 for i in w])
 
 # Plot Gains
 plt.subplot(2, 1, 2)

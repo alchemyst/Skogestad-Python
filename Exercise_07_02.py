@@ -11,15 +11,15 @@ import matplotlib.pyplot as plt
 
 
 def G(s):
-    return 1 / (s + 1)
+    return 1/(s + 1)
 
 
 def wI(s):
-    return (0.125 * s + 0.25) / (0.125 * s / 4 + 1)
+    return (0.125*s + 0.25)/(0.125*s/4 + 1)
 
 
 def lI(Gp, G):
-    return np.abs((Gp - G) / G)
+    return np.abs((Gp - G)/G)
 
 
 def satisfy(wI, G, Gp, params, s):
@@ -35,13 +35,13 @@ def satisfy(wI, G, Gp, params, s):
 
 
 w = np.logspace(-3, 3, 1000)
-s = 1j * w
+s = 1j*w
 
 
 # a) Ga = G*exp(-theta*s)
 
 def Gp_a(theta, s):
-    return G(s) * np.exp(-theta * s)
+    return G(s)*np.exp(-theta*s)
 
 
 thetas = np.linspace(0, 1, 101)
@@ -60,7 +60,7 @@ plt.legend(loc=2)
 # b) Gb = G*(1/(tau*s+1))
 
 def Gp_b(tau, s):
-    return G(s) / (tau * s + 1)
+    return G(s)/(tau*s + 1)
 
 
 taus = np.linspace(0, 1, 101)
@@ -79,7 +79,7 @@ plt.legend(loc=2)
 # c) Gc = 1/(s-a)
 
 def Gp_c(a, s):
-    return 1 / (s + a)
+    return 1/(s + a)
 
 
 poles = np.linspace(0, 2, 201)
@@ -98,7 +98,7 @@ plt.legend(loc=2)
 # d) Gd = 1/(Ts+1)
 
 def Gp_d(T, s):
-    return 1 / (T * s + 1)
+    return 1/(T*s + 1)
 
 
 Taus = np.linspace(0, 2, 201)
@@ -117,7 +117,7 @@ plt.legend(loc=2)
 # e) Ge = G*(1 / ((s/70)**2 + 2*zeta*(s/10) + 1))  *Middle term in book incorrect
 
 def Gp_e(zeta, s):
-    return G(s) / ((s / 70) ** 2 + 2 * zeta * (s / 10) + 1)
+    return G(s)/((s/70)**2 + 2*zeta*(s/10) + 1)
 
 
 zetas = np.linspace(0, 2, 201)
@@ -136,7 +136,7 @@ plt.legend(loc=2)
 # f) Gf = G*(1/(0.01*s+1))**m
 
 def Gp_f(m, s):
-    return G(s) * (1 / (0.01 * s + 1)) ** m
+    return G(s)*(1/(0.01*s + 1))**m
 
 
 ms = np.linspace(0, 20, 21)
@@ -155,7 +155,7 @@ plt.legend(loc=2)
 # g) Gg = G*(-tauz*s + 1)/(tauz*s + 1)
 
 def Gp_g(tauz, s):
-    return G(s) * (-tauz * s + 1) / (tauz * s + 1)
+    return G(s)*(-tauz*s + 1)/(tauz*s + 1)
 
 
 tauzs = np.linspace(0, 1, 101)
