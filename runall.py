@@ -15,44 +15,48 @@ plt.show = lambda: None
 statuscounter = Counter()
 
 itemparser = re.compile('(?P<kind>.*) (?P<chapter>.*)\.(?P<number>.*)')
-allitems = open('allitems.txt').read().splitlines()
 
 kinds = ['Figure', 'Example', 'Exercise']
+
+FAILED = 'Failed'
+NOTIMPLEMENTED = 'Not implemented'
+SUCCESS = 'Success'
 
 faillist = []
 
 if __name__ == "__main__":
-    for item in allitems:
-        kind, chapter_c, number_c = itemparser.match(item).groups()
+    with open('allitems.txt') as allitems:
+        for item in allitems:
+            kind, chapter_c, number_c = itemparser.match(item).groups()
 
-        number = int(number_c)
+            number = int(number_c)
 
-        if chapter_c.isdigit():
-            chapter = int(chapter_c)
-            mask = '{}_{:02d}_{:02d}.py'
-        else:
-            chapter = chapter_c
-            mask = '{}_{}_{}.py'
+            if chapter_c.isdigit():
+                chapter = int(chapter_c)
+                mask = '{}_{:02d}_{:02d}.py'
+            else:
+                chapter = chapter_c
+                mask = '{}_{}_{}.py'
 
-        filename = mask.format(kind, chapter, number)
-        if os.path.exists(filename):
-            try:
-                execfile(filename)
-                status = 'Success'
-            except Exception as err:
-                status = 'Failed'
-                message = traceback.format_exc()
-        else:
-            status = 'Not implemented'
+            filename = mask.format(kind, chapter, number)
+            if os.path.exists(filename):
+                try:
+                    execfile(filename)
+                    status = SUCCESS
+                except Exception as err:
+                    status = FAILED
+                    message = traceback.format_exc()
+            else:
+                status = NOTIMPLEMENTED
 
-        statuscounter[status] += 1
+            statuscounter[status] += 1
 
-        if status != 'Not implemented':
-            print(kind, chapter, number, status)
+            if status != NOTIMPLEMENTED:
+                print(kind, chapter, number, status)
 
-        if status == 'Failed':
-            faillist.append([kind, chapter, number])
-            print(message)
+            if status == FAILED:
+                faillist.append([kind, chapter, number])
+                print(message)
 
     for items in statuscounter.items():
         print("{}: {}".format(*items))
@@ -60,4 +64,4 @@ if __name__ == "__main__":
     for items in faillist:
         print("  {} {} {}".format(*items))
 
-    sys.exit(statuscounter['Failed'])
+    sys.exit(statuscounter[FAILED])
