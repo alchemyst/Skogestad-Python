@@ -13,7 +13,7 @@ G_d = 100/(10*s + 1)
 # The four different controllers in question
 
 #K0 Origin?
-#K1 Initial desing
+#K1 Initial design
 #K2 More gain at low frequency
 #K3 High frequency correction
 

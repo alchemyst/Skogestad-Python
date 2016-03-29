@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,15 +29,14 @@ L = G*K
 plt.figure('Figure 2.19')
 bode(L, -2, 1)
 
-plt.figure()
 # From the figure we can calculate w180
 #         w180 = 0.44
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
-print 'GM:' , np.round(GM, 2)
-print 'PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg"
-print 'wb:' , np.round(wb, 2)
-print 'wc:' , np.round(wc, 2)
-print 'wbt:' , np.round(wbt, 4)
+print('GM:' , np.round(GM, 2))
+print('PM:', np.round(PM / 180 * np.pi, 2), "rad or", np.round(PM, 2), "deg")
+print('wb:' , np.round(wb, 2))
+print('wc:' , np.round(wc, 2))
+print('wbt:' , np.round(wbt, 4))
 
 #Response to step in reference for loop shaping design
 #y = Tr, r(t) = 1 for t > 0
