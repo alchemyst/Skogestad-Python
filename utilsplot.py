@@ -419,7 +419,7 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
 
-    freqresp = map(G, s)
+    freqresp = [G(si) for si in s]
 
     if plot_type == 'input':
         vec = numpy.array([V for _, _, V in map(utils.SVD, freqresp)])
@@ -479,7 +479,7 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     def cndtn_nm(G):
         return utils.sigmas(G)[0]/utils.sigmas(G)[-1]
 
-    freqresp = map(G, s)
+    freqresp = [G(si) for si in s]
 
     plt.loglog(w, [cndtn_nm(Gfr) for Gfr in freqresp], label='$\gamma (G)$')
     plt.axis(axlim)
@@ -531,7 +531,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     s = w*1j
 
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
-    freqresp = map(G, s)
+    freqresp = [G(si) for si in s]
 
     plot_No = 1
 
@@ -667,7 +667,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     s = w*1j
 
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
-    freqresp = map(G, s)
+    freqresp = [G(si) for si in s]
 
     if pairing_list is None: # Setting a blank entry to the default of a diagonal comparison
         pairing_list = numpy.identity(dim[0])
@@ -927,7 +927,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
 
-    freqresp = map(G, s)
+    freqresp = [G(si) for si in s]
     sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
     one = numpy.ones(points)
 

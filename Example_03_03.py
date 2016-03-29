@@ -17,19 +17,19 @@ y4 = G*d4
 y5 = G*d5
 
 print("2 norms of the outputs")
-print("||y1||2:" , np.round(np.linalg.norm(y1), 2))
-print("||y2||2:" , np.round(np.linalg.norm(y2), 2))
-print("||y3||2:" , np.round(np.linalg.norm(y3), 2))
-print("||y4||2:" , np.round(np.linalg.norm(y4), 2))
-print("||y5||2:" , np.round(np.linalg.norm(y5), 2))
+print("||y1||2:", np.round(np.linalg.norm(y1), 2))
+print("||y2||2:", np.round(np.linalg.norm(y2), 2))
+print("||y3||2:", np.round(np.linalg.norm(y3), 2))
+print("||y4||2:", np.round(np.linalg.norm(y4), 2))
+print("||y5||2:", np.round(np.linalg.norm(y5), 2))
 
 # SVD decomposition
 [U, S, T] = np.linalg.svd(G)
 SVD = np.matrix(S)
 
 print("")
-print("Minimum Gain:" , np.round(np.matrix.min(SVD), 2))
-print("Maximum Gain:" , np.round(np.matrix.max(SVD), 2))
+print("Minimum Gain:", np.round(np.matrix.min(SVD), 2))
+print("Maximum Gain:", np.round(np.matrix.max(SVD), 2))
 
 # first function is to create the unit circle
 def Unit_circle():
@@ -64,13 +64,17 @@ for i in range(len(d1)):
     plt.figure(2)
     plt.subplot(121)
     plt.plot(d1[i], d2[i], 'r.')
-    
+
     plt.subplot(122)
     plt.plot(y_out[0], y_out[1], 'b.')
-    
+
 plt.figure(1)
 plt.axhline(np.matrix.min(SVD),color='red')
 plt.axhline(np.matrix.max(SVD),color='red')
+plt.text(-3,np.matrix.max(SVD)-0.35,r'$\bar \sigma (G)$')
+plt.text(2,np.matrix.min(SVD)+0.25,r'$\underbar{\sigma} (G)$')
+plt.axhline(np.matrix.min(SVD), color='red')
+plt.axhline(np.matrix.max(SVD), color='red')
 
 # plotting of the vectors for the largest gain and smallest gain
 plt.figure(2)
@@ -81,11 +85,16 @@ plt.text(0.3, 0.3, r'$\bar v$', fontsize=15)
 plt.text(0.3, -0.7, r'$\underbar{v}$', fontsize=22)
 plt.title('Inputs')
 plt.xlabel(r'$d_{10}$')
-plt.ylabel(r'$d_{20}$')  
+plt.ylabel(r'$d_{20}$')
 
 plt.subplot(122)
 plt.title('Outputs')
 plt.xlabel(r'$y_{10}$')
 plt.ylabel(r'$y_{20}$') 
+plt.plot([0, -U[0, 0]*np.matrix.max(SVD)], [0, -U[0, 1]*np.matrix.max(SVD)], 'k-')
+plt.plot([0, U[1, 0]*np.matrix.min(SVD)], [0, U[1, 1]*np.matrix.min(SVD)], 'k-')
+plt.text(3,3.5,r'$\bar \sigma (G)$')
+plt.text(-2,0.5,r'$\underbar{\sigma} (G)$')
+plt.ylabel(r'$y_{20}$')
 
 plt.show()

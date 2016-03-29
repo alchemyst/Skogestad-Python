@@ -29,7 +29,7 @@ w = 0.2
 N = 1000
 
 for w in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
-    for i in xrange(N):
+    for i in range(N):
         s = w*1j
         k, tau, theta = randomparameters()
         frp = G_P(k, tau, theta, s)
@@ -50,13 +50,13 @@ plt.ylabel('Imaginery part (Im)')
 plt.figure(2)
 frn = G(s)
 distance = np.zeros_like(w)
-for i in xrange(N):
+for i in range(N):
     k, tau, theta = randomparameters()
     frp = G_P(k, tau, theta, s)
     distance = np.maximum(abs(frp - frn), distance)
 
 plt.loglog(w, distance, 'b--')
-plt.loglog(w, map(abs, w_A(s)), 'r')
+plt.loglog(w, list(map(abs, w_A(s))), 'r')
 plt.xlabel('Frequency')
 plt.legend(['Distance','w_A'])
 
