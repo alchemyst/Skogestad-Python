@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 from past.builtins import execfile
-import os
 import traceback
 import re
 from collections import Counter
@@ -39,15 +38,14 @@ if __name__ == "__main__":
                 mask = '{}_{}_{}.py'
 
             filename = mask.format(kind, chapter, number)
-            if os.path.exists(filename):
-                try:
-                    execfile(filename)
-                    status = SUCCESS
-                except Exception as err:
-                    status = FAILED
-                    message = traceback.format_exc()
-            else:
+            try:
+                execfile(filename)
+                status = SUCCESS
+            except IOError:
                 status = NOTIMPLEMENTED
+            except Exception as err:
+                status = FAILED
+                message = traceback.format_exc()
 
             statuscounter[status] += 1
 
