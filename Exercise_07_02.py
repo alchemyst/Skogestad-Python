@@ -5,6 +5,7 @@ Created on Thu Jun  4 20:10:25 2015
 @author: cronjej
 """
 
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -45,7 +46,7 @@ def Gp_a(theta, s):
 thetas = np.linspace(0, 1, 101)
 theta_range = satisfy(wI, G, Gp_a, thetas, s)
 theta_max = np.max(theta_range)
-print "a) %s" % theta_max
+print("a) %s" % theta_max)
 
 plt.figure(1)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -62,7 +63,7 @@ def Gp_b(tau, s):
 taus = np.linspace(0, 1, 101)
 taus_range = satisfy(wI, G, Gp_b, taus, s)
 tau_max = np.max(taus_range)
-print "b) %s" % tau_max
+print("b) %s" % tau_max)
 
 plt.figure(2)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -78,7 +79,7 @@ def Gp_c(a, s):
 
 poles = np.linspace(0, 2, 201)
 pole_range = satisfy(wI, G, Gp_c, poles, s)
-print "c) %s to" % str(np.min(pole_range)), str(np.max(pole_range))
+print("c) %s to" % str(np.min(pole_range)), str(np.max(pole_range)))
 
 plt.figure(3)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -95,7 +96,7 @@ def Gp_d(T, s):
 
 Taus = np.linspace(0, 2, 201)
 Tau_range = satisfy(wI, G, Gp_d, Taus, s)
-print "d) %s to" % str(np.min(Tau_range)), str(np.max(Tau_range))
+print("d) %s to" % str(np.min(Tau_range)), str(np.max(Tau_range)))
 
 plt.figure(4)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -112,7 +113,7 @@ def Gp_e(zeta, s):
 
 zetas = np.linspace(0, 2, 201)
 zeta_range = satisfy(wI, G, Gp_e, zetas, s)
-print "e) %s to" % str(np.min(zeta_range)), str(np.max(zeta_range))
+print("e) %s to" % str(np.min(zeta_range)), str(np.max(zeta_range)))
 
 plt.figure(5)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -130,7 +131,7 @@ def Gp_f(m, s):
 ms = np.linspace(0, 20, 21)
 m_range = satisfy(wI, G, Gp_f, ms, s)
 m_max = np.max(m_range)
-print "f) %s" % m_max
+print("f) %s" % m_max)
 
 plt.figure(6)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
@@ -147,7 +148,7 @@ def Gp_g(tauz, s):
 tauzs = np.linspace(0, 1, 101)
 tauz_range = satisfy(wI, G, Gp_g, tauzs, s)
 tauz_max = np.max(tauz_range)
-print "f) %s" % tauz_max
+print("f) %s" % tauz_max)
 
 plt.figure(7)
 plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
