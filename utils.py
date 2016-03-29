@@ -498,27 +498,27 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     Parameters
     ----------
     G : tf
-        Transfer function (input[u] or output[y]) to evauate step response.
+        Transfer function (input[u] or output[y]) to evaluate step response.
 
     Y : tf
-        Transfer function output[y] to evaluate constrain step response
+        Transfer function output[y] to evaluate constrained step response
         (optional) (required if constraint is specified).
 
     t_end : integer
         length of time to evaluate step response (optional).
 
     initial_val : integer
-        starting value to evalaute step response (optional).
+        starting value to evaluate step response (optional).
 
     points : integer
-        number of iteration that will be calculated (optional).
+        number of iterations that will be calculated (optional).
 
     constraint : real
         The upper limit the step response cannot exceed. Is only calculated
         if a value is specified (optional).
 
     method : ['numeric','analytic']
-        The method that is used to calculate a constrainted response. A
+        The method that is used to calculate a constrained response. A
         constraint value is required (optional).
 
     Returns
@@ -529,7 +529,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
     process : array (1 or 2 dim)
         1 or 2 dimensional array of floating process values.
     """
-    # Surpress the complex casting error
+    # Suppress the complex casting error
     import warnings
     warnings.simplefilter("ignore")
 
@@ -566,7 +566,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 if constraint is not None:
                     if (y1[0, 0] > constraint) or bconst:
                         y1[0, 0] = constraint
-                        bconst = True  # once constraint the system is oversaturated
+                        bconst = True  # once constrained the system is oversaturated
                         u = 0  # TODO : incorrect, find the correct switching condition
                     dxdt2 = A2*x2 + B2*u
                     y2 = C2*x2 + D2*u
@@ -579,7 +579,7 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 processdata = [processdata1, processdata2]
             else: processdata = processdata1
         elif method == 'analytic':
-            # TODO: caluate intercept of step and constraint line
+            # TODO: calculate intercept of step and constraint line
             timedata, processdata = [0, 0]
         else: raise ValueError('Invalid function parameters')
 
@@ -796,7 +796,7 @@ def findst(G, K):
     S : numpy array
         Matrix of sensitivities.
     T : numpy array
-        Matrix of complementary sensitivities.
+        Matrix of complimentary sensitivities.
 
    """
     L = G*K
@@ -832,7 +832,7 @@ def feedback(forward, backward=None, positive=False):
     """
     Defined for use in connect function
     Calculates a feedback loop
-    This version is for trasnfer function objects
+    This version is for transfer function objects
     Negative feedback is assumed, use positive=True for positive feedback
     Forward refers to the function that goes out of the comparator
     Backward refers to the function that goes into the comparator
@@ -1185,13 +1185,13 @@ def sv_dir(G, table=False):
     Returns
     -------
     u : list of arrays containing complex numbers
-        Output vector associated with the maximum and minium singular
+        Output vector associated with the maximum and minimum singular
         values. The maximum singular output vector is the first entry u[0] and
         the minimum is the second u[1].
 
     v : list of arrays containing complex numbers
-        Input vector associated with the maximum and minium singular
-        values. The maximum singular intput vector is the first entry u[0] and
+        Input vector associated with the maximum and minimum singular
+        values. The maximum singular input vector is the first entry u[0] and
         the minimum is the second u[1].
 
     table : If table is True then the output and input vectors are summarised
@@ -1201,10 +1201,10 @@ def sv_dir(G, table=False):
     NOTE
     ----
     If G is evaluated at a pole, u[0] is the input and v[0] is the output
-    directions associated with that pole, respectively.
+    direction associated with that pole, respectively.
 
     If G is evaluated at a zero, u[1] is the input and v[1] is the output
-    directions associated with that zero.
+    direction associated with that zero.
 
     """
     U, Sv, V = SVD(G)
@@ -1570,7 +1570,7 @@ def BoundST(G, poles, zeros, deadtime=None):
 
     Note
     ----
-    All the poles and zeros must be distict.
+    All the poles and zeros must be distinct.
     """
     Np = len(poles)
     Nz = len(zeros)
@@ -1645,7 +1645,7 @@ def BoundST(G, poles, zeros, deadtime=None):
 
 def BoundKS(G, poles, up, e=0.00001):
     '''
-    The functions uses equaption 6.24 (p229) to calculate the peak value for KS
+    The functions uses equation 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
 
     Parameters
@@ -1697,7 +1697,7 @@ def distRej(G, gd):
         Disturbance direction.
     """
 
-    gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
+    gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest single value of gd(wj)
     yd = gd1 * gd
     distCondNum = sigmas(G)[0] * sigmas(numpy.linalg.inv(G) * yd)[0]
 
@@ -1707,7 +1707,7 @@ def distRej(G, gd):
 def distRHPZ(G, Gd, RHP_Z):
     '''
     Applies equation 6.48 (p239) For performance requirements imposed by
-    disturbances. Calculate the system's zeros alignment with the disturbacne
+    disturbances. Calculate the system's zeros alignment with the disturbance
     matrix.
 
     Parameters
@@ -1715,7 +1715,7 @@ def distRHPZ(G, Gd, RHP_Z):
     G : numpy matrix (n x n)
         The transfer function G(s) of the system.
     gd : numpy matrix (n x 1)
-        The transfer function Gd(s) of the distrurbances.
+        The transfer function Gd(s) of the disturbances.
     RHP_Z : complex
         Right-half plane zero
 
