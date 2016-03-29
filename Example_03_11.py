@@ -5,10 +5,9 @@ from utilsplot import rga_plot, rga_nm_plot
 
 
 def G(s):
-    G = 0.01 ** (-5 * s) / ((s + 1.72e-4) * (4.32 * s + 1)) * np.matrix(
-        [[-34.54 * (s + 0.0572), 1.913], [-30.22 * s, -9.188 * (s + 6.95e-4)]])
+    G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*np.matrix([[-34.54*(s + 0.0572), 1.913],
+                                                             [-30.22*s, -9.188*(s + 6.95e-4)]])
     return G
-
 
 I1 = np.asmatrix(np.identity(2))
 I2 = np.matrix([[0, 1], [1, 0]])

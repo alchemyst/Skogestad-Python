@@ -1,7 +1,9 @@
 # originally from https://gist.github.com/dan-blanchard/7045057
+sudo: false
 language: python
 python:
   - "2.7"
+  - "3.5"
 # Setup anaconda
 before_install:
   # Fake X environment (see http://docs.travis-ci.com/user/gui-and-headless-browsers/)
@@ -9,7 +11,11 @@ before_install:
   - sh -e /etc/init.d/xvfb start
   # Install miniconda
   # This comes from http://conda.pydata.org/docs/travis.html
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
@@ -19,7 +25,7 @@ before_install:
 # Install packages
 install:
   # TODO: Figure out how to read this from requirements.txt
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose sympy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose sympy future
   - pip install control
   # Coverage packages are on the binstar channel which no longer works
   - pip install python-coveralls nose-cov

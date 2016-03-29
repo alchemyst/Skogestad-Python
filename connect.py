@@ -4,6 +4,8 @@ Created on Wed May 22 19:03:56 2013
 
 @author: Simon Streicher
 """
+from __future__ import print_function
+from utils import tf, feedback, tf_step
 
 """
 This function aims to be the Python equivalent of the MatLab connect function
@@ -12,8 +14,6 @@ http://www.mathworks.com/help/control/examples/connecting-models.html
 
 The example used here is the same as in the reference
 """
-
-from utils import tf, feedback, tf_step
 
 # First example in reference to demonstrate working of tf object
 
@@ -49,7 +49,7 @@ C.name = 'C'
 G.name = 'G'
 S.name = 'S'
 
-print S
+print(S)
 
 
 def connect(blocks, line_in, line_out):
@@ -116,6 +116,6 @@ in1 = line('a', F, C)
 in2 = line('b', C, G)
 sum1 = sumblk('sum1', 'c', in1, in2)
 
-print in1
-print in2
-print sum1
+print(in1)
+print(in2)
+print(sum1)

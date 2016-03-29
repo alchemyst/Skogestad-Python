@@ -1,4 +1,5 @@
 control
+future
 matplotlib
 numpy
 scipy

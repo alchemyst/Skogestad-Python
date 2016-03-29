@@ -29,8 +29,8 @@ def S1(s):
 def S2(s):
     return 1/(L2(s) + 1)
 
-freqrespS1 = map(S1, s)
-freqrespS2 = map(S2, s)
+freqrespS1 = list(map(S1, s))
+freqrespS2 = list(map(S2, s))
 
 plt.figure(1)
 plt.title('|S1| and |S2| Value over Frequency')

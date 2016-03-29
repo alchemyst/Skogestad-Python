@@ -22,7 +22,7 @@ def Wi1(s):  # Rational transfer function Wi1(s)
 
 def Wi2(s):  # Rational transfer function Wi1(s) of higher order for better fit of li(s)
     return ((-0.01 * s ** 2 + 0.3) / (0.1 * s + 1) ** 2) * (
-        (0.124 * s ** 2 + 9.008 * s + 0.0016) / (0.112 * s ** 2 + 1.339 * s + 3.5))
+    (0.124 * s ** 2 + 9.008 * s + 0.0016) / (0.112 * s ** 2 + 1.339 * s + 3.5))
 
 
 w = np.logspace(-3, 3, 1000)
