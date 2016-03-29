@@ -30,21 +30,20 @@ trigger = 0
 for i in range(0, len(Krange) - 1):
     if unstable_vec[i]:
         if unstable_vec[i] != unstable_vec[i - 1]:
-            print ('Change from stable to unstable at Kc = ' + '%.2f' % Krange[i])
+            print 'Change from stable to unstable at Kc = ' + '%.2f' % Krange[i]
             Limit1 = Krange[i]
             trigger = 1
     else:
         if unstable_vec[i] != unstable_vec[i - 1]:
-            print ('Change from unstable to stable at Kc = ' + '%.2f' % Krange[i])
+            print 'Change from unstable to stable at Kc = ' + '%.2f' % Krange[i]
             Limit2 = Krange[i]
             trigger = 1
 
 if trigger == 0:
-    print ('No stability margins could be found')
+    print 'No stability margins could be found'
 else:
-    print ('Stable between Kc = ' + '%.2f' % Limit1 \
-          + ' and Kc = ' + '%.2f' % Limit2)
+    print 'Stable between Kc = ' + '%.2f' % Limit1 \
+          + ' and Kc = ' + '%.2f' % Limit2
 
 plt.plot(Krange, unstable_vec, 'rD')
-plt.axis([-10, 10, -2, 2])
 plt.show()
