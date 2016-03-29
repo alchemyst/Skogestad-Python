@@ -21,10 +21,9 @@ def norms(G, Matrix_input):
     print 'Sum norm =', np.round(Sum_norm,2)
     print 'Maximum column sum =', np.round(Columnsum,2)
     print 'Maximum row sum =', np.round(Rowsum,2)
-    print 'Maximum singular value =', np.round(Max_singularval,2)
+    print 'Maximum singular value = \n', np.round(Max_singularval,2)
 
 norms(G_3_29, "Matrix 3.29")
-print ''
 norms(G_3_30, "Matrix 3.30")
 
 
