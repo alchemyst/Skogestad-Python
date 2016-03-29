@@ -20,7 +20,7 @@ plt.show()
 plt.figure('Figure 2.15')
 bodeclosedloop(G, K, -1, 2, margin=True)
 plt.show()
-#TODO there is a descrepancy with the phase plots
+#TODO there is a discrepancy with the phase plots
 
 GM, PM, wc, wb, wbt, valid = marginsclosedloop(L) 
 print 'GM:' , np.round(GM, 2)
