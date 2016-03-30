@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -57,12 +60,12 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     valid1 = wc > wd
 
     if message:
-        print 'Rule 1: Speed of response to reject distrubances'
+        print('Rule 1: Speed of response to reject distrubances')
         if valid1:
-            print 'First condition met, wc > wd'
+            print('First condition met, wc > wd')
         else:
-            print 'First condition no met, wc < wd'
-        print 'Seconds conditions requires |S(jw)| <= |1/Gd(jw)|'
+            print('First condition no met, wc < wd')
+        print('Seconds conditions requires |S(jw)| <= |1/Gd(jw)|')
 
     if plot:
         plt.figure('Rule 1')
@@ -131,8 +134,8 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
     invref = 1/R
 
     if message:
-        print 'Rule 2:'
-        print 'Conditions requires |S(jw)| <= ', invref
+        print('Rule 2:')
+        print('Conditions requires |S(jw)| <= ', invref)
 
     if plot:
         plt.figure('Rule 2')
@@ -193,9 +196,9 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
     mag_gd = np.abs(Gd(s))
 
     if message:
-        print 'Rule 3:'
-        print 'Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|'
-        print 'Perfect control conditions require |G(jw)| > |Gd(jw)|'
+        print('Rule 3:')
+        print('Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|')
+        print('Perfect control conditions require |G(jw)| > |Gd(jw)|')
 
     plt.figure('Rule 3')
     plt.subplot(211)
@@ -252,7 +255,7 @@ def rule4(G, R, wr, message=False, w1=-4, w2=2):
     mag_rr = (R - 1) * np.ones(len(w))
 
     if message:
-        print 'Rule 4:'
+        print('Rule 4:')
 
     plt.figure('Rule 4')
     plt.loglog(w, mag_g)
@@ -304,13 +307,13 @@ def rule5(G, Gm=1, message=False):
         valid5 = wc < wtd
 
     if message:
-        print 'Rule 5:'
+        print('Rule 5:')
         if TimeDelay == 0:
-            print 'There isn t any deadtime in the system'
+            print('There isn t any deadtime in the system')
         if valid5:
-            print 'wc < 1 / theta :', wc , '<' , wtd
+            print('wc < 1 / theta :', wc , '<' , wtd)
         else:
-            print 'wc > 1 / theta :', wc , '>' , wtd
+            print('wc > 1 / theta :', wc , '>' , wtd)
 
     return valid5, wtd
 
@@ -361,12 +364,12 @@ def rule6(G, Gm, message=False):
     else: valid6 = False
 
     if message:
-        print 'Rule 6:'
+        print('Rule 6:')
         if wz != 0:
-            print 'These are the roots of the transfer function matrix GGm' , zeros
+            print('These are the roots of the transfer function matrix GGm' , zeros)
         if valid6:
-            print 'The critical frequency of S for the system to be controllable is' , wz
-        else: print 'No zeros in the system to evaluate'
+            print('The critical frequency of S for the system to be controllable is' , wz)
+        else: print('No zeros in the system to evaluate')
     return valid6, wz
 
 
@@ -408,11 +411,11 @@ def rule7(G, Gm, message=False):
     valid7 = wc < w_180
 
     if message:
-        print 'Rule 7:'
+        print('Rule 7:')
         if valid7:
-            print 'wc < wu :' , wc , '<' , w_180
+            print('wc < wu :' , wc , '<' , w_180)
         else:
-            print 'wc > wu :' , wc , '>' , w_180
+            print('wc > wu :' , wc , '>' , w_180)
 
     return valid7
 
@@ -451,11 +454,11 @@ def rule8(G, message=False):
     else: valid8 = False
 
     if message:
-        print 'Rule 8:'
+        print('Rule 8:')
         if valid8:
-            print 'wc > 2p :', wc , '>' , wp
+            print('wc > 2p :', wc , '>' , wp)
         else:
-            print 'wc < 2p :', wc , '<' , wp
+            print('wc < 2p :', wc , '<' , wp)
 
     return valid8, wp
 

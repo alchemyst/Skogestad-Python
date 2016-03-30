@@ -1,3 +1,7 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+
 import numpy as np
 import matplotlib as ml
 import scipy.optimize as op
@@ -95,7 +99,7 @@ def weight_calc(w_start, w_end, li, weight_i, steps):
         if init < init_old:
             index = k + safety_fac
             found = True
-            print index
+            print(index)
             break
         else:
             init_old = init

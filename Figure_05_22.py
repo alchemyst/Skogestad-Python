@@ -4,7 +4,7 @@ Created on Mon Jun 03 18:50:50 2013
 
 @author: Irshad
 """
-
+from __future__ import division
 #Figure 5.22
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,8 +22,8 @@ def G(s):
 def Gd(s):
     return (-2 * kd)/(1 + th * s)
 
-freqrespG = map(G, s)
-freqrespGd = map(Gd, s)
+freqrespG = [G(si) for si in s]
+freqrespGd = [Gd(si) for si in s]
 
 plt.figure(1)
 plt.title('|G| and |Gd| Value over Frequency')

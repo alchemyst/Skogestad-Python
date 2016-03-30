@@ -4,12 +4,13 @@ Created on Fri May 24 13:13:53 2013
 
 @author: Simon Streicher
 """
+from __future__ import division
 
 import matplotlib.pyplot as plt
 import matplotlib as ml
 import numpy as np
 
-from uncertain_MIMO import bound_SISO_wi, weight_calc
+from Uncertain_MIMO import bound_SISO_wi, weight_calc
 from perturbations import possibilities
 
 
