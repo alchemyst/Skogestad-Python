@@ -20,8 +20,7 @@ G_d = 100/(10*s + 1)
 Ks = [((10*(10*s + 1))*(0.1*s + 1))/(s*200*(0.01*s + 1)),
       0.5,
       0.5*(s + 2)/s,
-      (0.5*(s + 2)*(0.05*s + 1))/(s*(0.005*s + 1)),
-      ]
+      (0.5*(s + 2)*(0.05*s + 1))/(s*(0.005*s + 1))]
 
 w = np.logspace(-2, 2, 100)
 s = 1j*w
@@ -53,5 +52,10 @@ plt.ylabel("y")
 plt.title("Disturbance response")
 plt.legend(["y0", "y1", "y2", "y3"])
 
-plt.show()
+plt.plot(G.real,G.imag)
+plt.plot(G.conj().real, G.conj().imag)
+plt.plot(-1,0, 'r+')
+plt.axis('equal')
 
+plt.show()
+%matplotlib inline

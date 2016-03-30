@@ -21,5 +21,7 @@ for K in Ks:
 
 plt.legend(["Kc = %1.1f" % K for K in Ks])
 plt.xlabel('Time [s]')
+plt.ylabel("y(t)")
 plt.ylim(-0.5, 2.5)
 plt.show()
+%matplotlib inline
