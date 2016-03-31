@@ -16,6 +16,7 @@ plt.figure('Figure 2.1')
 plt.plot(t,u)
 plt.plot(t,y)
 plt.xlabel('Time [s]')
+plt.ylabel('Input pertubation, Output response')
 plt.legend(['u(t)','y(t)'])
-
+plt.title("System response to a sinusodial input")
 plt.show()
