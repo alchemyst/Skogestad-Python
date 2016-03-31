@@ -19,7 +19,7 @@ print 'Poles: {0}'.format(p)
 print 'Zeros: {0}'.format(z)
 print ''
 
-# stable matrix
+# Stable matrix
 G11 = (s + 2.5) / (s + 2)
 G12 = -(0.1 * s + 1) / (s + 2)
 G21 = (s + 2.5) / (0.1 * s + 1)   
@@ -27,7 +27,7 @@ G22 = 1
 Gs = mimotf([[G11, G12],
              [G21, G22]])
     
-# select RHP-pole
+# Select RHP-pole
 p = [2.]
 pdir = pole_zero_directions(Gs, p, 'p')
 display_export_data(pdir, 'Poles', ['   u','   y','   e '])
