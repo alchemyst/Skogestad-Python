@@ -29,6 +29,7 @@ plt.subplot(2, 1, 1)
 plt.plot(Tim, yout)
 plt.ylabel('y(t)')
 plt.xlabel('Time [s]')
+plt.title('Time domain response',fontsize=14)
 
 # Gain of both S and T transfer functions
 Tgain = np.abs([TF(Tnum, Tden, (1j*i)) for i in w])
@@ -43,6 +44,7 @@ plt.loglog(w, Sgain)
 plt.legend(["|T|","|S|"])   
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
+plt.title('Magnitude of S and T transfer function',fontsize=14)
 plt.show()
 
 #TODO GM, PM, Ms, Mt, wb, wc
