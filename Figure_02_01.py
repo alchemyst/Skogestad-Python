@@ -13,6 +13,7 @@ u = np.sin(w * t)
 y = GM * np.sin(w*t + PM)
 
 plt.figure('Figure 2.1')
+plt.title('Sinusoidal response for system G(s)')
 plt.plot(t,u)
 plt.plot(t,y)
 plt.xlabel('Time [s]')
