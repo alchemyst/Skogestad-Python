@@ -25,12 +25,11 @@ Tden = [tau, tau*z + 1, z]
 # Time domain output of a step response
 [Tim, yout, xout] = scs.lsim((Tnum, Tden), np.ones(np.size(w)), w)
 # Plot time domain response
-fs=12
 plt.subplot(2, 1, 1)
 plt.plot(Tim, yout)
 plt.ylabel('y(t)')
 plt.xlabel('Time [s]')
-plt.title('Time domain response',fontsize=fs)
+plt.title('Time domain response')
 
 # Gain of both S and T transfer functions
 Tgain = np.abs([TF(Tnum, Tden, (1j*i)) for i in w])
@@ -45,7 +44,7 @@ plt.loglog(w, Sgain)
 plt.legend(["|T|","|S|"])   
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
-plt.title('Magnitude of S and T transfer function',fontsize=fs)
+plt.title('Magnitude of S and T transfer function')
 plt.show()
 
 #TODO GM, PM, Ms, Mt, wb, wc
