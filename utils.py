@@ -761,7 +761,7 @@ def det(A):
     result = 0
     cols = rows = list(range(A.shape[1]))
     for i in cols:
-        submatrix = A[numpy.ix_(cols[1:], cols[:i] + cols[i+1:])]
+        submatrix = A[numpy.ix_(cols[1:], list(cols[:i]) + list(cols[i+1:]))]
         result += sign*A[0, i]*det(submatrix)
         sign *= -1
 

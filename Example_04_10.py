@@ -26,15 +26,53 @@ for r in range(0, R) :
 print('---Minors of order 2---')
 m2_1 = G[:,[1,2]]
 m2_2 = G[:,[0,2]]
+m2 = m2_1.row_join(m2_2)
 m2_3 = G[:,[0,1]]
+m2 = m2.row_join(m2_3)
 print(m2_1)
 print(m2_2)
 print(m2_3)
 
+# combine order one and two minors
+
 print('---All poles---')
 m1count = np.shape(m1)[0]
-for m in range(0, m1count):
+#find out how many roots there are in total between all 1st order minors
+n1Roots = 0
+for m in range(m1count):
+    n1Roots = n1Roots + sp.degree(sp.denom(m1[m]),s)
+
+#find out how many roots there are in total between all 2nd order minors
+n2Roots = 0
+r,c = np.shape(m2)
+for i in range(r):
+    for j in range(c):
+        n2Roots = n2Roots + sp.degree(sp.denom(m2[i,j]),s)
+print(n2Roots)
+
+# calculate and find common roots 
+roots_denom = [None]*(n1Roots + n2Roots)
+n = 0
+for m in range(m1count):
+    denom_roots = sp.solve(sp.denom(m1[m]))
+    for i  in range(len(denom_roots)):
+        roots_denom[n+i] = denom_roots[i]
+    n = n+len(denom_roots)   
     print(sp.solve(sp.denom(m1[m])))
+
+for i in range(r):
+    for j in range(c):
+        denom_roots = sp.solve(sp.denom(m2[i,j]))
+        for k  in range(len(denom_roots)):
+            roots_denom[n+k] = denom_roots[k]
+        n = n+len(denom_roots)   
+        print(sp.solve(sp.denom(m2[i,j])))
+    
+mypoles = list(set(roots_denom))
+print('Therefore the poles are: ' )
+for i in range(len(mypoles)):
+    print(mypoles[i],end=", ")
+
 
 def M21(s):
     return G[:,[1,2]]
@@ -43,11 +81,11 @@ def M12(s):
 def M13(s):
     return G[:,[0,1]]
 
-print(poles(M21))
-print(poles(M12))
-print(poles(M13))
+#print(poles(M21))
+#print(poles(M12))
+#print(poles(M13))
 
-print('Therefore the poles are -1, 1 and -2')
+
 
 ##Usefull Sage example
 #[x,y]=np.shape(G)
