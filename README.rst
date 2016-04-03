@@ -14,10 +14,7 @@ Python code for Multivariable Feedback Control
    :target: https://codeclimate.com/github/alchemyst/Skogestad-Python
    :alt: Code Climate
 
-.. image:: https://coveralls.io/repos/alchemyst/Skogestad-Python/badge.svg
-  :target: https://coveralls.io/r/alchemyst/Skogestad-Python
-
-
+.. image:: https://coveralls.io/repos/github/alchemyst/Skogestad-Python/badge.svg?branch=master :target: https://coveralls.io/github/alchemyst/Skogestad-Python?branch=master
 
 .. image:: https://graphs.waffle.io/alchemyst/Skogestad-Python/throughput.svg 
  :target: https://waffle.io/alchemyst/Skogestad-Python/metrics 
