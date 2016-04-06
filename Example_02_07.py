@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as scs
 
+
 # Example 2.7 compares w_B and w_BT as indicators of performance
 # it illustrates that w_B might be a better indicator, but care
 # must be taken and the phase must also be considered.
@@ -12,6 +13,7 @@ import scipy.signal as scs
 def TF(num, den, s):
     TF = np.polyval(num, s)/np.polyval(den, s)
     return TF
+
 
 # Initialize freq range and other constants
 w = np.logspace(-2, 2, 100)
@@ -29,11 +31,12 @@ plt.subplot(2, 1, 1)
 plt.plot(Tim, yout)
 plt.ylabel('y(t)')
 plt.xlabel('Time [s]')
+plt.title('Time domain response')
 
 # Gain of both S and T transfer functions
 Tgain = np.abs([TF(Tnum, Tden, (1j*i)) for i in w])
 
-Sgain = np.abs([TF(Tnum, Tden, (1j*i))-1 for i in w])
+Sgain = np.abs([TF(Tnum, Tden, (1j*i)) - 1 for i in w])
 
 # Plot Gains
 plt.subplot(2, 1, 2)
@@ -43,6 +46,7 @@ plt.loglog(w, Sgain)
 plt.legend(["|T|", "|S|"])
 plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
+plt.title('Magnitude of S and T transfer function')
 plt.show()
 
 # TODO GM, PM, Ms, Mt, wb, wc

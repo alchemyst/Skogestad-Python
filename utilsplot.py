@@ -530,12 +530,12 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     w = numpy.logspace(w_start, w_end, points)
     s = w*1j
 
-    dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
+    dim = G(0).shape # Number of rows and columns in SS transfer function
     freqresp = [G(si) for si in s]
 
     plot_No = 1
 
-    if ((input_label is not None) and (input_label is None)):
+    if (input_label is None) and (output_label is None):
         labels = False
     elif numpy.shape(input_label)[0] == numpy.shape(output_label)[0]:
         labels = True
