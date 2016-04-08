@@ -50,7 +50,7 @@ zdata,_ = pole_zero_directions(G, z, 'z', 'y')
 print('M_S,min = M_T,min = {:.2f}'.format(BoundST(G, p, z)))
 
 # TODO fix BoundST with deadtime
-print('\nPeak example for deadtime:')
+#print('\nPeak example for deadtime:')
 deadtime = np.matrix([[-1, 0],
                       [-2., -3]])
-print('M_T,min = {:.2f}'.format(BoundST(G, p, z, deadtime)))
+#print('M_T,min = {:.2f}'.format(BoundST(G, p, z, deadtime)))
