@@ -13,7 +13,7 @@ import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
 from functools import reduce
-
+import control.matlab
 
 
 def astf(maybetf):
@@ -1756,10 +1756,27 @@ def distRHPZ(G, Gd, RHP_Z):
 
     return Dist_RHPZ
 
-def minimal_realisation():
+
+def minimal_realisation(a, b, c, d):
     """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
     second edition p 119 equations 4.3 and 4.4
+    :param a: the A matrix in the state space model
+    :param b: the B matrix in the state space model
+    :param c: the C matrix in the state space model
+    :param d: the D matrix in the state space model
     """
+
+    # obtain the controllability matrix
+    C = control.matlab.ctrb(a, b)
+
+    # obtain the observability matrix
+    O = control.matlab.obsv(a, c)
+
+    # calculate the rank of the controllability and observability martix
+    rank_C = numpy.linalg.matrix_rank(C)
+    rank_O = numpy.linalg.matrix_rank(O)
+
+    return
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
