@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import numpy.linalg as nplinalg
-from utils import tf
+from utils import tf, BoundST
 from scipy.linalg import sqrtm
 from math import sqrt
 
@@ -15,9 +15,9 @@ zeros = G.zeros()
 def RHPonly(x):
     RHPx = []
     for i in range(len(x)):
-        if x[i] > 0:
+        if x[i].real > 0:
             RHPx.append(np.round(x[i],2))
-    return RHPx
+    return list(set(RHPx))
 
 RHPzeros = RHPonly(zeros)
 RHPpoles  = RHPonly(poles)
@@ -51,7 +51,7 @@ A = sqrtm(nplinalg.inv(Qz)).dot(Qzp).dot(sqrtm(nplinalg.inv(Qp)))
 _,sv,_ = nplinalg.svd(A)
 
 M_Smin = sqrt(1+max(np.abs(sv))**2)
-print("M_Smin using eq 6.8 = ",M_Smin)
+print("M_Smin using eq 6.8 = ",np.round(M_Smin,2))
 
 # alternative because system has only one pole:
 M_Smin = 1
