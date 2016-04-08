@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import zip
+from builtins import range
 import itertools
 
 import numpy as np
@@ -9,7 +12,7 @@ def possibilities(umin, umax, Amount):
 
     def box_ready(umin, umax, Amount):
         """Create a suitable matrix for the mesh function"""
-        return zip(umin, umax, [Amount]*len(umin))
+        return list(zip(umin, umax, [Amount]*len(umin)))
 
     def coords(box):
         return [entry[:2] for entry in box]
@@ -27,7 +30,7 @@ def possibilities(umin, umax, Amount):
     def surfmesh(box):
         """Generate points on the edges of a box"""
         Ndims = len(box)
-        dimindex = range(Ndims)
+        dimindex = list(range(Ndims))
         # have at least one constrained dimension
         for Nunconstrained in range(0, Ndims):
             # select all ways of generating this
@@ -52,12 +55,12 @@ if __name__ == '__main__':
     # The minimum and maximum matrices
     possible = possibilities(umin, umax, 3)
 
-    print possible
-    print possible.shape[0]
+    print(possible)
+    print(possible.shape[0])
 
     umin = np.ones(20)
     umax = 2*np.random.random(20)
-    print umax
-    print umin
+    print(umax)
+    print(umin)
 
-    print possibilities(umin, umax, 1)
+    print(possibilities(umin, umax, 1))

@@ -20,8 +20,20 @@ G = g1 * g2 * g3
 
 p = G.poles()
 z = G.zeros()
-print('Poles: {0}'.format(p))
-print('Zeros: {0}\n'.format(z))
+print('All Poles: {0}'.format(p))
+print('All Zeros: {0}\n'.format(z))
+
+def RHPonly(x):
+    RHPx = []
+    for i in range(len(x)):
+        if x[i].real > 0:
+            RHPx.append(np.round(x[i].real,2))
+    return list(set(RHPx))
+
+RHPzeros = RHPonly(z)
+RHPpoles = RHPonly(p)
+print("RHP poles only: ", RHPpoles)
+print("RHP zeros only: ", RHPzeros)
 
 
 # selected p & z
@@ -38,7 +50,7 @@ zdata,_ = pole_zero_directions(G, z, 'z', 'y')
 print('M_S,min = M_T,min = {:.2f}'.format(BoundST(G, p, z)))
 
 # TODO fix BoundST with deadtime
-#print '\nPeak example for deadtime:'
+#print('\nPeak example for deadtime:')
 deadtime = np.matrix([[-1, 0],
                       [-2., -3]])
-#print 'M_T,min = {:.2f}'.format(BoundST(G, p, z, deadtime))
+#print('M_T,min = {:.2f}'.format(BoundST(G, p, z, deadtime)))

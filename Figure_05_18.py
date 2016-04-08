@@ -11,6 +11,9 @@ M5: Margin because of phase lag, angle-G(jwu) = -180 deg
 M6: Margin because of delay, theta
 """
 
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -37,9 +40,9 @@ GM, PM, wd, w_180 = margins(Gd)
 [valid5, wtd] = ch5.rule5(G)
 [valid8, wp] = ch5.rule8(G)
 
-print 'wc: ' , np.round(wc, 3)
-print 'wd: ' , np.round(wd, 3)
-print 'wu: ' , np.round(wu, 3)
+print('wc: ' , np.round(wc, 3))
+print('wd: ' , np.round(wd, 3))
+print('wu: ' , np.round(wu, 3))
 
 wuy = abs(G((1j*wu)))
 wzy = abs(G((1j*wz)))
