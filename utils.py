@@ -265,7 +265,7 @@ class tf(object):
 
     def __rtruediv__(self, other):
         return tf(other)/self
-    
+
     def __div__(self, other):
         if not isinstance(other, tf):
             other = tf(other)
@@ -1086,8 +1086,8 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
     """
     w = numpy.logspace(w_start, w_end, points)
     s = 1j*w
-    
-    M = numpy.max(numpy.abs(G(s)))    
+
+    M = numpy.max(numpy.abs(G(s)))
 
     return M
 
@@ -1756,6 +1756,10 @@ def distRHPZ(G, Gd, RHP_Z):
 
     return Dist_RHPZ
 
+def minimal_realisation():
+    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
+    second edition p 119 equations 4.3 and 4.4
+    """
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
