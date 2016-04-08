@@ -1429,7 +1429,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
     have values if A is defined.
     '''
-    # TODO create a beter function to accept paramters and switch between tf and ss
+    # TODO create a beter function to accept parameters and switch between tf and ss
 
     if not G is None:
         s = sympy.Symbol('s')
