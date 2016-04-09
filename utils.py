@@ -1597,70 +1597,64 @@ def BoundST(G, poles, zeros, deadtime=None):
     Nz = len(zeros)
     Yp, _ = pole_zero_directions(G, poles, 'p', 'y')
     Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
+    
+    yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
+                    numpy.matrix(numpy.ones([Np, Np]))
+    yp_mat2 = yp_mat1.T
+    Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
+
+    yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
+              numpy.matrix(numpy.ones([Nz, Nz])))
+    yz_mat2 = yz_mat1.T
+    Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
+
+    yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
+               numpy.matrix(numpy.ones([Nz, Np]))
+    yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
+               numpy.matrix(numpy.diag(poles))
+    Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
 
     if deadtime is None:
-        yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
-                    numpy.matrix(numpy.ones([Np, Np]))
-        yp_mat2 = yp_mat1.T
-        Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
 
-        yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
-                    numpy.matrix(numpy.ones([Nz, Nz])))
-        yz_mat2 = yz_mat1.T
-        Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
-
-        yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
-                    numpy.matrix(numpy.ones([Nz, Np]))
-        yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
-                    numpy.matrix(numpy.diag(poles))
-        Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
-
-        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * \
-                    sc_linalg.sqrtm(numpy.linalg.inv(Qp))
+        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))).dot(Qzp).dot(sc_linalg.sqrtm(numpy.linalg.inv(Qp)))
         # Final equation 6.8
         Ms_min = numpy.sqrt(1 + (numpy.max(sigmas(pre_mat))) ** 2)
+
 
     else:
         # Equation 6.16 (p226) uses maximum deadtime per output channel to
         # give tightest lowest bounds. Create vector to be used for the
         # diagonal deadtime matrix containing each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S. The minimum function is
-        # used because all stable systems has dead time with a negative sign.
+        # used because all stable systems have dead time with a negative sign.
 
-        dead_time_vec_max_row = numpy.zeros(deadtime[0].shape[0])
+        dead_time_vec_max_row = numpy.zeros(deadtime.shape[0])
 
-        for i in range(deadtime[0].shape[0]):
-            dead_time_vec_max_row[i] = numpy.max(deadtime[0][i, :])
+        for i in range(deadtime.shape[0]):
+            dead_time_vec_max_row[i] = numpy.max(abs(deadtime[i]))
 
         def Dead_time_matrix(s, dead_time_vec_max_row):
-
-            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(
-                                       dead_time_vec_max_row, s)))
+            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros([numpy.shape(deadtime)[0],
-                              numpy.shape(deadtime)[1]])
-
+        Q_dead = numpy.zeros((Np,Np))
+        
         for i in range(Np):
             for j in range(Np):
-                denominator_mat = (numpy.transpose(
-                                   numpy.conjugate(Yp[:, i])) *
-                   Dead_time_matrix(poles[i], dead_time_vec_max_row) *
-                   Dead_time_matrix(poles[j], dead_time_vec_max_row) *
-                   Yp[:, j])
+                numerator_mat = (numpy.transpose(numpy.conjugate(Yp[:, i])) * 
+                                   Dead_time_matrix(poles[i], dead_time_vec_max_row) * \
+                                   Dead_time_matrix(poles[j], dead_time_vec_max_row) * Yp[:, j])
+                denominator_mat = poles[i] + poles[j]
+                Q_dead[i, j] = numerator_mat / denominator_mat
 
-                numerator_mat = poles[i] + poles[i]
-
-                Q_dead[i, j] = denominator_mat / numerator_mat
-
-        lambda_mat = (sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) *
-                      (Qp + Qzp * numpy.linalg.pinv(Qz) *
-                      (numpy.transpose(numpy.conjugate(Qzp)))) *
-                      sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
+        lambda_mat = sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) \
+                        .dot(Qp + Qzp.dot(numpy.linalg.pinv(Qz)) \
+                        .dot(numpy.transpose(numpy.conjugate(Qzp)))) \
+                        .dot(sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
 
         # Final equation 6.19
-        Ms_min = numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0]))
-
+        Ms_min = float(numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0])))
+        
     return Ms_min
 
 
