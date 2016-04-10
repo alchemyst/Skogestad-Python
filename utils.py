@@ -1364,8 +1364,10 @@ def state_controllability(A, B):
 
 def state_observability_matrix(a, c):
     """calculate the observability matrix
+
     :param a:  numpy matrix
               the A matrix in the state space model
+
     :param c: numpy matrix
               the C matrix in the state space model
     """
@@ -1378,6 +1380,67 @@ def state_observability_matrix(a, c):
     observability_m = numpy.vstack(observability_m)
 
     return observability_m
+
+
+def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
+                                                 rank=None):
+    """"remove the uncontrollable or unobservable states from the A, B and C state space matrices
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+
+    :param con_or_obs_matrix: numpy matrix
+                              the controllable or observable matrix
+
+    :param uncontrollable: boolean
+                           set to True to remove uncontrollable states (default) or to false
+
+    :param unobservable: boolean
+                         set to True to remove unobservable states or to false (default)
+
+    :param rank: optional (int)
+                 rank of the controllable or observable matrix
+                 if the rank is available set the rank=(rank of matrix) to avoid calculating matrix rank twice
+                 by default rank=None and will be calculated
+
+    Default: remove the uncontrollable states
+    To remove the unobservable states set uncontrollable=False and unobservable=True
+
+    return: the Kalman Canonical matrices
+            Ac, Bc, Cc (the controllable subspace of A, B and C) if uncontrollable=True and unobservable=False
+            or Ao, Bo, Co (the observable subspace of A, B and C) if uncontrollable=False and unobservable=True
+
+    Note:
+    If the controllable subspace of A, B and C are given (Ac, Bc and Cc) and the unobservable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    """
+
+    # obtain the number of states
+    n_states = numpy.shape(a)[0]
+
+    # obtain matrix rank
+    if rank is None:
+        rank = numpy.linalg.matrix_rank(con_or_obs_matrix)
+
+    # calculate the difference between the number of states and the number of controllable or observable states
+    m = n_states - rank
+
+    # if system is already state controllable or observable return matrices unchanged
+    if m == 0:
+        return a, b, c
+
+    # create the a matrix P with dimensions n_states x n_states used to change matrices A, B and C to the
+    # Kalman Canonical Form
+    P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
 
 
 def minimal_realisation(a, b, c):
