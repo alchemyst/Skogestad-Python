@@ -1362,6 +1362,26 @@ def state_controllability(A, B):
     return state_control, u_p, control_matrix
 
 
+def minimal_realisation(a, b, c):
+    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
+    second edition p 119 equations 4.3 and 4.4
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+    """
+
+    # obtain the controllability matrix
+    _, _, C = state_controllability(a, b)
+
+    # obtain the observability matrix
+
+
 def poles(G):
     '''
     Return the poles of a multivariable transfer function system. Applies
