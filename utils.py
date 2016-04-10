@@ -1362,6 +1362,24 @@ def state_controllability(A, B):
     return state_control, u_p, control_matrix
 
 
+def state_observability_matrix(a, c):
+    """calculate the observability matrix
+    :param a:  numpy matrix
+              the A matrix in the state space model
+    :param c: numpy matrix
+              the C matrix in the state space model
+    """
+
+    # calculate the number of states
+    n_states = numpy.shape(a)[0]
+
+    # construct the observability matrix
+    observability_m = [c*a**n for n in range(n_states)]
+    observability_m = numpy.vstack(observability_m)
+
+    return observability_m
+
+
 def minimal_realisation(a, b, c):
     """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
     second edition p 119 equations 4.3 and 4.4
