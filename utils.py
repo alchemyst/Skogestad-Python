@@ -1498,6 +1498,30 @@ def minimal_realisation(a, b, c):
     _, _, C = state_controllability(a, b)
 
     # obtain the observability matrix
+    O = state_observability_matrix(a, c)
+
+    # calculate the rank of the controllability and observability martix
+    rank_C = numpy.linalg.matrix_rank(C)
+
+    # transpose the observability matrix to calculate the column rank
+    rank_O = numpy.linalg.matrix_rank(O.T)
+
+    if rank_C <= rank_O:
+        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(a, b, c, C, rank=rank_C)
+
+        O = state_observability_matrix(Ac, Cc)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
+
+    else:
+        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(a, b, c, O, uncontrollable=False, unobservable=True,
+                                                                  rank=rank_O)
+
+        _, _, C = state_controllability(Ao, Bo)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ao, Bo, Co, C)
+
+    return Aco, Bco, Cco
 
 
 def poles(G):
