@@ -1442,6 +1442,32 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
     # Kalman Canonical Form
     P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
 
+    if uncontrollable == True and unobservable == False:
+        P[:, 0:rank] = con_or_obs_matrix[:, 0:rank]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((n_states, m)))
+
+        # make P invertible
+        P[:, rank:n_states] = replace_matrix
+
+        # When removing the uncontrollable states the constructed matrix P is actually the inverse of P (P^-1) and
+        # true matrix P is obtained by (P^-1)^-1
+        P_inv = P
+        P = numpy.linalg.inv(P_inv)
+
+    A_new = P*a*P_inv
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 1)
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 0)
+
+    B_new = P*b
+    B_new = numpy.delete(B_new, numpy.s_[rank:n_states], 0)
+
+    C_new = c*P_inv
+    C_new = numpy.delete(C_new, numpy.s_[rank:n_states], 1)
+
+    return A_new, B_new, C_new
+
 
 def minimal_realisation(a, b, c):
     """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
