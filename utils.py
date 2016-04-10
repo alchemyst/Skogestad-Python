@@ -1362,6 +1362,168 @@ def state_controllability(A, B):
     return state_control, u_p, control_matrix
 
 
+def state_observability_matrix(a, c):
+    """calculate the observability matrix
+
+    :param a:  numpy matrix
+              the A matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+    """
+
+    # calculate the number of states
+    n_states = numpy.shape(a)[0]
+
+    # construct the observability matrix
+    observability_m = [c*a**n for n in range(n_states)]
+    observability_m = numpy.vstack(observability_m)
+
+    return observability_m
+
+
+def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
+                                                 rank=None):
+    """"remove the uncontrollable or unobservable states from the A, B and C state space matrices
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+
+    :param con_or_obs_matrix: numpy matrix
+                              the controllable or observable matrix
+
+    :param uncontrollable: boolean
+                           set to True to remove uncontrollable states (default) or to false
+
+    :param unobservable: boolean
+                         set to True to remove unobservable states or to false (default)
+
+    :param rank: optional (int)
+                 rank of the controllable or observable matrix
+                 if the rank is available set the rank=(rank of matrix) to avoid calculating matrix rank twice
+                 by default rank=None and will be calculated
+
+    Default: remove the uncontrollable states
+    To remove the unobservable states set uncontrollable=False and unobservable=True
+
+    return: the Kalman Canonical matrices
+            Ac, Bc, Cc (the controllable subspace of A, B and C) if uncontrollable=True and unobservable=False
+            or Ao, Bo, Co (the observable subspace of A, B and C) if uncontrollable=False and unobservable=True
+
+    Note:
+    If the controllable subspace of A, B and C are given (Ac, Bc and Cc) and the unobservable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    """
+
+    # obtain the number of states
+    n_states = numpy.shape(a)[0]
+
+    # obtain matrix rank
+    if rank is None:
+        rank = numpy.linalg.matrix_rank(con_or_obs_matrix)
+
+    # calculate the difference between the number of states and the number of controllable or observable states
+    m = n_states - rank
+
+    # if system is already state controllable or observable return matrices unchanged
+    if m == 0:
+        return a, b, c
+
+    # create the a matrix P with dimensions n_states x n_states used to change matrices A, B and C to the
+    # Kalman Canonical Form
+    P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
+
+    if uncontrollable == True and unobservable == False:
+        P[:, 0:rank] = con_or_obs_matrix[:, 0:rank]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((n_states, m)))
+
+        # make P invertible
+        P[:, rank:n_states] = replace_matrix
+
+        # When removing the uncontrollable states the constructed matrix P is actually the inverse of P (P^-1) and
+        # true matrix P is obtained by (P^-1)^-1
+        P_inv = P
+        P = numpy.linalg.inv(P_inv)
+
+    elif uncontrollable == False and unobservable == True:
+        P[0:rank, :] = con_or_obs_matrix[0:rank, :]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((m, n_states)))
+
+        # make P invertible
+        P[rank:n_states, :] = replace_matrix
+
+        P_inv = numpy.linalg.inv(P)
+
+    A_new = P*a*P_inv
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 1)
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 0)
+
+    B_new = P*b
+    B_new = numpy.delete(B_new, numpy.s_[rank:n_states], 0)
+
+    C_new = c*P_inv
+    C_new = numpy.delete(C_new, numpy.s_[rank:n_states], 1)
+
+    return A_new, B_new, C_new
+
+
+def minimal_realisation(a, b, c):
+    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
+    second edition p 119 equations 4.3 and 4.4
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+    """
+
+    # obtain the controllability matrix
+    _, _, C = state_controllability(a, b)
+
+    # obtain the observability matrix
+    O = state_observability_matrix(a, c)
+
+    # calculate the rank of the controllability and observability martix
+    rank_C = numpy.linalg.matrix_rank(C)
+
+    # transpose the observability matrix to calculate the column rank
+    rank_O = numpy.linalg.matrix_rank(O.T)
+
+    if rank_C <= rank_O:
+        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(a, b, c, C, rank=rank_C)
+
+        O = state_observability_matrix(Ac, Cc)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
+
+    else:
+        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(a, b, c, O, uncontrollable=False, unobservable=True,
+                                                                  rank=rank_O)
+
+        _, _, C = state_controllability(Ao, Bo)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ao, Bo, Co, C)
+
+    return Aco, Bco, Cco
+
+
 def poles(G):
     '''
     Return the poles of a multivariable transfer function system. Applies
