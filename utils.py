@@ -1456,6 +1456,17 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
         P_inv = P
         P = numpy.linalg.inv(P_inv)
 
+    elif uncontrollable == False and unobservable == True:
+        P[0:rank, :] = con_or_obs_matrix[0:rank, :]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((m, n_states)))
+
+        # make P invertible
+        P[rank:n_states, :] = replace_matrix
+
+        P_inv = numpy.linalg.inv(P)
+
     A_new = P*a*P_inv
     A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 1)
     A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 0)
