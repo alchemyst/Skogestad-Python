@@ -1438,6 +1438,65 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
 
     If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
     matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    Examples
+    --------
+
+    Example 1: remove uncontrollable states
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> controllability_matrix = numpy.matrix([[  1.,   0.,   0.,   0.],
+    ...                                        [  1.,  -2.,   4.,  -8.],
+    ...                                        [  0.,   5., -10.,  20.],
+    ...                                        [  0.,   5., -20.,  70.]])
+
+    >>> Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(A, B, C, controllability_matrix)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Ac.round(decimals=3) + 0.
+    array([[ 0.,  0.,  0.],
+           [ 1.,  0., -6.],
+           [ 0.,  1., -5.]])
+
+    >>> Bc.round(decimals=3) + 0.
+    array([[ 1.],
+           [ 0.],
+           [ 0.]])
+
+    >>> Cc.round(decimals=3) + 0.
+    array([[  0.,  10., -30.]])
+
+    Example 2: remove unobservable states using Ac, Bc, Cc from example1
+
+    >>> observability_matrix = numpy.matrix([[   0.,   10.,  -30.],
+    ...                                      [  10.,  -30.,   90.],
+    ...                                      [ -30.,   90., -270.]])
+
+     >>> Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, observability_matrix,
+     ...                                                           uncontrollable=False, unobservable=True)
+
+    >>> Ao.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bo.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Co.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
     """
 
     # obtain the number of states
