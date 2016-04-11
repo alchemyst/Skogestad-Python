@@ -1567,6 +1567,65 @@ def minimal_realisation(a, b, c):
 
     :param c: numpy matrix
               the C matrix in the state space model
+
+    Examples
+    --------
+
+    Example 1:
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
+
+    Example 2:
+
+    >>> A = numpy.matrix([[1, 1, 0],
+    ...                    [0, 1, 0],
+    ...                    [0, 1, 1]])
+
+    >>> B = numpy.matrix([[0, 1],
+    ...                   [1, 0],
+    ...                   [0, 1]])
+
+    >>> C = numpy.matrix([1, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 1.,  1.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 0.,  1.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  2.]])
     """
 
     # obtain the controllability matrix
