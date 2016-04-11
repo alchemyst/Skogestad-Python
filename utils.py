@@ -1370,6 +1370,22 @@ def state_observability_matrix(a, c):
 
     :param c: numpy matrix
               the C matrix in the state space model
+
+    Example:
+    --------
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> state_observability_matrix(A, C)
+    matrix([[  0.,   0.,   1.,   1.],
+            [  5.,   5.,  -1.,  -3.],
+            [-10., -20.,   1.,   9.],
+            [ 25.,  65.,  -1., -27.]])
     """
 
     # calculate the number of states
