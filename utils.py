@@ -13,6 +13,7 @@ import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
 from functools import reduce
+import itertools
 
 
 
@@ -1688,8 +1689,28 @@ def poles(G):
 
     s = sympy.Symbol('s')
     G = sympy.Matrix(G(s))  # convert to sympy matrix object
-    det = sympy.simplify(G.det())
-    pole = sympy.solve(sympy.denom(det))
+    #det = sympy.simplify(G.det())
+    #pole = sympy.solve(sympy.denom(det))
+
+    def minors(G,order):
+        retlist = []
+        Nrows, Ncols = G.shape
+        for rowstokeep in itertools.combinations(range(Nrows),order):
+            for colstokeep in itertools.combinations(range(Ncols),order):
+                retlist.append(G[rowstokeep,colstokeep].det().simplify())
+        return retlist   
+
+    Nrows, Ncols = G.shape
+    allminors = []
+    lcm = 1
+    gcd_first = 1
+    for i in range(1,min(Nrows,Ncols)+1,1):
+        allminors = minors(G,i)
+        denominator = []
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            lcm = sympy.lcm(lcm,denom)
+    pole = sympy.solve(lcm,s)
     return pole
 
 
@@ -1709,8 +1730,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
 
     Returns
     -------
-    pole : array
-        List of poles.
+    zero : array
+        List of zeros.
 
     Example
     -------
@@ -1730,8 +1751,39 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     if not G is None:
         s = sympy.Symbol('s')
         G = sympy.Matrix(G(s))  # convert to sympy matrix object
-        det = sympy.simplify(G.det())
-        zero = sympy.solve(sympy.numer(det))
+        #det = sympy.simplify(G.det())
+        #zero = sympy.solve(sympy.numer(det))
+        def minors(G,order):
+            retlist = []
+            Nrows, Ncols = G.shape
+            for rowstokeep in itertools.combinations(range(Nrows),order):
+                for colstokeep in itertools.combinations(range(Ncols),order):
+                    retlist.append(G[rowstokeep,colstokeep].det().simplify())
+            return retlist   
+
+        Nrows, Ncols = G.shape
+        allminors = []
+        lcm = 1
+        for i in range(1,min(Nrows,Ncols)+1,1):
+            allminors = minors(G,i)
+            denominator = []
+            for m in allminors:
+                numer, denom = m.as_numer_denom()
+                lcm = sympy.lcm(lcm,denom)
+
+        allminors = minors(G,G.rank())
+        gcd_first = 1
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            if denom != lcm:
+                numer = numer * (lcm/denom)
+            if numer.find('s') != set():
+                if gcd_first == 1:
+                    gcd_first = numer
+                    gcd = sympy.gcd(gcd_first,numer)
+                if gcd_first != 1:
+                    gcd = sympy.gcd(gcd,numer)
+        zero = sympy.solve(gcd,s)
 
     elif not A is None:
         z = sympy.Symbol('z')
