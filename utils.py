@@ -1658,6 +1658,17 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
+def minors(G,order):
+    '''
+    Returns the order minors of a MIMO tf G.
+    '''
+    minor = []
+    Nrows, Ncols = G.shape
+    for rowstokeep in itertools.combinations(range(Nrows),order):
+        for colstokeep in itertools.combinations(range(Ncols),order):
+            minor.append(G[rowstokeep,colstokeep].det().simplify())
+
+    return minor
 
 def poles(G):
     '''
@@ -1691,26 +1702,19 @@ def poles(G):
     G = sympy.Matrix(G(s))  # convert to sympy matrix object
     #det = sympy.simplify(G.det())
     #pole = sympy.solve(sympy.denom(det))
-
-    def minors(G,order):
-        retlist = []
-        Nrows, Ncols = G.shape
-        for rowstokeep in itertools.combinations(range(Nrows),order):
-            for colstokeep in itertools.combinations(range(Ncols),order):
-                retlist.append(G[rowstokeep,colstokeep].det().simplify())
-        return retlist   
-
+        
     Nrows, Ncols = G.shape
     allminors = []
     lcm = 1
-    gcd_first = 1
     for i in range(1,min(Nrows,Ncols)+1,1):
         allminors = minors(G,i)
         denominator = []
         for m in allminors:
             numer, denom = m.as_numer_denom()
             lcm = sympy.lcm(lcm,denom)
+            
     pole = sympy.solve(lcm,s)
+    
     return pole
 
 
@@ -1752,14 +1756,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         s = sympy.Symbol('s')
         G = sympy.Matrix(G(s))  # convert to sympy matrix object
         #det = sympy.simplify(G.det())
-        #zero = sympy.solve(sympy.numer(det))
-        def minors(G,order):
-            retlist = []
-            Nrows, Ncols = G.shape
-            for rowstokeep in itertools.combinations(range(Nrows),order):
-                for colstokeep in itertools.combinations(range(Ncols),order):
-                    retlist.append(G[rowstokeep,colstokeep].det().simplify())
-            return retlist   
+        #zero = sympy.solve(sympy.numer(det))   
 
         Nrows, Ncols = G.shape
         allminors = []
