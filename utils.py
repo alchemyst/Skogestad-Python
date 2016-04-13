@@ -1401,6 +1401,7 @@ def state_observability_matrix(a, c):
     
 def Kalman_controllable(A,B,C):
     '''Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+       Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
     Parameters 
     ----------
     A : numpy matrix
@@ -1473,6 +1474,7 @@ def Kalman_controllable(A,B,C):
      
 def Kalman_observable(A,B,C):
     '''Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+        Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
      
     Parameters 
     ----------
