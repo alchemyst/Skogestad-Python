@@ -13,6 +13,7 @@ import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
 from functools import reduce
+import itertools
 
 
 
@@ -1362,6 +1363,313 @@ def state_controllability(A, B):
     return state_control, u_p, control_matrix
 
 
+def state_observability_matrix(a, c):
+    """calculate the observability matrix
+
+    :param a:  numpy matrix
+              the A matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+
+    Example:
+    --------
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> state_observability_matrix(A, C)
+    matrix([[  0.,   0.,   1.,   1.],
+            [  5.,   5.,  -1.,  -3.],
+            [-10., -20.,   1.,   9.],
+            [ 25.,  65.,  -1., -27.]])
+    """
+
+    # calculate the number of states
+    n_states = numpy.shape(a)[0]
+
+    # construct the observability matrix
+    observability_m = [c*a**n for n in range(n_states)]
+    observability_m = numpy.vstack(observability_m)
+
+    return observability_m
+
+
+def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
+                                                 rank=None):
+    """"remove the uncontrollable or unobservable states from the A, B and C state space matrices
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+
+    :param con_or_obs_matrix: numpy matrix
+                              the controllable or observable matrix
+
+    :param uncontrollable: boolean
+                           set to True to remove uncontrollable states (default) or to false
+
+    :param unobservable: boolean
+                         set to True to remove unobservable states or to false (default)
+
+    :param rank: optional (int)
+                 rank of the controllable or observable matrix
+                 if the rank is available set the rank=(rank of matrix) to avoid calculating matrix rank twice
+                 by default rank=None and will be calculated
+
+    Default: remove the uncontrollable states
+    To remove the unobservable states set uncontrollable=False and unobservable=True
+
+    return: the Kalman Canonical matrices
+            Ac, Bc, Cc (the controllable subspace of A, B and C) if uncontrollable=True and unobservable=False
+            or Ao, Bo, Co (the observable subspace of A, B and C) if uncontrollable=False and unobservable=True
+
+    Note:
+    If the controllable subspace of A, B and C are given (Ac, Bc and Cc) and the unobservable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
+    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    Examples
+    --------
+
+    Example 1: remove uncontrollable states
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> controllability_matrix = numpy.matrix([[  1.,   0.,   0.,   0.],
+    ...                                        [  1.,  -2.,   4.,  -8.],
+    ...                                        [  0.,   5., -10.,  20.],
+    ...                                        [  0.,   5., -20.,  70.]])
+
+    >>> Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(A, B, C, controllability_matrix)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Ac.round(decimals=3) + 0.
+    array([[ 0.,  0.,  0.],
+           [ 1.,  0., -6.],
+           [ 0.,  1., -5.]])
+
+    >>> Bc.round(decimals=3) + 0.
+    array([[ 1.],
+           [ 0.],
+           [ 0.]])
+
+    >>> Cc.round(decimals=3) + 0.
+    array([[  0.,  10., -30.]])
+
+    Example 2: remove unobservable states using Ac, Bc, Cc from example1
+
+    >>> observability_matrix = numpy.matrix([[   0.,   10.,  -30.],
+    ...                                      [  10.,  -30.,   90.],
+    ...                                      [ -30.,   90., -270.]])
+
+     >>> Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, observability_matrix,
+     ...                                                           uncontrollable=False, unobservable=True)
+
+    >>> Ao.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bo.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Co.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
+    """
+
+    # obtain the number of states
+    n_states = numpy.shape(a)[0]
+
+    # obtain matrix rank
+    if rank is None:
+        rank = numpy.linalg.matrix_rank(con_or_obs_matrix)
+
+    # calculate the difference between the number of states and the number of controllable or observable states
+    m = n_states - rank
+
+    # if system is already state controllable or observable return matrices unchanged
+    if m == 0:
+        return a, b, c
+
+    # create the a matrix P with dimensions n_states x n_states used to change matrices A, B and C to the
+    # Kalman Canonical Form
+    P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
+
+    if uncontrollable == True and unobservable == False:
+        P[:, 0:rank] = con_or_obs_matrix[:, 0:rank]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((n_states, m)))
+
+        # make P invertible
+        P[:, rank:n_states] = replace_matrix
+
+        # When removing the uncontrollable states the constructed matrix P is actually the inverse of P (P^-1) and
+        # true matrix P is obtained by (P^-1)^-1
+        P_inv = P
+        P = numpy.linalg.inv(P_inv)
+
+    elif uncontrollable == False and unobservable == True:
+        P[0:rank, :] = con_or_obs_matrix[0:rank, :]
+
+        # this matrix will replace all the dependent columns in P to make P invertible
+        replace_matrix = numpy.matrix(numpy.random.random((m, n_states)))
+
+        # make P invertible
+        P[rank:n_states, :] = replace_matrix
+
+        P_inv = numpy.linalg.inv(P)
+
+    A_new = P*a*P_inv
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 1)
+    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 0)
+
+    B_new = P*b
+    B_new = numpy.delete(B_new, numpy.s_[rank:n_states], 0)
+
+    C_new = c*P_inv
+    C_new = numpy.delete(C_new, numpy.s_[rank:n_states], 1)
+
+    return A_new, B_new, C_new
+
+
+def minimal_realisation(a, b, c):
+    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
+    second edition p 119 equations 4.3 and 4.4
+
+    :param a: numpy matrix
+              the A matrix in the state space model
+
+    :param b: numpy matrix
+              the B matrix in the state space model
+
+    :param c: numpy matrix
+              the C matrix in the state space model
+
+    Examples
+    --------
+
+    Example 1:
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
+
+    Example 2:
+
+    >>> A = numpy.matrix([[1, 1, 0],
+    ...                    [0, 1, 0],
+    ...                    [0, 1, 1]])
+
+    >>> B = numpy.matrix([[0, 1],
+    ...                   [1, 0],
+    ...                   [0, 1]])
+
+    >>> C = numpy.matrix([1, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 1.,  1.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 0.,  1.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  2.]])
+    """
+
+    # obtain the controllability matrix
+    _, _, C = state_controllability(a, b)
+
+    # obtain the observability matrix
+    O = state_observability_matrix(a, c)
+
+    # calculate the rank of the controllability and observability martix
+    rank_C = numpy.linalg.matrix_rank(C)
+
+    # transpose the observability matrix to calculate the column rank
+    rank_O = numpy.linalg.matrix_rank(O.T)
+
+    if rank_C <= rank_O:
+        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(a, b, c, C, rank=rank_C)
+
+        O = state_observability_matrix(Ac, Cc)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
+
+    else:
+        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(a, b, c, O, uncontrollable=False, unobservable=True,
+                                                                  rank=rank_O)
+
+        _, _, C = state_controllability(Ao, Bo)
+
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ao, Bo, Co, C)
+
+    return Aco, Bco, Cco
+
+def minors(G,order):
+    '''
+    Returns the order minors of a MIMO tf G.
+    '''
+    minor = []
+    Nrows, Ncols = G.shape
+    for rowstokeep in itertools.combinations(range(Nrows),order):
+        for colstokeep in itertools.combinations(range(Ncols),order):
+            minor.append(G[rowstokeep,colstokeep].det().simplify())
+
+    return minor
+
 def poles(G):
     '''
     Return the poles of a multivariable transfer function system. Applies
@@ -1392,8 +1700,21 @@ def poles(G):
 
     s = sympy.Symbol('s')
     G = sympy.Matrix(G(s))  # convert to sympy matrix object
-    det = sympy.simplify(G.det())
-    pole = sympy.solve(sympy.denom(det))
+    #det = sympy.simplify(G.det())
+    #pole = sympy.solve(sympy.denom(det))
+        
+    Nrows, Ncols = G.shape
+    allminors = []
+    lcm = 1
+    for i in range(1,min(Nrows,Ncols)+1,1):
+        allminors = minors(G,i)
+        denominator = []
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            lcm = sympy.lcm(lcm,denom)
+            
+    pole = sympy.solve(lcm,s)
+    
     return pole
 
 
@@ -1413,8 +1734,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
 
     Returns
     -------
-    pole : array
-        List of poles.
+    zero : array
+        List of zeros.
 
     Example
     -------
@@ -1429,13 +1750,37 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
     have values if A is defined.
     '''
-    # TODO create a beter function to accept paramters and switch between tf and ss
+    # TODO create a beter function to accept parameters and switch between tf and ss
 
     if not G is None:
         s = sympy.Symbol('s')
         G = sympy.Matrix(G(s))  # convert to sympy matrix object
-        det = sympy.simplify(G.det())
-        zero = sympy.solve(sympy.numer(det))
+        #det = sympy.simplify(G.det())
+        #zero = sympy.solve(sympy.numer(det))   
+
+        Nrows, Ncols = G.shape
+        allminors = []
+        lcm = 1
+        for i in range(1,min(Nrows,Ncols)+1,1):
+            allminors = minors(G,i)
+            denominator = []
+            for m in allminors:
+                numer, denom = m.as_numer_denom()
+                lcm = sympy.lcm(lcm,denom)
+
+        allminors = minors(G,G.rank())
+        gcd_first = 1
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            if denom != lcm:
+                numer = numer * (lcm/denom)
+            if numer.find('s') != set():
+                if gcd_first == 1:
+                    gcd_first = numer
+                    gcd = sympy.gcd(gcd_first,numer)
+                if gcd_first != 1:
+                    gcd = sympy.gcd(gcd,numer)
+        zero = sympy.solve(gcd,s)
 
     elif not A is None:
         z = sympy.Symbol('z')
@@ -1597,70 +1942,64 @@ def BoundST(G, poles, zeros, deadtime=None):
     Nz = len(zeros)
     Yp, _ = pole_zero_directions(G, poles, 'p', 'y')
     Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
+    
+    yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
+                    numpy.matrix(numpy.ones([Np, Np]))
+    yp_mat2 = yp_mat1.T
+    Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
+
+    yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
+              numpy.matrix(numpy.ones([Nz, Nz])))
+    yz_mat2 = yz_mat1.T
+    Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
+
+    yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
+               numpy.matrix(numpy.ones([Nz, Np]))
+    yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
+               numpy.matrix(numpy.diag(poles))
+    Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
 
     if deadtime is None:
-        yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
-                    numpy.matrix(numpy.ones([Np, Np]))
-        yp_mat2 = yp_mat1.T
-        Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
 
-        yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
-                    numpy.matrix(numpy.ones([Nz, Nz])))
-        yz_mat2 = yz_mat1.T
-        Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
-
-        yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
-                    numpy.matrix(numpy.ones([Nz, Np]))
-        yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
-                    numpy.matrix(numpy.diag(poles))
-        Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
-
-        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))) * Qzp * \
-                    sc_linalg.sqrtm(numpy.linalg.inv(Qp))
+        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))).dot(Qzp).dot(sc_linalg.sqrtm(numpy.linalg.inv(Qp)))
         # Final equation 6.8
         Ms_min = numpy.sqrt(1 + (numpy.max(sigmas(pre_mat))) ** 2)
+
 
     else:
         # Equation 6.16 (p226) uses maximum deadtime per output channel to
         # give tightest lowest bounds. Create vector to be used for the
         # diagonal deadtime matrix containing each outputs' maximum dead time.
         # This would ensure tighter bounds on T and S. The minimum function is
-        # used because all stable systems has dead time with a negative sign.
+        # used because all stable systems have dead time with a negative sign.
 
-        dead_time_vec_max_row = numpy.zeros(deadtime[0].shape[0])
+        dead_time_vec_max_row = numpy.zeros(deadtime.shape[0])
 
-        for i in range(deadtime[0].shape[0]):
-            dead_time_vec_max_row[i] = numpy.max(deadtime[0][i, :])
+        for i in range(deadtime.shape[0]):
+            dead_time_vec_max_row[i] = numpy.max(abs(deadtime[i]))
 
         def Dead_time_matrix(s, dead_time_vec_max_row):
-
-            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(
-                                       dead_time_vec_max_row, s)))
+            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros([numpy.shape(deadtime)[0],
-                              numpy.shape(deadtime)[1]])
-
+        Q_dead = numpy.zeros((Np,Np))
+        
         for i in range(Np):
             for j in range(Np):
-                denominator_mat = (numpy.transpose(
-                                   numpy.conjugate(Yp[:, i])) *
-                   Dead_time_matrix(poles[i], dead_time_vec_max_row) *
-                   Dead_time_matrix(poles[j], dead_time_vec_max_row) *
-                   Yp[:, j])
+                numerator_mat = (numpy.transpose(numpy.conjugate(Yp[:, i])) * 
+                                   Dead_time_matrix(poles[i], dead_time_vec_max_row) * \
+                                   Dead_time_matrix(poles[j], dead_time_vec_max_row) * Yp[:, j])
+                denominator_mat = poles[i] + poles[j]
+                Q_dead[i, j] = numerator_mat / denominator_mat
 
-                numerator_mat = poles[i] + poles[i]
-
-                Q_dead[i, j] = denominator_mat / numerator_mat
-
-        lambda_mat = (sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) *
-                      (Qp + Qzp * numpy.linalg.pinv(Qz) *
-                      (numpy.transpose(numpy.conjugate(Qzp)))) *
-                      sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
+        lambda_mat = sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) \
+                        .dot(Qp + Qzp.dot(numpy.linalg.pinv(Qz)) \
+                        .dot(numpy.transpose(numpy.conjugate(Qzp)))) \
+                        .dot(sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
 
         # Final equation 6.19
-        Ms_min = numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0]))
-
+        Ms_min = float(numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0])))
+        
     return Ms_min
 
 
