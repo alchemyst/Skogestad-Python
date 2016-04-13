@@ -1418,25 +1418,25 @@ def Kalman_controllable(A,B,C):
     Returns
     -------
     Ac : numpy matrix
-        The state matrix of the controllable system
+         The state matrix of the controllable system
     Bc : nump matrix
-        The input matrix of the controllable system
+         The input matrix of the controllable system
     Cc : numpy matrix
-        The output matrix of the controllable system
+         The output matrix of the controllable system
         
     Example
     -------
-    >>> A=np.matrix([[0,0,0,0],
+    >>> A=numpy.matrix([[0,0,0,0],
     ...             [0,-2,0,0],
     ...             [2.5,2.5,-1,0],
     ...             [2.5,2.5,0,-3]])
     
-    >>> B=np.matrix([[1],
+    >>> B=numpy.matrix([[1],
     ...             [1],
     ...             [0],
     ...             [0]])
     
-    >>> C=np.matrix([0,0,1,1])
+    >>> C=numpy.matrix([0,0,1,1])
     
     >>> Ac, Bc, Cc = Kalman_observable(A,B,C)
     
@@ -1500,17 +1500,17 @@ def Kalman_observable(A,B,C):
         
     Example
     -------
-    >>> A=np.matrix([[0,0,0,0],
+    >>> A=numpy.matrix([[0,0,0,0],
     ...             [0,-2,0,0],
     ...             [2.5,2.5,-1,0],
     ...             [2.5,2.5,0,-3]])
     
-    >>> B=np.matrix([[1],
+    >>> B=numpy.matrix([[1],
     ...             [1],
     ...             [0],
     ...             [0]])
     
-    >>> C=np.matrix([0,0,1,1])
+    >>> C=numpy.matrix([0,0,1,1])
     
     >>> Ao, Bo, Co = Kalman_observable(A,B,C)
     
