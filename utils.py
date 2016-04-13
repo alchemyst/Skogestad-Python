@@ -1398,6 +1398,149 @@ def state_observability_matrix(a, c):
 
     return observability_m
 
+    
+def Kalman_controllable(A,B,C):
+    '''Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+    Parameters 
+    ----------
+    A : numpy matrix
+        The system state matrix.
+    B : numpy matrix
+        The system input matrix.
+    C : numpy matrix
+        The system output matrix.
+    rounding factor : integer
+        The number of significant
+    factor : int
+        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        
+    Returns
+    -------
+    Ac : numpy matrix
+        The state matrix of the controllable system
+    Bc : nump matrix
+        The input matrix of the controllable system
+    Cc : numpy matrix
+        The output matrix of the controllable system
+        
+    Example
+    -------
+    >>> A=np.matrix([[0,0,0,0],
+    ...             [0,-2,0,0],
+    ...             [2.5,2.5,-1,0],
+    ...             [2.5,2.5,0,-3]])
+    
+    >>> B=np.matrix([[1],
+    ...             [1],
+    ...             [0],
+    ...             [0]])
+    
+    >>> C=np.matrix([0,0,1,1])
+    
+    >>> Ac, Bc, Cc = Kalman_observable(A,B,C)
+    
+    >>> Ac
+        matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
+    ...         [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
+    ...         [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]]))
+    
+    >>> Bc
+        matrix([[ -1.41421356e+00],
+                [ -2.77555756e-17],
+                [  0.00000000e+00]])
+                
+    >>> Cc
+        matrix([[ 0.        ,  1.38675049,  0.05337605]])
+    '''
+    nstates = A.shape[1] #compute the number of states     
+    _, _, P = state_controllability(A,B) # compute the controllability matrix 
+    RP = numpy.linalg.matrix_rank(P) # find the rank of the controllability matrix
+    
+    if RP == nstates:
+        
+        return A,B,C
+    
+    elif RP < nstates:
+        T, R = numpy.linalg.qr(P)# compute the QR decomposition of the controllability matrix
+        T1 = numpy.matrix(T[:,0:RP]) # separate the controllable subspace of T
+        T2 = numpy.matrix(T[:,RP:nstates])#separate out the elements orthogonal to the controllable subspace
+        Ac = T1.T*A*T1#calculate the controllable state matrix
+        Bc = T1.T*B#calculate the observable state matrix
+        Cc = C*T1#calculate the observable output matrix
+        
+        return Ac,Bc,Cc
+     
+     
+def Kalman_observable(A,B,C):
+    '''Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+     
+    Parameters 
+    ----------
+    A : numpy matrix
+        The system state matrix.
+    B : numpy matrix
+        The system input matrix.
+    C : numpy matrix
+        The system output matrix.
+    rounding factor : integer
+        The number of significant
+    factor : int
+        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        
+    Returns
+    -------
+    Ao : numpy matrix
+        The state matrix of the observable system
+    Bo : nump matrix
+        The input matrix of the observable system
+    Co : numpy matrix
+        The output matrix of the observable system
+        
+    Example
+    -------
+    >>> A=np.matrix([[0,0,0,0],
+    ...             [0,-2,0,0],
+    ...             [2.5,2.5,-1,0],
+    ...             [2.5,2.5,0,-3]])
+    
+    >>> B=np.matrix([[1],
+    ...             [1],
+    ...             [0],
+    ...             [0]])
+    
+    >>> C=np.matrix([0,0,1,1])
+    
+    >>> Ao, Bo, Co = Kalman_observable(A,B,C)
+    
+    >>> Ao
+        matrix([[-2.03846154,  5.19230769],
+    ...        [ 0.37749288, -0.96153846]])
+    
+    >>> Bo
+        matrix([[  2.77350387e-17],
+    ...         [ -1.38777733e+00]])
+                
+    >>> Co
+        matrix([[ -1.38777733e+00,   3.07046055e-16]])
+    '''
+    nstates = A.shape[1] #compute the number of states
+    Q = state_observability_matrix(A,C)# compute the observability matrix
+    RQ = numpy.linalg.matrix_rank(Q) # compute the rank of the observability matri
+    
+    if RQ == nstates:
+        
+        return A, B, C
+        
+    elif RQ < nstates: #the system is not state observable
+        V ,R = numpy.linalg.qr(Q.T) #compute the QR decomposition of the observability matrix
+        V1 = V[:,0:RQ]# separate out the elements of  the observable subspace 
+        V2 = V[:,RQ:nstates] # separate out the elements othrogonal to the observable subspace
+        Ao = V1.T*A*V1 # calculate the observable state matrix
+        Bo = V1.T*B # calculate the observable input matrix
+        Co = C*V1 # calculate the observable output matrix
+        
+        return Ao,Bo,Co 
+        
 
 def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
                                                  rank=None):
