@@ -1096,7 +1096,59 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 #                                Chapter 3                                    #
 ###############################################################################
 
-
+def sym2mimotf(Gmat):
+    """Converts a MIMO transfer function system in sympy.Matrix form to a mimotf object making use of individual tf objects.
+    
+    Parameters 
+    ----------
+    Gmat : sympy matrix
+           The system transfer function matrix.
+    
+    Returns
+    -------
+    Gmimotf : sympy matrix
+              The mimotf system matrix
+        
+    Example
+    -------
+    >>> s=sympy.Symbol("s")
+    
+    >>> G=sympy.Matrix([[1/(s+1),1/(s+2)],
+    ...                 [1/(s+3),1/(s+4)]])
+    
+    >>> sym2mimotf(G)
+        mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
+                [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
+    """
+    rows,cols=Gmat.shape
+    #create empty list of lists. This will be appended to form mimotf input list
+    Gtf=[[] for y in range(rows)]
+    
+    for i in range(rows):
+        for j in range(cols):
+            G = Gmat[i,j]
+            #select function denominator and convert is to list of coefficients
+            Gnum = G.as_numer_denom()[0]
+            if Gnum.is_Number: # can't convert single value to Poly
+                Gtf_num = float(Gnum)
+                
+            else:
+                Gnum_poly = sp.Poly(Gnum)
+                Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
+                
+            Gden = G.as_numer_denom()[1]
+            if Gden.is_Number:
+                Gtf_den = float(Gden)
+                
+            else:
+                Gden_poly = sp.Poly(Gden)
+                Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
+            Gtf[i].append(utils.tf(Gtf_num,Gtf_den))
+    Gmimotf = utils.mimotf(Gtf)
+    
+    return Gmimotf
+    
+    
 def RGAnumber(G, I):
     """
     Computes the RGA (Relative Gain Array) number of a matrix.
@@ -1400,7 +1452,7 @@ def state_observability_matrix(a, c):
 
     
 def Kalman_controllable(A,B,C):
-    '''Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+    """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
        Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
     Parameters 
     ----------
@@ -1442,8 +1494,8 @@ def Kalman_controllable(A,B,C):
     
     >>> Ac
     matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
-    ...     [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
-    ...     [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]]))
+            [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
+            [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]]))
     
     >>> Bc
     matrix([[ -1.41421356e+00],
@@ -1452,7 +1504,7 @@ def Kalman_controllable(A,B,C):
                 
     >>> Cc
     matrix([[ 0.        ,  1.38675049,  0.05337605]])
-    '''
+    """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
     RP = numpy.linalg.matrix_rank(P) # find the rank of the controllability matrix
@@ -1473,7 +1525,7 @@ def Kalman_controllable(A,B,C):
      
      
 def Kalman_observable(A,B,C):
-    '''Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+    """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
         Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
      
     Parameters 
@@ -1516,18 +1568,18 @@ def Kalman_observable(A,B,C):
     
     >>> Ao
     matrix([[-2.03846154,  5.19230769],
-    ...     [ 0.37749288, -0.96153846]])
+            [ 0.37749288, -0.96153846]])
     
     >>> Bo
     matrix([[  2.77350387e-17],
-    ...     [ -1.38777733e+00]])
+            [ -1.38777733e+00]])
                 
     >>> Co
     matrix([[ -1.38777733e+00,   3.07046055e-16]])
-    '''
+    """
     nstates = A.shape[1] #compute the number of states
     Q = state_observability_matrix(A,C)# compute the observability matrix
-    RQ = numpy.linalg.matrix_rank(Q) # compute the rank of the observability matri
+    RQ = numpy.linalg.matrix_rank(Q) # compute the rank of the observability matrix
     
     if RQ == nstates:
         
