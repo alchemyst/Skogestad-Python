@@ -1111,17 +1111,17 @@ def sym2mimotf(Gmat):
         
     Example
     -------
-    >>> s=sympy.Symbol("s")
+    >>> s = sympy.Symbol("s")
     
-    >>> G=sympy.Matrix([[1/(s+1),1/(s+2)],
-    ...                 [1/(s+3),1/(s+4)]])
+    >>> G = sympy.Matrix([[1/(s + 1), 1/(s + 2)],
+    ...                   [1/(s + 3), 1/(s + 4)]])
     
     >>> sym2mimotf(G)
     mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
      [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
      
     """
-    rows,cols=Gmat.shape
+    rows, cols = Gmat.shape
     #create empty list of lists. This will be appended to form mimotf input list
     Gtf=[[] for y in range(rows)]
     
