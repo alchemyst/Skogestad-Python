@@ -1117,8 +1117,9 @@ def sym2mimotf(Gmat):
     ...                 [1/(s+3),1/(s+4)]])
     
     >>> sym2mimotf(G)
-        mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
-                [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
+     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
+     
     """
     rows,cols=Gmat.shape
     #create empty list of lists. This will be appended to form mimotf input list
@@ -1503,7 +1504,7 @@ def Kalman_controllable(A,B,C):
             [  0.00000000e+00]])
                 
     >>> Cc
-    matrix([[ 0.        ,  1.38675049,  0.05337605]])
+    matrix([[ 0. ,  1.38675049,  0.05337605]])
     """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
@@ -1567,15 +1568,18 @@ def Kalman_observable(A,B,C):
     >>> Ao, Bo, Co = Kalman_observable(A,B,C)
     
     >>> Ao
-    matrix([[-2.03846154,  5.19230769],
-            [ 0.37749288, -0.96153846]])
+    matrix([[ -2.00000000e+00,   5.09901951e+00,  -4.99600361e-16],
+         [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
+         [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
     
     >>> Bo
-    matrix([[  2.77350387e-17],
-            [ -1.38777733e+00]])
+    matrix([[ 0.        ],
+         [-1.38675049],
+         [ 0.05337605]])
                 
     >>> Co
-    matrix([[ -1.38777733e+00,   3.07046055e-16]])
+    matrix([[ -1.41421356e+00,   1.66533454e-16,  -1.11022302e-16]])
+    
     """
     nstates = A.shape[1] #compute the number of states
     Q = state_observability_matrix(A,C)# compute the observability matrix
