@@ -1133,7 +1133,7 @@ def sym2mimotf(Gmat):
                 Gtf_num = float(Gnum)
                 
             else:
-                Gnum_poly = sp.Poly(Gnum)
+                Gnum_poly = sympy.Poly(Gnum)
                 Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
                 
             Gden = G.as_numer_denom()[1]
@@ -1141,10 +1141,10 @@ def sym2mimotf(Gmat):
                 Gtf_den = float(Gden)
                 
             else:
-                Gden_poly = sp.Poly(Gden)
+                Gden_poly = sympy.Poly(Gden)
                 Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
-            Gtf[i].append(utils.tf(Gtf_num,Gtf_den))
-    Gmimotf = utils.mimotf(Gtf)
+            Gtf[i].append(tf(Gtf_num,Gtf_den))
+    Gmimotf = mimotf(Gtf)
     
     return Gmimotf
     
@@ -1490,7 +1490,7 @@ def Kalman_controllable(A,B,C):
     
     >>> C=numpy.matrix([0,0,1,1])
     
-    >>> Ac, Bc, Cc = Kalman_observable(A,B,C)
+    >>> Ac, Bc, Cc = Kalman_controllable(A,B,C)
     
     >>> Ac
     matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
