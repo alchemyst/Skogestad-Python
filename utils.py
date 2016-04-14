@@ -1504,7 +1504,7 @@ def Kalman_controllable(A,B,C):
             [  0.00000000e+00]])
                 
     >>> Cc
-    matrix([[ 0. ,  1.38675049,  0.05337605]])
+    matrix([[ 0.        ,  1.38675049,  0.05337605]])
     """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
@@ -1568,17 +1568,17 @@ def Kalman_observable(A,B,C):
     >>> Ao, Bo, Co = Kalman_observable(A,B,C)
     
     >>> Ao
-    matrix([[ -2.00000000e+00,   5.09901951e+00,  -4.99600361e-16],
-         [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
-         [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
+    matrix([[ -2.00000000e+00,   5.09901951e+00,  -2.77555756e-16],
+            [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
+            [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
     
     >>> Bo
     matrix([[ 0.        ],
-         [-1.38675049],
-         [ 0.05337605]])
+            [-1.38675049],
+            [ 0.05337605]])
                 
     >>> Co
-    matrix([[ -1.41421356e+00,   1.66533454e-16,  -1.11022302e-16]])
+    matrix([[ -1.41421356e+00,   1.11022302e-16,   0.00000000e+00]])
     
     """
     nstates = A.shape[1] #compute the number of states
