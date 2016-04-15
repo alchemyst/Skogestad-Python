@@ -6,12 +6,21 @@ import traceback
 import re
 from collections import Counter
 import sys
+import time
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # disable show in figures
 import matplotlib.pyplot as plt
 plt.show = lambda: None
 
+# disable print
+def print(*args):
+    pass
+
 statuscounter = Counter()
+times = Counter()
 
 itemparser = re.compile('(?P<kind>.*) (?P<chapter>.*)\.(?P<number>.*)')
 
@@ -38,6 +47,7 @@ if __name__ == "__main__":
                 mask = '{}_{}_{}.py'
 
             filename = mask.format(kind, chapter, number)
+            starttime = time.time()
             try:
                 execfile(filename)
                 status = SUCCESS
@@ -47,19 +57,24 @@ if __name__ == "__main__":
                 status = FAILED
                 message = traceback.format_exc()
 
+            times[(kind, chapter, number)] = time.time() - starttime
+
             statuscounter[status] += 1
 
             if status != NOTIMPLEMENTED:
-                print(kind, chapter, number, status)
+                logging.info(' '.join(str(thing) for thing in [kind, chapter, number, status]))
 
             if status == FAILED:
                 faillist.append([kind, chapter, number])
-                print(message)
+                logging.warning(message)
 
     for items in statuscounter.items():
-        print("{}: {}".format(*items))
-    print("Failed items:")
+        logging.info("{}: {}".format(*items))
+    logging.info("Failed items:")
     for items in faillist:
-        print("  {} {} {}".format(*items))
+        logging.info("  {} {} {}".format(*items))
 
+    logging.info("Slowest tests")
+    for [(kind, chapter, number), elapsed] in times.most_common(5):
+        logging.info("    {} {} {} {}".format(kind, chapter, number, elapsed))
     sys.exit(statuscounter[FAILED])
