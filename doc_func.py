@@ -1,5 +1,6 @@
 from __future__ import print_function, print_function
-import numpy as np
+
+import numpy
 import matplotlib.pyplot as plt
 
 
@@ -12,16 +13,16 @@ def wI(s):
 
 
 def lI(Gp, G):
-    return np.abs((Gp - G)/G)
+    return numpy.abs((Gp - G) / G)
 
 
 def satisfy(wI, G, Gp, params, s):
-    distance = np.zeros((len(params), len(s)))
-    distance_min = np.zeros(len(params))
+    distance = numpy.zeros((len(params), len(s)))
+    distance_min = numpy.zeros(len(params))
     for i in range(len(params)):
         for j in range(len(s)):
-            distance[i, j] = np.abs(wI(s[j])) - lI(Gp(G, params[i], s[j]), G(s[j]))
-        distance_min[i] = np.min(distance[i, :])
+            distance[i, j] = numpy.abs(wI(s[j])) - lI(Gp(G, params[i], s[j]), G(s[j]))
+        distance_min[i] = numpy.min(distance[i, :])
     param_range = params[distance_min > 0]
 
     return param_range
@@ -31,11 +32,11 @@ def plot_range(G, Gprime, wI, w):
     s = 1j*w
     for part, params, G_func, min_max, label in Gprime:
         param_range = satisfy(wI, G, G_func, params, s)
-        param_max = np.max(param_range)
-        param_min = np.min(param_range)
+        param_max = numpy.max(param_range)
+        param_min = numpy.min(param_range)
 
         plt.figure()
-        plt.loglog(w, np.abs(wI(s)), label='$w_{I}$')
+        plt.loglog(w, numpy.abs(wI(s)), label='$w_{I}$')
         plt.loglog(w, lI(G_func(G,param_max, s), G(s)), label=label)
 
         if min_max:
@@ -51,7 +52,7 @@ def plot_range(G, Gprime, wI, w):
 
 
 def Gp_a(G, theta, s):
-    return G(s)*np.exp(-theta*s)
+    return G(s) * numpy.exp(-theta * s)
 
 
 def Gp_b(G, tau, s):
@@ -77,3 +78,15 @@ def Gp_f(G, m, s):
 def Gp_g(G, tauz, s):
     return G(s)*(-tauz*s + 1)/(tauz*s + 1)
 
+w_start = w_end = points = None
+
+
+def frequency_plot_setup(axlim, w_start=None, w_end=None, points=None):
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.gcf().set_facecolor('white')
+    if w_start:
+        w = numpy.logspace(w_start, w_end, points)
+        s = w*1j
+        return s, w
