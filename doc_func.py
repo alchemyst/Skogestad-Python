@@ -85,8 +85,11 @@ def frequency_plot_setup(axlim, w_start=None, w_end=None, points=None):
 
     if axlim is None:
         axlim = [None, None, None, None]
+
     plt.gcf().set_facecolor('white')
     if w_start:
         w = numpy.logspace(w_start, w_end, points)
         s = w*1j
-        return s, w
+        return s, w, axlim
+
+    return axlim

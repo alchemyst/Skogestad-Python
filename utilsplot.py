@@ -123,7 +123,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     Plot : matplotlib figure
     """
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
     plt.clf()
 
 
@@ -176,7 +176,7 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
         Show the cross over frequencies on the plot (optional).
     """
 
-    _, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    _, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     L = G(1j*w) * K(1j*w)
     S = utils.feedback(1, L)
@@ -259,7 +259,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
 
     """
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     if Kin is not None:
         plt.subplot(2, 1, 1)
@@ -346,7 +346,7 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
 
     """
 
-    _, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    _, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     Lin = numpy.zeros((len(w)), dtype=complex)
     x = numpy.zeros((len(w)))
@@ -400,7 +400,7 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     for controlability analysis
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     freqresp = [G(si) for si in s]
 
@@ -452,7 +452,7 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     inputuncertainty, irrespective of controller (p248).
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     def cndtn_nm(G):
         return utils.sigmas(G)[0]/utils.sigmas(G)[-1]
@@ -501,7 +501,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     >>> rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     dim = G(0).shape # Number of rows and columns in SS transfer function
     freqresp = [G(si) for si in s]
@@ -632,7 +632,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     This plotting function can only be used on square systems
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
     freqresp = [G(si) for si in s]
@@ -700,7 +700,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     inverse 2-norm of gd.
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     dim = numpy.shape(Gd(0))[1] # column count
     inv_norm_gd = numpy.zeros((dim, points))
@@ -773,7 +773,7 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     The boundary conditions is values below 1 (p240).
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     dim = numpy.shape(Gd(0))[1]
     perfect_control = numpy.zeros((dim, points))
@@ -830,7 +830,7 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=100
     control, otherwise input saturation will occur.
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     lab1 = '$\sigma_{min} (G(jw))$'
     bound1 = [utils.sigmas(G(si), 'min') for si in s]
@@ -877,7 +877,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
     This condition only holds for :math:`|u_i^H g_d|>1`.
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     freqresp = [G(si) for si in s]
     sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
@@ -1019,7 +1019,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
 
     '''
 
-    _, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    _, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     plt.subplot(1, 2, 1)
 
@@ -1091,7 +1091,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
 
     '''
 
-    df.frequency_plot_setup(axlim)
+    axlim = df.frequency_plot_setup(axlim)
 
     [t,y] = utils.tf_step(Y, t_end, initial_val)
     plt.plot(t,y)
@@ -1165,7 +1165,7 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     >>> perf_Wp(S, 0.05, 0.2, -3, 1)
     '''
 
-    s, w = df.frequency_plot_setup(axlim, w_start, w_end, points)
+    s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     magPlotS1 = numpy.zeros((len(w)))
     magPlotS3 = numpy.zeros((len(w)))
