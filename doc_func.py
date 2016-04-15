@@ -1,4 +1,5 @@
 from __future__ import print_function, print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -77,3 +78,15 @@ def Gp_f(G, m, s):
 def Gp_g(G, tauz, s):
     return G(s)*(-tauz*s + 1)/(tauz*s + 1)
 
+w_start = w_end = points = None
+
+
+def frequency_plot_setup(axlim, w_start, w_end, points):
+
+    if axlim is None:
+        axlim = [None, None, None, None]
+    plt.gcf().set_facecolor('white')
+    w = numpy.logspace(w_start, w_end, points)
+    s = w*1j
+
+    return s,w
