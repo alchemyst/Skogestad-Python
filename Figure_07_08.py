@@ -6,15 +6,14 @@ Created on Mon Jun 03 23:16:52 2013
 """
 
 #Figure 7.8
-import numpy as np
+from numpy import exp, logspace, abs, ones
 import matplotlib.pyplot as plt
-import doc_func as df
 
 # Time delay
-w = np.logspace(-2, 2, 1000)
+w = logspace(-2, 2, 1000)
 s = 1j * w
 thetap = 1
-l_delay = 1 - np.exp(-thetap * s)
+l_delay = 1 - exp(-thetap * s)
 tau = 1
 l_nolag = 1 - (1/(1 + tau * s))
 
@@ -34,7 +33,7 @@ func = [[l_delay, -2, 'time delay', r'$\theta_{max}$'],
         [l_nolag, -3, 'First order lag', r'$1/\tau_{max}$']]
 
 for function, power, func_string, max_param in func:
-    df.setup_bode(function, power, func_string, max_param, w)
+    setup_bode(function, power, func_string, max_param, w)
 
 plt.show()
 
