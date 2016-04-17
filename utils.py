@@ -13,6 +13,7 @@ import scipy.linalg as sc_linalg
 import fractions
 from decimal import Decimal
 from functools import reduce
+import itertools
 
 
 
@@ -1095,7 +1096,60 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 #                                Chapter 3                                    #
 ###############################################################################
 
-
+def sym2mimotf(Gmat):
+    """Converts a MIMO transfer function system in sympy.Matrix form to a mimotf object making use of individual tf objects.
+    
+    Parameters 
+    ----------
+    Gmat : sympy matrix
+           The system transfer function matrix.
+    
+    Returns
+    -------
+    Gmimotf : sympy matrix
+              The mimotf system matrix
+        
+    Example
+    -------
+    >>> s = sympy.Symbol("s")
+    
+    >>> G = sympy.Matrix([[1/(s + 1), 1/(s + 2)],
+    ...                   [1/(s + 3), 1/(s + 4)]])
+    
+    >>> sym2mimotf(G)
+    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
+     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
+     
+    """
+    rows, cols = Gmat.shape
+    #create empty list of lists. This will be appended to form mimotf input list
+    Gtf=[[] for y in range(rows)]
+    
+    for i in range(rows):
+        for j in range(cols):
+            G = Gmat[i,j]
+            #select function denominator and convert is to list of coefficients
+            Gnum = G.as_numer_denom()[0]
+            if Gnum.is_Number: # can't convert single value to Poly
+                Gtf_num = float(Gnum)
+                
+            else:
+                Gnum_poly = sympy.Poly(Gnum)
+                Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
+                
+            Gden = G.as_numer_denom()[1]
+            if Gden.is_Number:
+                Gtf_den = float(Gden)
+                
+            else:
+                Gden_poly = sympy.Poly(Gden)
+                Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
+            Gtf[i].append(tf(Gtf_num,Gtf_den))
+    Gmimotf = mimotf(Gtf)
+    
+    return Gmimotf
+    
+    
 def RGAnumber(G, I):
     """
     Computes the RGA (Relative Gain Array) number of a matrix.
@@ -1370,6 +1424,22 @@ def state_observability_matrix(a, c):
 
     :param c: numpy matrix
               the C matrix in the state space model
+
+    Example:
+    --------
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> state_observability_matrix(A, C)
+    matrix([[  0.,   0.,   1.,   1.],
+            [  5.,   5.,  -1.,  -3.],
+            [-10., -20.,   1.,   9.],
+            [ 25.,  65.,  -1., -27.]])
     """
 
     # calculate the number of states
@@ -1381,6 +1451,154 @@ def state_observability_matrix(a, c):
 
     return observability_m
 
+    
+def Kalman_controllable(A,B,C):
+    """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+       Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
+    Parameters 
+    ----------
+    A : numpy matrix
+        The system state matrix.
+    B : numpy matrix
+        The system input matrix.
+    C : numpy matrix
+        The system output matrix.
+    rounding factor : integer
+        The number of significant
+    factor : int
+        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        
+    Returns
+    -------
+    Ac : numpy matrix
+         The state matrix of the controllable system
+    Bc : nump matrix
+         The input matrix of the controllable system
+    Cc : numpy matrix
+         The output matrix of the controllable system
+        
+    Example
+    -------
+    >>> A=numpy.matrix([[0,0,0,0],
+    ...                 [0,-2,0,0],
+    ...                 [2.5,2.5,-1,0],
+    ...                 [2.5,2.5,0,-3]])
+    
+    >>> B=numpy.matrix([[1],
+    ...                 [1],
+    ...                 [0],
+    ...                 [0]])
+    
+    >>> C=numpy.matrix([0,0,1,1])
+    
+    >>> Ac, Bc, Cc = Kalman_controllable(A,B,C)
+    
+    >>> Ac
+    matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
+            [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
+            [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]])
+    
+    >>> Bc
+    matrix([[ -1.41421356e+00],
+            [ -2.77555756e-17],
+            [  0.00000000e+00]])
+                
+    >>> Cc
+    matrix([[ 0.        ,  1.38675049,  0.05337605]])
+    """
+    nstates = A.shape[1] #compute the number of states     
+    _, _, P = state_controllability(A,B) # compute the controllability matrix 
+    RP = numpy.linalg.matrix_rank(P) # find the rank of the controllability matrix
+    
+    if RP == nstates:
+        
+        return A,B,C
+    
+    elif RP < nstates:
+        T, R = numpy.linalg.qr(P)# compute the QR decomposition of the controllability matrix
+        T1 = numpy.matrix(T[:,0:RP]) # separate the controllable subspace of T
+        T2 = numpy.matrix(T[:,RP:nstates])#separate out the elements orthogonal to the controllable subspace
+        Ac = T1.T*A*T1#calculate the controllable state matrix
+        Bc = T1.T*B#calculate the observable state matrix
+        Cc = C*T1#calculate the observable output matrix
+        
+        return Ac,Bc,Cc
+     
+     
+def Kalman_observable(A,B,C):
+    """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
+        Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
+     
+    Parameters 
+    ----------
+    A : numpy matrix
+        The system state matrix.
+    B : numpy matrix
+        The system input matrix.
+    C : numpy matrix
+        The system output matrix.
+    rounding factor : integer
+        The number of significant
+    factor : int
+        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        
+    Returns
+    -------
+    Ao : numpy matrix
+        The state matrix of the observable system
+    Bo : nump matrix
+        The input matrix of the observable system
+    Co : numpy matrix
+        The output matrix of the observable system
+        
+    Example
+    -------
+    >>> A=numpy.matrix([[0,0,0,0],
+    ...                 [0,-2,0,0],
+    ...                 [2.5,2.5,-1,0],
+    ...                 [2.5,2.5,0,-3]])
+    
+    >>> B=numpy.matrix([[1],
+    ...                 [1],
+    ...                 [0],
+    ...                 [0]])
+    
+    >>> C=numpy.matrix([0,0,1,1])
+    
+    >>> Ao, Bo, Co = Kalman_observable(A,B,C)
+    
+    >>> Ao
+    matrix([[ -2.00000000e+00,   5.09901951e+00,  -2.77555756e-16],
+            [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
+            [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
+    
+    >>> Bo
+    matrix([[ 0.        ],
+            [-1.38675049],
+            [ 0.05337605]])
+                
+    >>> Co
+    matrix([[ -1.41421356e+00,   1.11022302e-16,   0.00000000e+00]])
+    
+    """
+    nstates = A.shape[1] #compute the number of states
+    Q = state_observability_matrix(A,C)# compute the observability matrix
+    RQ = numpy.linalg.matrix_rank(Q) # compute the rank of the observability matrix
+    
+    if RQ == nstates:
+        
+        return A, B, C
+        
+    elif RQ < nstates: #the system is not state observable
+        V ,R = numpy.linalg.qr(Q.T) #compute the QR decomposition of the observability matrix
+        V1 = V[:,0:RQ]# separate out the elements of  the observable subspace 
+        V2 = V[:,RQ:nstates] # separate out the elements othrogonal to the observable subspace
+        Ao = V1.T*A*V1 # calculate the observable state matrix
+        Bo = V1.T*B # calculate the observable input matrix
+        Co = C*V1 # calculate the observable output matrix
+        
+        return Ao,Bo,Co 
+        
 
 def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
                                                  rank=None):
@@ -1422,6 +1640,65 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
 
     If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
     matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+
+    Examples
+    --------
+
+    Example 1: remove uncontrollable states
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> controllability_matrix = numpy.matrix([[  1.,   0.,   0.,   0.],
+    ...                                        [  1.,  -2.,   4.,  -8.],
+    ...                                        [  0.,   5., -10.,  20.],
+    ...                                        [  0.,   5., -20.,  70.]])
+
+    >>> Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(A, B, C, controllability_matrix)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Ac.round(decimals=3) + 0.
+    array([[ 0.,  0.,  0.],
+           [ 1.,  0., -6.],
+           [ 0.,  1., -5.]])
+
+    >>> Bc.round(decimals=3) + 0.
+    array([[ 1.],
+           [ 0.],
+           [ 0.]])
+
+    >>> Cc.round(decimals=3) + 0.
+    array([[  0.,  10., -30.]])
+
+    Example 2: remove unobservable states using Ac, Bc, Cc from example1
+
+    >>> observability_matrix = numpy.matrix([[   0.,   10.,  -30.],
+    ...                                      [  10.,  -30.,   90.],
+    ...                                      [ -30.,   90., -270.]])
+
+     >>> Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, observability_matrix,
+     ...                                                           uncontrollable=False, unobservable=True)
+
+    >>> Ao.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bo.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Co.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
     """
 
     # obtain the number of states
@@ -1492,6 +1769,65 @@ def minimal_realisation(a, b, c):
 
     :param c: numpy matrix
               the C matrix in the state space model
+
+    Examples
+    --------
+
+    Example 1:
+
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
+
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
+
+    >>> C = numpy.matrix([0, 0, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 0.,  1.],
+           [ 0., -3.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[  0.],
+           [ 10.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  0.]])
+
+    Example 2:
+
+    >>> A = numpy.matrix([[1, 1, 0],
+    ...                    [0, 1, 0],
+    ...                    [0, 1, 1]])
+
+    >>> B = numpy.matrix([[0, 1],
+    ...                   [1, 0],
+    ...                   [0, 1]])
+
+    >>> C = numpy.matrix([1, 1, 1])
+
+    >>> Aco, Bco, Cco = minimal_realisation(A, B, C)
+
+    Add null to eliminate negatives null elements (-0.)
+
+    >>> Aco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 1.,  1.]])
+
+    >>> Bco.round(decimals=3) + 0.
+    array([[ 1.,  0.],
+           [ 0.,  1.]])
+
+    >>> Cco.round(decimals=3) + 0.
+    array([[ 1.,  2.]])
     """
 
     # obtain the controllability matrix
@@ -1523,6 +1859,17 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
+def minors(G,order):
+    '''
+    Returns the order minors of a MIMO tf G.
+    '''
+    minor = []
+    Nrows, Ncols = G.shape
+    for rowstokeep in itertools.combinations(range(Nrows),order):
+        for colstokeep in itertools.combinations(range(Ncols),order):
+            minor.append(G[rowstokeep,colstokeep].det().simplify())
+
+    return minor
 
 def poles(G):
     '''
@@ -1554,8 +1901,21 @@ def poles(G):
 
     s = sympy.Symbol('s')
     G = sympy.Matrix(G(s))  # convert to sympy matrix object
-    det = sympy.simplify(G.det())
-    pole = sympy.solve(sympy.denom(det))
+    #det = sympy.simplify(G.det())
+    #pole = sympy.solve(sympy.denom(det))
+        
+    Nrows, Ncols = G.shape
+    allminors = []
+    lcm = 1
+    for i in range(1,min(Nrows,Ncols)+1,1):
+        allminors = minors(G,i)
+        denominator = []
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            lcm = sympy.lcm(lcm,denom)
+            
+    pole = sympy.solve(lcm,s)
+    
     return pole
 
 
@@ -1575,8 +1935,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
 
     Returns
     -------
-    pole : array
-        List of poles.
+    zero : array
+        List of zeros.
 
     Example
     -------
@@ -1596,8 +1956,32 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     if not G is None:
         s = sympy.Symbol('s')
         G = sympy.Matrix(G(s))  # convert to sympy matrix object
-        det = sympy.simplify(G.det())
-        zero = sympy.solve(sympy.numer(det))
+        #det = sympy.simplify(G.det())
+        #zero = sympy.solve(sympy.numer(det))   
+
+        Nrows, Ncols = G.shape
+        allminors = []
+        lcm = 1
+        for i in range(1,min(Nrows,Ncols)+1,1):
+            allminors = minors(G,i)
+            denominator = []
+            for m in allminors:
+                numer, denom = m.as_numer_denom()
+                lcm = sympy.lcm(lcm,denom)
+
+        allminors = minors(G,G.rank())
+        gcd_first = 1
+        for m in allminors:
+            numer, denom = m.as_numer_denom()
+            if denom != lcm:
+                numer = numer * (lcm/denom)
+            if numer.find('s') != set():
+                if gcd_first == 1:
+                    gcd_first = numer
+                    gcd = sympy.gcd(gcd_first,numer)
+                if gcd_first != 1:
+                    gcd = sympy.gcd(gcd,numer)
+        zero = sympy.solve(gcd,s)
 
     elif not A is None:
         z = sympy.Symbol('z')
