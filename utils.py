@@ -1479,32 +1479,34 @@ def Kalman_controllable(A,B,C):
         
     Example
     -------
-    >>> A=numpy.matrix([[0,0,0,0],
-    ...                 [0,-2,0,0],
-    ...                 [2.5,2.5,-1,0],
-    ...                 [2.5,2.5,0,-3]])
+    >>> savedprecision = numpy.get_printoptions()['precision']
+    >>> numpy.set_printoptions(precision=5)
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
     
-    >>> B=numpy.matrix([[1],
-    ...                 [1],
-    ...                 [0],
-    ...                 [0]])
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
     
-    >>> C=numpy.matrix([0,0,1,1])
+    >>> C = numpy.matrix([0, 0, 1, 1])
     
-    >>> Ac, Bc, Cc = Kalman_controllable(A,B,C)
-    
+    >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
     >>> Ac
-    matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
-            [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
-            [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]])
+    matrix([[ -1.00000e+00,  -1.96116e-01,   1.88713e-01],
+            [ -5.09902e+00,  -1.96154e+00,  -9.99260e-01],
+            [ -2.77556e-16,  -9.99260e-01,  -2.03846e+00]])
     
     >>> Bc
-    matrix([[ -1.41421356e+00],
-            [ -2.77555756e-17],
-            [  0.00000000e+00]])
-                
+    matrix([[ -1.41421e+00],
+            [ -2.77556e-17],
+            [  0.00000e+00]])
+    
     >>> Cc
-    matrix([[ 0.        ,  1.38675049,  0.05337605]])
+    matrix([[ 0.     ,  1.38675,  0.05338]])
+    >>> numpy.set_printoptions(precision=savedprecision)  # Reset options
     """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
@@ -1553,33 +1555,33 @@ def Kalman_observable(A,B,C):
         
     Example
     -------
-    >>> A=numpy.matrix([[0,0,0,0],
-    ...                 [0,-2,0,0],
-    ...                 [2.5,2.5,-1,0],
-    ...                 [2.5,2.5,0,-3]])
+    >>> savedprecision = numpy.get_printoptions()['precision']
+    >>> numpy.set_printoptions(precision=5)
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
     
-    >>> B=numpy.matrix([[1],
-    ...                 [1],
-    ...                 [0],
-    ...                 [0]])
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
     
-    >>> C=numpy.matrix([0,0,1,1])
-    
-    >>> Ao, Bo, Co = Kalman_observable(A,B,C)
-    
+    >>> C = numpy.matrix([0, 0, 1, 1])
+    >>> Ao, Bo, Co = Kalman_observable(A, B, C)
     >>> Ao
-    matrix([[ -2.00000000e+00,   5.09901951e+00,  -2.77555756e-16],
-            [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
-            [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
+    matrix([[ -2.00000e+00,   5.09902e+00,  -8.88178e-16],
+            [  1.96116e-01,  -1.03846e+00,  -9.99260e-01],
+            [  1.88713e-01,  -9.99260e-01,  -9.61538e-01]])
     
     >>> Bo
-    matrix([[ 0.        ],
-            [-1.38675049],
-            [ 0.05337605]])
-                
-    >>> Co
-    matrix([[ -1.41421356e+00,   1.11022302e-16,   0.00000000e+00]])
+    matrix([[ 0.     ],
+            [-1.38675],
+            [ 0.05338]])
     
+    >>> Co
+    matrix([[ -1.41421e+00,   1.11022e-16,  -5.55112e-17]])
+    >>> numpy.set_printoptions(precision=savedprecision)  # Reset options
     """
     nstates = A.shape[1] #compute the number of states
     Q = state_observability_matrix(A,C)# compute the observability matrix
