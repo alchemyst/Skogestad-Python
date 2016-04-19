@@ -1479,8 +1479,6 @@ def Kalman_controllable(A,B,C):
         
     Example
     -------
-    >>> savedprecision = numpy.get_printoptions()['precision']
-    >>> numpy.set_printoptions(precision=5)
     >>> A = numpy.matrix([[0, 0, 0, 0],
     ...                   [0, -2, 0, 0],
     ...                   [2.5, 2.5, -1, 0],
@@ -1494,19 +1492,18 @@ def Kalman_controllable(A,B,C):
     >>> C = numpy.matrix([0, 0, 1, 1])
     
     >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
-    >>> Ac
-    matrix([[ -1.00000e+00,  -1.96116e-01,   1.88713e-01],
-            [ -5.09902e+00,  -1.96154e+00,  -9.99260e-01],
-            [ -2.77556e-16,  -9.99260e-01,  -2.03846e+00]])
-    
-    >>> Bc
-    matrix([[ -1.41421e+00],
-            [ -2.77556e-17],
-            [  0.00000e+00]])
-    
-    >>> Cc
-    matrix([[ 0.     ,  1.38675,  0.05338]])
-    >>> numpy.set_printoptions(precision=savedprecision)  # Reset options
+    >>> numpy.round(Ac, 3)
+    array([[-1.   , -0.196,  0.189],
+           [-5.099, -1.962, -0.999],
+           [-0.   , -0.999, -2.038]])
+        
+    >>> numpy.round(Bc, 3)
+    array([[-1.414],
+           [-0.   ],
+           [ 0.   ]])
+        
+    >>> numpy.round(Cc, 3)
+    array([[ 0.   ,  1.387,  0.053]])
     """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
@@ -1555,8 +1552,6 @@ def Kalman_observable(A,B,C):
         
     Example
     -------
-    >>> savedprecision = numpy.get_printoptions()['precision']
-    >>> numpy.set_printoptions(precision=5)
     >>> A = numpy.matrix([[0, 0, 0, 0],
     ...                   [0, -2, 0, 0],
     ...                   [2.5, 2.5, -1, 0],
@@ -1569,19 +1564,18 @@ def Kalman_observable(A,B,C):
     
     >>> C = numpy.matrix([0, 0, 1, 1])
     >>> Ao, Bo, Co = Kalman_observable(A, B, C)
-    >>> Ao
-    matrix([[ -2.00000e+00,   5.09902e+00,  -8.88178e-16],
-            [  1.96116e-01,  -1.03846e+00,  -9.99260e-01],
-            [  1.88713e-01,  -9.99260e-01,  -9.61538e-01]])
+    >>> numpy.round(Ao, 3)
+    array([[-2.   ,  5.099, -0.   ],
+           [ 0.196, -1.038, -0.999],
+           [ 0.189, -0.999, -0.962]])
+
+    >>> numpy.round(Bo, 3)
+    array([[ 0.   ],
+           [-1.387],
+           [ 0.053]])
     
-    >>> Bo
-    matrix([[ 0.     ],
-            [-1.38675],
-            [ 0.05338]])
-    
-    >>> Co
-    matrix([[ -1.41421e+00,   1.11022e-16,  -5.55112e-17]])
-    >>> numpy.set_printoptions(precision=savedprecision)  # Reset options
+    >>> numpy.round(Co, 3)
+    array([[-1.414,  0.   , -0.   ]])
     """
     nstates = A.shape[1] #compute the number of states
     Q = state_observability_matrix(A,C)# compute the observability matrix
