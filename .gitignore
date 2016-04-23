@@ -4,3 +4,9 @@
 *~
 .idea
 .settings
+.DS_Store
+.coverage
+_build
+htmlcov
+wiki
+.ipynb_checkpoints
