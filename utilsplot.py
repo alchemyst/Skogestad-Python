@@ -416,11 +416,11 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     dim = numpy.shape(vec)[1]
     for i in range(dim):
         plt.subplot(dim, 1, i + 1)
-        plt.semilogx(w, vec[:, 0, i], label= '$%s_{max}$' % d, lw=4)
-        plt.semilogx(w, vec[:, -1, i], label= '$%s_{min}$' % d, lw=4)
+        plt.semilogx(w, vec[:, 0, i], label='$%s_{max}$' % d, lw=4)
+        plt.semilogx(w, vec[:, -1, i], label='$%s_{min}$' % d, lw=4)
         plt.axhline(0, color='red', ls=':')
         plt.axis(axlim)
-        plt.ylabel('$%s_%s$' % (d, i + 1))
+        plt.ylabel('${0}_{1}$'.format(d, i + 1))
         plt.legend()
 
     plt.xlabel('Frequency [rad/unit time]')
