@@ -1479,32 +1479,33 @@ def Kalman_controllable(A,B,C):
         
     Example
     -------
-    >>> A=numpy.matrix([[0,0,0,0],
-    ...                 [0,-2,0,0],
-    ...                 [2.5,2.5,-1,0],
-    ...                 [2.5,2.5,0,-3]])
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
     
-    >>> B=numpy.matrix([[1],
-    ...                 [1],
-    ...                 [0],
-    ...                 [0]])
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
     
-    >>> C=numpy.matrix([0,0,1,1])
+    >>> C = numpy.matrix([0, 0, 1, 1])
     
-    >>> Ac, Bc, Cc = Kalman_controllable(A,B,C)
-    
-    >>> Ac
-    matrix([[ -1.00000000e+00,  -1.96116135e-01,   1.88712839e-01],
-            [ -5.09901951e+00,  -1.96153846e+00,  -9.99260081e-01],
-            [ -2.91433544e-16,  -9.99260081e-01,  -2.03846154e+00]])
-    
-    >>> Bc
-    matrix([[ -1.41421356e+00],
-            [ -2.77555756e-17],
-            [  0.00000000e+00]])
-                
-    >>> Cc
-    matrix([[ 0.        ,  1.38675049,  0.05337605]])
+    >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
+    >>> def round(A):
+    ...     return numpy.round(A + 1e-5, 3)
+    >>> round(Ac)
+    array([[-1.   , -0.196,  0.189],
+           [-5.099, -1.962, -0.999],
+           [ 0.   , -0.999, -2.038]])
+        
+    >>> round(Bc)
+    array([[-1.414],
+           [ 0.   ],
+           [ 0.   ]])
+        
+    >>> round(Cc)
+    array([[ 0.   ,  1.387,  0.053]])
     """
     nstates = A.shape[1] #compute the number of states     
     _, _, P = state_controllability(A,B) # compute the controllability matrix 
@@ -1553,33 +1554,32 @@ def Kalman_observable(A,B,C):
         
     Example
     -------
-    >>> A=numpy.matrix([[0,0,0,0],
-    ...                 [0,-2,0,0],
-    ...                 [2.5,2.5,-1,0],
-    ...                 [2.5,2.5,0,-3]])
+    >>> A = numpy.matrix([[0, 0, 0, 0],
+    ...                   [0, -2, 0, 0],
+    ...                   [2.5, 2.5, -1, 0],
+    ...                   [2.5, 2.5, 0, -3]])
     
-    >>> B=numpy.matrix([[1],
-    ...                 [1],
-    ...                 [0],
-    ...                 [0]])
+    >>> B = numpy.matrix([[1],
+    ...                   [1],
+    ...                   [0],
+    ...                   [0]])
     
-    >>> C=numpy.matrix([0,0,1,1])
+    >>> C = numpy.matrix([0, 0, 1, 1])
+    >>> Ao, Bo, Co = Kalman_observable(A, B, C)
+    >>> def round(A):
+    ...     return numpy.round(A + 1e-5, 3)
+    >>> round(Ao)
+    array([[-2.   ,  5.099,  0.   ],
+           [ 0.196, -1.038, -0.999],
+           [ 0.189, -0.999, -0.962]])
+
+    >>> round(Bo)
+    array([[ 0.   ],
+           [-1.387],
+           [ 0.053]])
     
-    >>> Ao, Bo, Co = Kalman_observable(A,B,C)
-    
-    >>> Ao
-    matrix([[ -2.00000000e+00,   5.09901951e+00,  -2.77555756e-16],
-            [  1.96116135e-01,  -1.03846154e+00,  -9.99260081e-01],
-            [  1.88712839e-01,  -9.99260081e-01,  -9.61538462e-01]])
-    
-    >>> Bo
-    matrix([[ 0.        ],
-            [-1.38675049],
-            [ 0.05337605]])
-                
-    >>> Co
-    matrix([[ -1.41421356e+00,   1.11022302e-16,   0.00000000e+00]])
-    
+    >>> round(Co)
+    array([[-1.414,  0.   ,  0.   ]])
     """
     nstates = A.shape[1] #compute the number of states
     Q = state_observability_matrix(A,C)# compute the observability matrix

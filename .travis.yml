@@ -4,6 +4,8 @@ language: python
 
 python:
   - "2.7"
+  - "3.3"
+  - "3.4"
   - "3.5"
 
 cache:
@@ -20,7 +22,7 @@ before_install:
   - sh -e /etc/init.d/xvfb start
   # Install miniconda
   # This comes from http://conda.pydata.org/docs/travis.html
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  - if [[ "${TRAVIS_PYTHON_VERSION%.*}" == "2" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
