@@ -25,7 +25,7 @@ def G(s):
                          [s**2 + 1, 1/(s+1)]])
 
 plt.figure('Example 1')
-your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1], more_paramaters)
+your_utilsplot_functionA(G, w_start=-5, w_end=2, axlim=[None, None, 0, 1], more_parameters)
 plt.show()
 
 plt.figure('Example 2')
@@ -67,16 +67,16 @@ def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     fig : matplotlib subplot area
     """
 
-    f = plt.get_fignums()[-1] #usefull when multiple figures are added
-    fig = plt.figure(f) #call of plt.figure('plot name') still required externally
+    f = plt.get_fignums()[-1]  # useful when multiple figures are added
+    fig = plt.figure(f)  # call of plt.figure('plot name') still required externally
     bigax = fig.add_subplot(111)
-    bigax.spines['top'].set_color('none') #remove solid line on major axis
+    bigax.spines['top'].set_color('none')  # remove solid line on major axis
     bigax.spines['bottom'].set_color('none')
     bigax.spines['left'].set_color('none')
     bigax.spines['right'].set_color('none')
     bigax.tick_params(labelcolor='grey', top='off', bottom='off',
-                      left='off', right='off') #remove dashes on major axis
-    plt.setp(bigax.get_xticklabels(), visible=False) #remove values on major axis
+                      left='off', right='off')  # remove dashes on major axis
+    plt.setp(bigax.get_xticklabels(), visible=False)  # remove values on major axis
     plt.setp(bigax.get_yticklabels(), visible=False)
 
     box = bigax.get_position()
@@ -126,13 +126,11 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
     plt.clf()
 
-
     GM, PM, wc, w_180 = utils.margins(G)
 
     # plotting of Bode plot and with corresponding frequencies for PM and GM
 #    if ((w2 < numpy.log(w_180)) and margin):
 #        w2 = numpy.log(w_180)
-
 
     # Magnitude of G(jw)
     plt.subplot(2, 1, 1)
@@ -266,7 +264,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
 
     dim = numpy.shape(G(0.00001))[0]
 
-    def subbode(A, text, crossover, labB, labP):
+    def subbode(text, crossover, labB, labP):
         Sv = numpy.zeros((len(w), dim), dtype=complex)
         f = False
         wA = 0
@@ -299,15 +297,17 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
 
     if Kin is None:
         Bandwidth = wC
-        if text: print('wC = {:.3}'.format(wC))
+        if text:
+            print('wC = {:.3}'.format(wC))
     else:
         L = Kin(s) * G(s)
-        S = numpy.linalg.inv(numpy.eye(dim) + L)  #SVD of S = 1/(I + L)
+        S = numpy.linalg.inv(numpy.eye(dim) + L)  # SVD of S = 1/(I + L)
 
         wB = subbode(S, text, 0.707, 'wC', 'G')
 
         Bandwidth = wC, wB
-        if text: print('(wC = {1}, wB = {2}'.format(wC, wB))
+        if text:
+            print('(wC = {1}, wB = {2}'.format(wC, wB))
 
     return Bandwidth
 
@@ -363,7 +363,7 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
 
     # plotting a unit circle
     x = numpy.linspace(-1, 1, 200)
-    y_up = numpy.sqrt(1- x**2)
+    y_up = numpy.sqrt(1 - x**2)
     y_down = -1*numpy.sqrt(1 - x**2)
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
     plt.plot(0, 0, 'r*', ms=10)
@@ -372,7 +372,7 @@ def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
 
 
 def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
-    '''
+    """
     Plot the input and output singular vectors associated with the minimum and
     maximum singular values.
 
@@ -398,7 +398,7 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     ----
     Can be used with the plant matrix G and the sensitivity function S
     for controlability analysis
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
@@ -410,16 +410,17 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     elif plot_type == 'output':
         vec = numpy.array([U for U, _, _ in map(utils.SVD, freqresp)])
         d = 'u'
-    else: raise ValueError('Invalid plot_type parameter.')
+    else:
+        raise ValueError('Invalid plot_type parameter.')
 
     dim = numpy.shape(vec)[1]
     for i in range(dim):
-        plt.subplot(dim , 1, i + 1)
+        plt.subplot(dim, 1, i + 1)
         plt.semilogx(w, vec[:, 0, i], label= '$%s_{max}$' % d, lw=4)
         plt.semilogx(w, vec[:, -1, i], label= '$%s_{min}$' % d, lw=4)
         plt.axhline(0, color='red', ls=':')
         plt.axis(axlim)
-        plt.ylabel('$%s_%s$' % (d ,i + 1))
+        plt.ylabel('$%s_%s$' % (d, i + 1))
         plt.legend()
 
     plt.xlabel('Frequency [rad/unit time]')
