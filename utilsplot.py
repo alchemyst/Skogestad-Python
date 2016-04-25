@@ -432,7 +432,7 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
 
 
 def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
-    '''
+    """
     Plot of the condition number, the maximum over the minimum singular value
 
     Parameters
@@ -449,9 +449,9 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     A condition number over 10 may indicate sensitivity to uncertainty and
     control problems
 
-    With a smallcondition number, Gamma =1, the system is insensitive to
-    inputuncertainty, irrespective of controller (p248).
-    '''
+    With a small condition number, Gamma =1, the system is insensitive to
+    input uncertainty, irrespective of controller (p248).
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
@@ -469,7 +469,7 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
 
 
 def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='elements', input_label=None, output_label=None):
-    '''
+    """
     Plots the relative gain interaction between each output and input pairing
 
     Parameters
@@ -500,7 +500,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
@@ -517,7 +517,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
         raise ValueError('Input and output label count is not equal')
 
     if plot_type == 'elements':
-        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 0.8, 0.9)
+        fig = adjust_spine('Frequency [rad/unit time]', 'RGA magnitude', -0.05, -0.03, 0.8, 0.9)
         for i in range(dim[0]):
             for j in range(dim[1]):
                 ax = fig.add_subplot(dim[0], dim[1], plot_No)
@@ -534,7 +534,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                 ax.set_position([box.x0, box.y0,
                                  box.width * 0.8, box.height * 0.9])
 
-    elif plot_type == 'outputs': #i
+    elif plot_type == 'outputs':  # i
         fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
         for i in range(dim[0]):
             ax = fig.add_subplot(dim[1], 1, plot_No)
@@ -545,7 +545,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                 ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
-                if j == dim[1] - 1: #self-scaling algorithm
+                if j == dim[1] - 1:  # self-scaling algorithm
                     if axlim is not None:
                         ax.axis(axlim)
                     else:
@@ -558,7 +558,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
             ax.legend()
             plot_No += 1
 
-    elif plot_type == 'inputs': #j
+    elif plot_type == 'inputs':  # j
         fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
         for j in range(dim[1]):
             ax = fig.add_subplot(dim[0], 1, plot_No)
@@ -569,7 +569,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                 ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
-                if i == dim[1] - 1: #self-scaling algorithm
+                if i == dim[1] - 1:  # self-scaling algorithm
                     if axlim is not None:
                         ax.axis(axlim)
                     else:
@@ -591,18 +591,18 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                 plt.xlabel('Frequency [rad/unit time]')
 
     else:
-        raise ValueError("Invalid plot_type paramter.")
+        raise ValueError("Invalid plot_type parameter.")
 
 
 def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
-    '''
+    """
     Plots the RGA number for a specified pairing
 
     Parameters
     ----------
     G : numpy matrix
         Plant model.
-    pairing_list : List of sparse numpy matrixes of the same shape as G.
+    pairing_list : List of sparse numpy matrices of the same shape as G.
         An array of zeros with a 1. at each required output-input pairing.
         The default is a diagonal pairing with 1.'s on the diagonal.
     plot_type : string
@@ -631,16 +631,16 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     Note
     ----
     This plotting function can only be used on square systems
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
-    dim = numpy.shape(G(0)) # Number of rows and columns in SS transfer function
+    dim = numpy.shape(G(0))  # Number of rows and columns in SS transfer function
     freqresp = [G(si) for si in s]
 
-    if pairing_list is None: # Setting a blank entry to the default of a diagonal comparison
+    if pairing_list is None:  # Setting a blank entry to the default of a diagonal comparison
         pairing_list = numpy.identity(dim[0])
-        pairing_names ='Diagonal pairing'
+        pairing_names = 'Diagonal pairing'
     else:
         for pairing in pairing_list:
             if pairing.shape != dim:
@@ -658,7 +658,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         plt.legend()
 
     elif plot_type == 'element':
-        pcount = numpy.shape(pairing_list)[0] # pairing_list.count not accessible
+        pcount = numpy.shape(pairing_list)[0]  # pairing_list.count not accessible
         for p in pairing_list:
             plot_No += 1
             plt.subplot(1, pcount, plot_No)
@@ -669,12 +669,12 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
             if plot_No == 1:
                 plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
     else:
-        raise ValueError("Invalid plot_type paramter.")
+        raise ValueError("Invalid plot_type parameter.")
 
 
 def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000):
-    '''
-    A subplot of disturbance conditition number to check for input saturation
+    """
+    A subplot of disturbance condition number to check for input saturation
     (equation 6.43, p238). Two more subplots indicate if the disturbances fall
     withing the bounds of S, applying equations 6.45 and 6.46 (p239).
 
@@ -699,20 +699,22 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
 
     For acceptable performance the singular values of S must fall below the
     inverse 2-norm of gd.
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
-    dim = numpy.shape(Gd(0))[1] # column count
+    dim = numpy.shape(Gd(0))[1]  # column count
     inv_norm_gd = numpy.zeros((dim, points))
-    yd = numpy.zeros((dim, points, numpy.shape(Gd(0))[0]), dtype=complex) # row count
+    yd = numpy.zeros((dim, points, numpy.shape(Gd(0))[0]), dtype=complex)  # row count
     condtn_nm_gd = numpy.zeros((dim, points))
     for i in range(dim):
         for k in range(points):
             inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = utils.distRej(G(s[k]), Gd(s[k])[:, i])
 
-    if S is None: sub = 2
-    else: sub = 3
+    if S is None:
+        sub = 2
+    else:
+        sub = 3
 
     # Equation 6.43
     plt.subplot(sub, 1, 1)
@@ -736,7 +738,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     plt.xlabel('Frequency [rad/unit time]')
     plt.legend()
 
-    if not S is None: # this subplot should not be repeated with S is not avaiable
+    if S is not None:  # this subplot should not be repeated with S is not available
         # Equation 6.45
         plt.subplot(3, 1, 3)
         for i in range(dim):
@@ -751,7 +753,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
 
 
 def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, simultaneous=False):
-    '''
+    """
     Plot for input constraints for perfect control. Applies equation 6.50
     (p240).
 
@@ -772,19 +774,19 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     Note
     ----
     The boundary conditions is values below 1 (p240).
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     dim = numpy.shape(Gd(0))[1]
     perfect_control = numpy.zeros((dim, points))
-    #if simultaneous: imn = np.zeros(points)
+    # if simultaneous: imn = np.zeros(points)
     for i in range(dim):
         for k in range(points):
             Ginv = numpy.linalg.inv(G(s[k]))
             perfect_control[i, k] = numpy.max(numpy.abs(Ginv * Gd(s[k])[:, i]))
-            #if simultaneous:
-            #TODO induced max-norm
+            # if simultaneous:
+            # TODO induced max-norm
         plt.loglog(w, perfect_control[i], label=('$g_{d%s}$' % (i + 1)))
 
     plt.axhline(1., color='red', ls=':')
@@ -796,7 +798,7 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
 
 
 def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
-    '''
+    """
     Use these plots to determine the constraints for perfect control in terms
     of combined reference changes. Equation 6.52 (p241) calculates the
     minimal requirement for input saturation to check in terms of set point
@@ -829,7 +831,7 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=100
     ----
     All the plots in this function needs to be larger than 1 for perfect
     control, otherwise input saturation will occur.
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
@@ -848,14 +850,14 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=100
 
     else: raise ValueError('Invalid plot_type parameter.')
 
-    mm = bound1 + bound2 + [1] # ensures that whole graph is visible
+    mm = bound1 + bound2 + [1]  # ensures that whole graph is visible
     plt.loglog([wr, wr], [0.5 * numpy.min(mm), 5 * numpy.max(mm)], 'r', ls=':', label='Ref tracked')
     plt.loglog([w[0], w[-1]], [1, 1], 'r', label='Bound')
     plt.legend()
 
 
 def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, modified=False):
-    '''
+    """
     Subbplots for input constraints for accepatable control. Applies equation
     6.55 (p241).
 
@@ -876,7 +878,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
     Note
     ----
     This condition only holds for :math:`|u_i^H g_d|>1`.
-    '''
+    """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
@@ -915,7 +917,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
 
 
 def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, points=1000):
-    '''
+    """
     This function is similar to the MatLab step function.
 
     Parameters
@@ -925,7 +927,7 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
     t_end : integer
         Time period which the step response should occur (optional).
     initial_val : integer
-        Starting value to evalaute step response (optional).
+        Starting value to evaluate step response (optional).
     input_label : array
         List of input variable labels.
     output_label : array
@@ -934,7 +936,7 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
     Returns
     -------
     Plot : matplotlib figure
-    '''
+    """
 
     plt.gcf().set_facecolor('white')
 
@@ -944,14 +946,14 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
     s = utils.tf([1, 0])
     system = G(s)
 
-    if ((input_label is None) and (input_label is None)):
+    if (input_label is None) and (output_label is None):
         labels = False
     elif (numpy.shape(input_label)[0] == columns) and (numpy.shape(output_label)[0] == rows):
         labels = True
     else:
         raise ValueError('Label count is inconsistent to plant size')
 
-    fig = adjust_spine('Time','Output magnitude', -0.05, 0.1, 0.8, 0.9)
+    fig = adjust_spine('Time', 'Output magnitude', -0.05, 0.1, 0.8, 0.9)
 
     cnt = 0
     tspace = numpy.linspace(0, t_end, points)
