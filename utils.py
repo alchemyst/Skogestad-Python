@@ -1971,26 +1971,19 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
                 if not gcd:
                     gcd = numer
                 else:
-                    gcd = sympy.gcd(gcd,numer)
-        zero = sympy.solve(gcd,s)
+                    gcd = sympy.gcd(gcd, numer)
+        zero = sympy.solve(gcd, s)
 
     elif A is not None:
         z = sympy.Symbol('z')
-        top = numpy.hstack((A, B))
-        bot = numpy.hstack((C, D))
-        m = numpy.vstack((top, bot))
-        M = numpy.matrix(m)
-        [rowsA, colsA] = numpy.shape(A)
-        [rowsB, colsB] = numpy.shape(B)
-        [rowsC, colsC] = numpy.shape(C)
-        [rowsD, colsD] = numpy.shape(D)
-        p1 = numpy.eye(rowsA)
-        p2 = numpy.zeros((rowsB, colsB))
-        p3 = numpy.zeros((rowsC, colsC))
-        p4 = numpy.zeros((rowsD, colsD))
-        top = numpy.hstack((p1, p2))
-        bot = numpy.hstack((p3, p4))
-        p = numpy.vstack((top, bot))
+        M = numpy.bmat([[A, B],
+                        [C, D]])
+        p1 = numpy.eye(A.shape[0])
+        p2 = numpy.zeros_like(B)
+        p3 = numpy.zeros_like(C)
+        p4 = numpy.zeros_like(D)
+        p = numpy.bmat([[p1, p2],
+                        [p3, p4]])
         Ig = sympy.Matrix(p)
         zIg = z * Ig
         f = zIg - M
