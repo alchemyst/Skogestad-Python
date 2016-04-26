@@ -19,4 +19,4 @@ Gprime = [['a)', np.linspace(0,1,101), df.Gp_a, False, '$l_{I}$'],
           ['f)', np.linspace(0,20,21), df.Gp_f, True, '$l_{I}$'],
           ['g)', np.linspace(0,1,101), df.Gp_g, False, '$l_{I}$']]
 
-df.plot_range(df.G, Gprime, df.wI, np.logspace(-3, 3, 1000))
+df.plot_range(df.G, Gprime, df.wI, np.logspace(-3, 3, 200))
