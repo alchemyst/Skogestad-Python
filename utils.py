@@ -1974,7 +1974,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
                     gcd = sympy.gcd(gcd,numer)
         zero = sympy.solve(gcd,s)
 
-    elif A:
+    elif A is not None:
         z = sympy.Symbol('z')
         top = numpy.hstack((A, B))
         bot = numpy.hstack((C, D))
