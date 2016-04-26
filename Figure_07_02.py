@@ -25,38 +25,39 @@ def circle(centerx, centery, radius):
 def randomparameters():
     return [2 + np.random.rand() for i in range(3)]
 
-w = 0.2
 N = 1000
 
-for w in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
+for omega in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
+    s = omega * 1j
+    frn = G(s)
+    r = abs(w_A(s))
+
     for i in range(N):
-        s = w*1j
         k, tau, theta = randomparameters()
         frp = G_P(k, tau, theta, s)
-        frn = G(s)
         plt.plot(np.real(frp), np.imag(frp), 'b.')
-        plt.plot(np.real(frn), np.imag(frn), 'ro')
-        r = abs(w_A(s))
-        circle(np.real(frn), np.imag(frn), r)
 
-w = np.logspace(-2, 2, 100)
-s = w*1j
+    plt.plot(np.real(frn), np.imag(frn), 'ro')
+    circle(np.real(frn), np.imag(frn), r)
+
+omega = np.logspace(-2, 2, 1000)
+s = omega*1j
 fr = G_P(2.5, 2.5, 2.5, s)
 plt.plot(np.real(fr), np.imag(fr), 'r-')
 plt.xlabel('Real part (Re)')
-plt.ylabel('Imaginery part (Im)')
+plt.ylabel('Imaginary part (Im)')
 
 
 plt.figure(2)
 frn = G(s)
-distance = np.zeros_like(w)
+distance = np.zeros_like(omega)
 for i in range(N):
     k, tau, theta = randomparameters()
     frp = G_P(k, tau, theta, s)
     distance = np.maximum(abs(frp - frn), distance)
 
-plt.loglog(w, distance, 'b--')
-plt.loglog(w, list(map(abs, w_A(s))), 'r')
+plt.loglog(omega, distance, 'b--')
+plt.loglog(omega, list(map(abs, w_A(s))), 'r')
 plt.xlabel('Frequency')
 plt.legend(['Distance','w_A'])
 
