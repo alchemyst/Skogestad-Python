@@ -264,7 +264,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
 
     dim = numpy.shape(G(0.00001))[0]
 
-    def subbode(text, crossover, labB, labP):
+    def subbode(A, text, crossover, labB, labP):
         Sv = numpy.zeros((len(w), dim), dtype=complex)
         f = False
         wA = 0
