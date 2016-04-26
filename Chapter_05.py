@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
+import doc_func as df
 
 from utils import tf, margins
 
@@ -70,23 +71,14 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     if plot:
         plt.figure('Rule 1')
 
-        w = np.logspace(w1, w2, 1000)
-        s = 1j * w
-
-        S = 1 / (1 + G*K)
-        mag_s = np.abs(S(s))
+        w, mag_s = df.setup_plot(['|S|', '1/R', '$w_r$'], w1, w2, G, K, wr)
 
         inv_gd = 1 / Gd
         mag_i = np.abs(inv_gd(s))
 
         plt.loglog(w, mag_s)
         plt.loglog(w, mag_i, ls = '--')
-        plt.legend(['|S|', '1/|Gd|'],
-                   bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
-        plt.grid()
-        plt.xlabel('Frequency [rad/s]')
-        plt.ylabel('Magnitude')
-        plt.show()
+        df.setup_plot(['|S|', '1/|Gd|'])
 
     return valid1, wc, wd
 
@@ -140,21 +132,9 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
     if plot:
         plt.figure('Rule 2')
 
-        w = np.logspace(w1, w2, 1000)
-        s = 1j * w
-
-        S = 1 / (1 + G*K)
-        mag_s = np.abs(S(s))
-
+        w, mag_s = df.setup_plot(['|S|', '1/R', '$w_r$'], w1, w2, G, K, wr)
         plt.loglog(w, mag_s)
         plt.loglog(w,  invref * np.ones(len(w)), ls = '--')
-        plt.loglog(wr * np.ones(2), [np.max(mag_s), np.min(mag_s)], ls=':')
-        plt.legend(['|S|', '1/R', '$w_r$'],
-                   bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
-        plt.grid()
-        plt.xlabel('Frequency [rad/s]')
-        plt.ylabel('Magnitude')
-        plt.show()
 
     return invref
 
@@ -260,13 +240,7 @@ def rule4(G, R, wr, message=False, w1=-4, w2=2):
     plt.figure('Rule 4')
     plt.loglog(w, mag_g)
     plt.loglog(w,  mag_rr, ls = '--')
-    plt.loglog(wr * np.ones(2), [np.max(mag_g), np.min(mag_g)], ls=':')
-    plt.legend(['|G|', 'R - 1', '$w_r$'],
-               bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
-    plt.grid()
-    plt.xlabel('Frequency [rad/s]')
-    plt.ylabel('Magnitude')
-    plt.show()
+    df.setup_plot(['|G|', 'R - 1', '$w_r$'], wr, mag_g)
 
 
 def rule5(G, Gm=1, message=False):
