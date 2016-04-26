@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
@@ -30,8 +31,8 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     # TODO use mimotf functions
     Zeros_G = zeros(G)
     Poles_G = poles(G)
-    print 'Poles: ' , Zeros_G,
-    print 'Zeros: ' , Poles_G
+    print('Poles: ' , Zeros_G)
+    print('Zeros: ' , Poles_G)
 
     #just to save unnecessary calculations that is not needed
     #sensitivity peak of closed loop. eq 6-8 pg 224 skogestad
@@ -76,16 +77,16 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
 
                 #final calculation for the peak value
                 Ms_min = np.sqrt(1+(np.max(np.linalg.svd(pre_mat)[1]))**2)
-                print ''
-                print 'Minimum peak values on T and S without deadtime'
-                print 'Ms_min = Mt_min = ', Ms_min
-                print ''
+                print('')
+                print('Minimum peak values on T and S without deadtime')
+                print('Ms_min = Mt_min = ', Ms_min)
+                print('')
 
-            #skogestad eq 6-16 pg 226 using maximum deadtime per output channel to give tightest lowest bounds
+            #Skogestad eq 6-16 pg 226 using maximum deadtime per output channel to give tightest lowest bounds
             if deadtime_if == 1:
                 #create vector to be used for the diagonal deadtime matrix containing each outputs' maximum dead time
                 #this would ensure tighter bounds on T and S
-                #the minimum function is used because all stable systems has dead time with a negative sign
+                #the minimum function is used because all stable systems have dead time with a negative sign
 
                 dead_time_vec_max_row = np.zeros(deadtime()[0].shape[0])
 
@@ -111,17 +112,17 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
                 lambda_mat = sc_lin.sqrtm(np.linalg.pinv(Q_dead))*(Qp+Qzp*np.linalg.pinv(Qz)*(np.transpose(np.conjugate(Qzp))))*sc_lin.sqrtm(np.linalg.pinv(Q_dead))
 
                 Ms_min=np.real(np.max(np.linalg.eig(lambda_mat)[0]))
-                print ''
-                print 'Minimum peak values on T and S without dead time'
-                print 'Dead time per output channel is for the worst case dead time in that channel'
-                print 'Ms_min = Mt_min = ', Ms_min
-                print ''
+                print('')
+                print('Minimum peak values on T and S without dead time')
+                print('Dead time per output channel is for the worst case dead time in that channel')
+                print('Ms_min = Mt_min = ', Ms_min)
+                print('')
 
         else:
-            print ''
-            print 'Minimum peak values on T and S'
-            print 'No limits on minimum peak values'
-            print ''
+            print('')
+            print('Minimum peak values on T and S')
+            print('No limits on minimum peak values')
+            print('')
 
     #check for dead time
     #dead_G = deadtime[0]
@@ -142,22 +143,22 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #checking alignment of disturbances and RHP zeros
     RHP_alignment = [np.abs(np.linalg.svd(G(RHP_Z+error_poles_direction))[0][:, 0].H*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[1][0]*np.linalg.svd(Gd(RHP_Z+error_poles_direction))[0][:, 0]) for RHP_Z in Zeros_G]
 
-    print 'Checking alignment of process output zeros to disturbances'
-    print 'These values should be less than 1'
-    print RHP_alignment
-    print ''
+    print('Checking alignment of process output zeros to disturbances')
+    print('These values should be less than 1')
+    print(RHP_alignment)
+    print('')
 
     #checking peak values of KS eq 6-24 pg 229 np.linalg.svd(A)[2][:, 0]
     #done with less tight lower bounds
     KS_PEAK = [np.linalg.norm(np.linalg.svd(G(RHP_p+error_poles_direction))[2][:, 0].H*np.linalg.pinv(G(RHP_p+error_poles_direction)), 2) for RHP_p in Poles_G]
     KS_max = np.max(KS_PEAK)
 
-    print 'Lower bound on K'
-    print 'KS needs to larger than ', KS_max
-    print ''
+    print('Lower bound on K')
+    print('KS needs to larger than ', KS_max)
+    print('')
 
-    #eq 6-50 pg 240 from skogestad
-    #eg 6-50 pg 240 from skogestad for simultanious disturbacne matrix
+    #eq 6-50 pg 240 from Skogestad
+    #eg 6-50 pg 240 from Skogestad for simultanious disturbance matrix
     #Checking input saturation for perfect control for disturbance rejection
     #checking for maximum disturbance just at steady state
 
@@ -167,25 +168,25 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
 
 
 
-    print 'Perfect control input saturation from disturbances'
-    print 'Needs to be less than 1 '
-    print 'Max Norm method'
-    print 'Checking input saturation at steady state'
-    print 'This is done by the worse output direction of Gd'
-    print mod_G_gd_ss
-    print ''
+    print('Perfect control input saturation from disturbances')
+    print('Needs to be less than 1 ')
+    print('Max Norm method')
+    print('Checking input saturation at steady state')
+    print('This is done by the worse output direction of Gd')
+    print(mod_G_gd_ss)
+    print('')
 
     #
     #
     #
 
-    print 'Figure 1 is for perfect control for simultaneous disturbances'
-    print 'All values on each of the graphs should be smaller than 1'
-    print ''
+    print('Figure 1 is for perfect control for simultaneous disturbances')
+    print('All values on each of the graphs should be smaller than 1')
+    print('')
 
-    print 'Figure 2 is the plot of G**1 gd'
-    print 'The values of this plot needs to be smaller or equal to 1'
-    print ''
+    print('Figure 2 is the plot of G**1 gd')
+    print('The values of this plot needs to be smaller or equal to 1')
+    print('')
 
 
     w = np.logspace(w_start, w_end, 100)
@@ -227,15 +228,15 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #w_mod_G_gd_1 = sc_opt.fsolve(G_gd, 0.001)
 
 
-    #print 'frequencies till which input saturation would not occurs'
+    #print 'frequencies up to which input saturation would not occur'
     #print w_mod_G_gd_1
 
 
-    print 'Figure 3 is disturbance condition number'
-    print 'A large number indicates that the disturbance is in a bad direction'
-    print ''
+    print('Figure 3 is disturbance condition number')
+    print('A large number indicates that the disturbance is in a bad direction')
+    print('')
     #eq 6-43 pg 238 disturbance condition number
-    #this in done over a frequency range to see if possible problems at higher frequencies
+    #this in done over a frequency range to see if there are possible problems at higher frequencies
     #finding yd
 
     dist_condition_num = [np.linalg.svd(G(w_i))[1][0]*np.linalg.svd(np.linalg.pinv(G(w_i))[1][0]*np.linalg.svd(Gd(w_i))[1][0]*np.linalg.svd(Gd(w_i))[0][:, 0])[1][0] for w_i in w]
@@ -250,15 +251,15 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #
     #
 
-    print 'Figure 4 is the singular value of an specific output with input and disturbance direction vector'
-    print 'The solid blue line needs to be large than the red line'
-    print 'This only needs to be checked up to frequencies where |u**H gd| >1'
-    print ''
+    print('Figure 4 is the singular value of an specific output with input and disturbance direction vector')
+    print('The solid blue line needs to be large than the red line')
+    print('This only needs to be checked up to frequencies where |u**H gd| >1')
+    print('')
 
     #checking input saturation for acceptable control  disturbance rejection
-    #equation 6-55 pg 241 in skogestad
+    #equation 6-55 pg 241 in Skogestad
     #checking each singular values and the associated input vector with output direction vector of Gd
-    #just for square systems for know
+    #just for square systems for now
 
     #revised method including all the possibilities of outputs i
     store_rhs_eq = np.zeros([np.shape(G(0.0001))[0], len(w)])
@@ -276,10 +277,10 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     #
     #
 
-    print 'Figure 5 is to check input saturation for reference changes'
-    print 'Red line in both graphs needs to be larger than the blue line for values w < wr'
-    print 'Shows the wr up to where control is needed'
-    print ''
+    print('Figure 5 is to check input saturation for reference changes')
+    print('Red line in both graphs needs to be larger than the blue line for values w < wr')
+    print('Shows the wr up to where control is needed')
+    print('')
 
     #checking input saturation for perfect control with reference change
     #eq 6-52 pg 241
@@ -291,15 +292,15 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     plt.figure(5)
     ref_perfect_const_plot(G, reference_change(), 0.01, w_start, w_end)
 
-    print 'Figure 6 is the maximum and minimum singular values of G over a frequency range'
-    print 'Figure 6 is also the maximum and minimum singular values of Gd over a frequency range'
-    print 'Blue is the minimum values and Red is the maximum singular values'
-    print 'Plot of Gd should be smaller than 1 else control is needed at frequencies where Gd is bigger than 1'
-    print ''
+    print('Figure 6 is the maximum and minimum singular values of G over a frequency range')
+    print('Figure 6 is also the maximum and minimum singular values of Gd over a frequency range')
+    print('Blue is the minimum values and Red is the maximum singular values')
+    print('Plot of Gd should be smaller than 1 else control is needed at frequencies where Gd is bigger than 1')
+    print('')
 
     #checking input saturation for acceptable control with reference change
     #added check for controllability is the minimum and maximum singular values of system transfer function matrix
-    # as a function of frequency
+    #as a function of frequency
     #condition number added to check for how prone the system would be to uncertainty
 
     singular_min_G = [np.min(np.linalg.svd(G(1j*w_i))[1]) for w_i in w]
