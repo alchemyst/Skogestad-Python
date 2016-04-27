@@ -1,11 +1,10 @@
 from __future__ import print_function
-import sympy as sp
 
-from utils import poles, zeros
+from utils import tf, mimotf
 
-def G(s):
-    return 1 / (1.25 * (s + 1) * (s + 2)) * sp.Matrix([[s - 1, s],
-                                                       [-6, s - 2]])
+s = tf([1, 0], 1)
+G = 1/(1.25*(s + 1)*(s + 2)) * mimotf([[s - 1, s],
+                                       [-6, s - 2]])
 
-print('Poles: ', poles(G))
-print('Zeros: ', zeros(G))
+print('Poles: ', G.poles())
+print('Zeros: ', G.zeros())
