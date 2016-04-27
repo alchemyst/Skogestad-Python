@@ -7,6 +7,7 @@ Created on Jan 27, 2012
 from __future__ import division
 from __future__ import print_function
 import numpy  # do not abbreviate this module as np in utils.py
+import scipy
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
@@ -489,17 +490,9 @@ class mimotf(object):
 
     def __getitem__(self, item):
         result = mimotf(self.matrix.__getitem__(item))
-        if result.shape == (1, 1):
-            return result.matrix[0, 0]
-        else:
-            return result
 
     def __slice__(self, i, j):
         result = mimotf(self.matrix.__slice__(i, j))
-        if result.shape == (1, 1):
-            return result.matrix[0, 0]
-        else:
-            return result
 
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
@@ -1859,7 +1852,7 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
-def minors(G,order):
+def minors(G, order):
     '''
     Returns the order minors of a MIMO tf G.
     '''
@@ -1972,25 +1965,20 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
                     gcd = numer
                 else:
                     gcd = sympy.gcd(gcd, numer)
-        zero = sympy.solve(gcd, s)
+        return sympy.solve(gcd, s)
 
     elif A is not None:
-        z = sympy.Symbol('z')
         M = numpy.bmat([[A, B],
                         [C, D]])
-        p1 = numpy.eye(A.shape[0])
-        p2 = numpy.zeros_like(B)
-        p3 = numpy.zeros_like(C)
-        p4 = numpy.zeros_like(D)
-        p = numpy.bmat([[p1, p2],
-                        [p3, p4]])
-        Ig = sympy.Matrix(p)
-        zIg = z * Ig
-        f = zIg - M
-        zf = f.det()
-        zero = sympy.solve(zf, z)
-
-    return zero
+        Ig = numpy.zeros_like(M)
+        d = numpy.arange(A.shape[0])
+        Ig[d, d] = 1
+        eigvals = scipy.linalg.eigvals(M, Ig)
+        return eigvals[numpy.isfinite(eigvals) & (eigvals != 0)]
+        # TODO: Check if there are any cases where we need the symbolic method:
+        # z = sympy.Symbol('z')
+        # Ig = sympy.Matrix(Ig)
+        # return sympy.solve((M - z*Ig).det(), z)
 
 
 def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
