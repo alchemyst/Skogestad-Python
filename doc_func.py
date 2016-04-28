@@ -113,19 +113,15 @@ def setup_plot(legend_list, w1=False, w2=False, G=False, K=False, wr=False):
     return w, gain
 
 
-def setup_bode_plot(title_str, w=None, func=False, loglog=False, semilogy=False, legend_str=False):
+def setup_bode_plot(title_str, w=None, func=False, plot=plt.plot, grid=False, linestyle='-'):
 
     plt.figure(1)
     plt.title(title_str)
-    plt.grid()
     plt.xlabel('Frequency [rad/s]', fontsize=14)
     plt.ylabel('Magnitude', fontsize=15)
 
-    if loglog:
-        plt.loglog(w, func)
+    if plot:
+        plot(w, func, linestyle)
 
-    if semilogy:
-        plt.semilogy(w,func)
-
-    if legend_str:
-        plt.legend(legend_str)
+    if grid:
+        plt.grid(b=None, which='both', axis='both')
