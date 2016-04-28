@@ -9,8 +9,9 @@ Created on Mon Jun 03 19:36:05 2013
 
 import numpy as np
 import matplotlib.pyplot as plt
+import doc_func as df
 
-w = np.linspace(0, 6, 1000)
+w = np.linspace(0.001, 6, 1000)
 s = 1j * w
 
 
@@ -29,17 +30,15 @@ def S1(s):
 def S2(s):
     return 1/(L2(s) + 1)
 
-freqrespS1 = list(map(S1, s))
-freqrespS2 = list(map(S2, s))
+freqrespS1 = np.abs(list(map(S1, s)))
+freqrespS2 = np.abs(list(map(S2, s)))
 
-plt.figure(1)
-plt.title('|S1| and |S2| Value over Frequency')
+func_list = [[freqrespS1, '-', False],
+             [freqrespS2, '-', False],
+             [np.ones(len(w)), 'r-.', True]]
 
-plt.xlabel(r'Frequency [rad/s]', fontsize=14)
-plt.ylabel(r'Magnitude', fontsize=15)
-plt.semilogy(w, np.abs(freqrespS1))
-plt.semilogy(w, np.abs(freqrespS2))
-plt.semilogy(w, (np.ones(len(w))), '-.')
-plt.grid(b=None, which='both', axis='both')
-plt.legend(('S1', 'S2', 'Gain Value of 1'), loc=1)
+plot = plt.semilogy
+for func, lstyle, grid in func_list:
+    df.setup_bode_plot('|S1| and |S2| Value over Frequency', w, func, plot, grid, lstyle)
+plt.legend(('S1', 'S2', 'Gain Value of 1'),loc='best')
 plt.show()

@@ -111,3 +111,17 @@ def setup_plot(legend_list, w1=False, w2=False, G=False, K=False, wr=False):
     plt.show()
 
     return w, gain
+
+
+def setup_bode_plot(title_str, w=None, func=False, plot=plt.plot, grid=False, linestyle='-'):
+
+    plt.figure(1)
+    plt.title(title_str)
+    plt.xlabel('Frequency [rad/s]', fontsize=14)
+    plt.ylabel('Magnitude', fontsize=15)
+
+    if plot:
+        plot(w, func, linestyle)
+
+    if grid:
+        plt.grid(b=None, which='both', axis='both')
