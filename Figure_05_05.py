@@ -33,12 +33,10 @@ def S2(s):
 freqrespS1 = np.abs(list(map(S1, s)))
 freqrespS2 = np.abs(list(map(S2, s)))
 
-func_list = [[freqrespS1, '-', False],
-             [freqrespS2, '-', False],
-             [np.ones(len(w)), 'r-.', True]]
+func_list = [[freqrespS1, '-'],
+             [freqrespS2, '-'],
+             [np.ones(len(w)), 'r-.']]
 
-plot = plt.semilogy
-for func, lstyle, grid in func_list:
-    df.setup_bode_plot('|S1| and |S2| Value over Frequency', w, func, plot, grid, lstyle)
-plt.legend(('S1', 'S2', 'Gain Value of 1'),loc='best')
-plt.show()
+
+df.setup_bode_plot('|S1| and |S2| Value over Frequency', w, func_list, ('S1', 'S2', 'Gain Value of 1'), plt.semilogy)
+

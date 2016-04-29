@@ -26,14 +26,9 @@ def Gd(s):
 freqrespG = [G(si) for si in s]
 freqrespGd = [Gd(si) for si in s]
 
-func_list = [[np.abs(freqrespG), '-', False],
-             [np.abs(freqrespGd), '-', False],
-             [np.ones(len(w)), 'r-.', True]]
-
-plot = plt.loglog
-for func, lstyle, grid in func_list:
-    df.setup_bode_plot('|G| and |Gd| Value over Frequency', w, func, plot, grid, lstyle)
+func_list = [[np.abs(freqrespG), '-'],
+             [np.abs(freqrespGd), '-'],
+             [np.ones(len(w)), 'r-.']]
 
 plt.vlines(2500, 10**(-2), 1, color='m', linestyle='dashed')
-plt.legend(('G', 'Gd', 'Gain Value of 1', 'wd'), loc=1)
-plt.show()
+df.setup_bode_plot('|G| and |Gd| Value over Frequency', w, func_list, legend=('G', 'Gd', 'Gain Value of 1', 'wd'))

@@ -113,15 +113,21 @@ def setup_plot(legend_list, w1=False, w2=False, G=False, K=False, wr=False):
     return w, gain
 
 
-def setup_bode_plot(title_str, w=None, func=False, plot=plt.plot, grid=False, linestyle='-'):
+def setup_bode_plot(title_str, w=numpy.logspace(-2, 2, 100), func=False, legend=False, plot=plt.loglog, grid=True):
 
     plt.figure(1)
     plt.title(title_str)
     plt.xlabel('Frequency [rad/s]', fontsize=14)
     plt.ylabel('Magnitude', fontsize=15)
 
-    if plot:
-        plot(w, func, linestyle)
+    if func:
+        for f, lstyle in func:
+            plot(w, f, lstyle)
 
     if grid:
         plt.grid(b=None, which='both', axis='both')
+
+    if legend:
+        plt.legend(legend, loc='best')
+
+    plt.show()

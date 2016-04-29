@@ -16,14 +16,8 @@ s = 1j*w
 Wi = (s + 0.2)/(0.5 * s + 1)
 Wp = (s/2 + 0.05)/s
 
-func_list = [[np.abs(Wi), '-', False],
-             [np.abs(Wp), '-', False],
-             [np.ones(len(w)), 'r-.', True]]
+func_list = [[np.abs(Wi), '-'],
+             [np.abs(Wp), '-'],
+             [np.ones(len(w)), 'r-.']]
 
-plot = plt.loglog
-for function, linestyle, grid_bool in func_list:
-    df.setup_bode_plot('Weight Values over Frequency', w, function, plot, grid_bool, linestyle)
-
-plt.legend(('Wi', 'Wp', 'Gain Value of 1'), loc='best')
-
-plt.show()
+df.setup_bode_plot('Weight Values over Frequency', w, func_list, legend=('Wi', 'Wp', 'Gain Value of 1'))
