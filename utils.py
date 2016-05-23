@@ -503,7 +503,7 @@ class mimotf(object):
             return result
 
 def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
-    """""
+    """
     Receives symbolic matrix of plant and disturbance transfer functions 
     as well as array of maximum deviations, scales plant variables according to eq () and ()
     
@@ -529,15 +529,18 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     -------
     >>> s = sympy.Symbol("s")
     
-    >>> G_hat = sympy.Matrix([[1/(s+2),s/(s**2-1)],[5*s/(s-1),1/(s+5)]])
+    >>> G_hat = sympy.Matrix([[1/(s + 2), s/(s**2 - 1)],
+    ...                       [5*s/(s - 1), 1/(s + 5)]])
+
     >>> e = numpy.array([1,2])
     >>> u = numpy.array([3,4])
+    
     >>> scaling(G_hat,e,u,input_type='symbolic')
 	Matrix([
-	[  3.0/(s + 2), 4.0*s/(s**2 - 1)],
-	[7.5*s/(s - 1),      2.0/(s + 5)]])
+	 [  3.0/(s + 2), 4.0*s/(s**2 - 1)],
+	 [7.5*s/(s - 1),      2.0/(s + 5)]])
     
-    """""
+    """
     
     De        = numpy.diag(e)
     De_inv    = numpy.linalg.inv(De)
