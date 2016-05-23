@@ -15,8 +15,6 @@ import fractions
 from decimal import Decimal
 from functools import reduce
 import itertools
-import math
-import cmath
 
 
 
@@ -225,7 +223,8 @@ class tf(object):
         >>> G(0)
         1.0
         """
-        return (numpy.polyval(self.numerator, s) * cmath.exp(-s * self.deadtime)) / numpy.polyval(self.denominator, s)
+        return (numpy.polyval(self.numerator, s) /
+                numpy.polyval(self.denominator, s) * numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
         other = astf(other)
@@ -491,17 +490,9 @@ class mimotf(object):
 
     def __getitem__(self, item):
         result = mimotf(self.matrix.__getitem__(item))
-        if result.shape == (1, 1):
-            return result.matrix[0, 0]
-        else:
-            return result
 
     def __slice__(self, i, j):
         result = mimotf(self.matrix.__slice__(i, j))
-        if result.shape == (1, 1):
-            return result.matrix[0, 0]
-        else:
-            return result
 
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
@@ -1869,7 +1860,7 @@ def minors(G, order):
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            minor.append(det(G[rowstokeep,colstokeep]))
+            minor.append(G[rowstokeep,colstokeep].det().simplify())
 
     return minor
 
@@ -2249,7 +2240,7 @@ def distRej(G, gd):
 def distRHPZ(G, Gd, RHP_Z):
     '''
     Applies equation 6.48 (p239) For performance requirements imposed by
-    disturbances. Calculate the system's zeros alignment with the disturbance
+    disturbances. Calculate the system's zeros alignment with the disturbacne
     matrix.
 
     Parameters
