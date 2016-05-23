@@ -490,9 +490,17 @@ class mimotf(object):
 
     def __getitem__(self, item):
         result = mimotf(self.matrix.__getitem__(item))
+        if result.shape == (1, 1):
+            return result.matrix[0, 0]
+        else:
+            return result
 
     def __slice__(self, i, j):
         result = mimotf(self.matrix.__slice__(i, j))
+        if result.shape == (1, 1):
+            return result.matrix[0, 0]
+        else:
+            return result
 
 
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
