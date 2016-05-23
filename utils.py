@@ -502,7 +502,92 @@ class mimotf(object):
         else:
             return result
 
+def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
+    """""
+    Receives symbolic matrix of plant and disturbance transfer functions 
+    as well as array of maximum deviations, scales plant variables according to eq () and ()
+    
+    Parameters
+    -----------
+    G_hat       : matrix of plant WITHOUT deadtime
+    e           : array of maximum plant output variable deviations 
+                  in same order as G matrix plant outputs
+    u           : array of maximum plant input variable deviations 
+                  in same order as G matrix plant inputs
+    input_type  : specifies whether input is symbolic matrix or utils mimotf
+    Gd_hat      : optional
+                  matrix of plant disturbance model WITHOUT deadtime
+    d           : optional
+                  array of maximum plant disturbance variable deviations 
+                  in same order as Gd matrix plant disturbances
+    Returns
+    ----------
+    G_scaled   : scaled plant function
+    Gd_scaled  : scaled plant disturbance function
+    
+    >>> G_hat = sp.Matrix([[1/(s+2),s/(s**2-1)],[5s/(s-1),1/(s+5)]])
+    >>> e = np.array([1,2,3,4])
+    >>> u = np.array([5,6,7,8])
+    >>> scaling(G_hat,e,u,input_type='symbolic')
+    
+    """""
+    
+    De        = numpy.diag(e)
+    De_inv    = numpy.linalg.inv(De)
+    Du        = numpy.diag(u)
+    
+    if Gd_hat and d:
+        Dd = numpy.diag(d)
 
+    if input_type == 'symbolic':
+        G_scaled  = De_inv*(G_hat)*(Du)
+        if Gd_hat and d:
+            Dd        = np.diag(d)
+            Gd_scaled = De_inv*(Gd_hat)*(Dd)
+            if G_hat.shape == (1,1):
+                return G_scaled[0,0],Gd_scaled[0,0]
+            else:
+                return G_scaled,Gd_scaled
+        else:
+            if G_hat.shape == (1,1):
+                return G_scaled[0,0]
+            else:
+                return G_scaled
+            
+    elif input_type == 'mimotf':
+        De_inv_utils= [[] for r in range(De_inv.shape[0])]
+        Du_utils    = [[] for r in range(Du.shape[0])]
+
+        for r in range(De_inv.shape[0]):
+            for c in range(De_inv.shape[1]):
+                De_inv_utils[r].append(tf([De_inv[r,c]]))
+        for r in range(Du.shape[0]):
+            for c in range(Du.shape[1]):
+                Du_utils[r].append(tf([Du[r,c]]))
+        
+        De_inv_mimo = mimotf(De_inv_utils)
+        Du_mimo = mimotf(Du_utils)
+        G_scaled  = De_inv_mimo*(G_hat)*(Du_mimo)
+        
+        if Gd_hat and d:
+            Dd_utils    = [[] for r in range(Dd.shape[0])]
+            for r in range(Dd.shape[0]):
+                for c in range(Dd.shape[1]):
+                    Dd_utils[r].append(tf([Dd[r,c]]))
+            Dd_mimo = mimotf(Dd_utils)
+            Gd_scaled = De_inv_mimo*(Gd_hat)*(Dd_mimo)
+            if G_hat.shape == (1,1):
+                return G_scaled[0,0],Gd_scaled[0,0]
+            else:
+                return G_scaled,Gd_scaled
+        else:
+            if G_hat.shape == (1,1):
+                return G_scaled[0,0]
+            else:
+                return G_scaled
+    else:
+        raise ValueError('No input type specified')
+                
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
