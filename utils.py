@@ -1941,9 +1941,10 @@ def minimal_realisation(a, b, c):
     return Aco, Bco, Cco
 
 def num_denom (A, symbolic_expr = False):
-	
+
     sym_den = 0
     sym_num = 0
+    s = sympy.Symbol('s')
 
     if type(A) == mimotf:
         denom   = 1
@@ -1953,7 +1954,6 @@ def num_denom (A, symbolic_expr = False):
             denom = list(numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs))
             num   = list(numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs))
             if symbolic_expr == True:
-            	s = sympy.Symbol('s')
                 for n in range(len(denom)):
                     sym_den = (sym_den + denom[len(denom) - n- 1] * s**n).simplify()
                 for n in range(len(num)):
@@ -1969,8 +1969,7 @@ def num_denom (A, symbolic_expr = False):
         denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
         num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
         if symbolic_expr == True:
-        	s = sympy.Symbol('s')
-            for n in range(len(denom)):
+        	for n in range(len(denom)):
                 sym_den = (sym_den + denom[len(denom) - n - 1] * s**n).simplify()
             for n in range(len(num)):
                 sym_num = (sym_num + num[len(num) - n - 1] * s**n).simplify()
