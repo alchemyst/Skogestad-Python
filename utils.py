@@ -1941,10 +1941,7 @@ def minimal_realisation(a, b, c):
     return Aco, Bco, Cco
 
 def num_denom (A, symbolic_expr = False):
-	'''
-	Returns the numerator and denominator as symbolic expressions or array of coefficients
-	input can be tf, mimotf or symbolic expression 
-	'''
+	
     sym_den = 0
     sym_num = 0
 
