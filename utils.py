@@ -1945,9 +1945,6 @@ def num_denom (A, symbolic_expr = False):
 	Returns the numerator and denominator as symbolic expressions or array of coefficients
 	input can be tf, mimotf or symbolic expression 
 	'''
-    
-    s = sympy.Symbol('s')            	
-    
     sym_den = 0
     sym_num = 0
 
@@ -1959,6 +1956,7 @@ def num_denom (A, symbolic_expr = False):
             denom = list(numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs))
             num   = list(numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs))
             if symbolic_expr == True:
+            	s = sympy.Symbol('s')
                 for n in range(len(denom)):
                     sym_den = (sym_den + denom[len(denom) - n- 1] * s**n).simplify()
                 for n in range(len(num)):
@@ -1974,6 +1972,7 @@ def num_denom (A, symbolic_expr = False):
         denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
         num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
         if symbolic_expr == True:
+        	s = sympy.Symbol('s')
             for n in range(len(denom)):
                 sym_den = (sym_den + denom[len(denom) - n - 1] * s**n).simplify()
             for n in range(len(num)):
