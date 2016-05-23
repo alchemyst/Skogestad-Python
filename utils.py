@@ -530,8 +530,8 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     >>> s = sympy.Symbol("s")
     
     >>> G_hat = sympy.Matrix([[1/(s+2),s/(s**2-1)],[5*s/(s-1),1/(s+5)]])
-    >>> e = numpy.array([1,2,3,4])
-    >>> u = numpy.array([5,6,7,8])
+    >>> e = numpy.array([1,2])
+    >>> u = numpy.array([3,4])
     >>> scaling(G_hat,e,u,input_type='symbolic')
     
     """""
