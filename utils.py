@@ -1969,7 +1969,7 @@ def num_denom (A, symbolic_expr = False):
         denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
         num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
         if symbolic_expr == True:
-        	for n in range(len(denom)):
+            for n in range(len(denom)):
                 sym_den = (sym_den + denom[len(denom) - n - 1] * s**n).simplify()
             for n in range(len(num)):
                 sym_num = (sym_num + num[len(num) - n - 1] * s**n).simplify()
@@ -1985,7 +1985,7 @@ def num_denom (A, symbolic_expr = False):
             denom      = [float(k) for k in den_poly.all_coeffs()]
             return numer, denom
         else:
-            return sym_num, sym_den
+            return sym_num, sym_deng
 
 def minors(G, order):
     '''
@@ -2000,9 +2000,6 @@ def minors(G, order):
 
 
 def lcm_of_all_minors(G):
-	'''
-	Returns the lowest common multiple of all minors of G 
-	'''
     Nrows, Ncols = G.shape
     lcm = 1
     for i in range(1, min(Nrows, Ncols) + 1, 1):
