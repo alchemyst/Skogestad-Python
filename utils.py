@@ -524,6 +524,21 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     ----------
     G_scaled   : scaled plant function
     Gd_scaled  : scaled plant disturbance function
+
+    Example
+    -------
+    >>> s = sympy.Symbol("s")
+
+    >>> G_hat = sympy.Matrix([[1/(s + 2), s/(s**2 - 1)],
+    ...                       [5*s/(s - 1), 1/(s + 5)]])
+
+    >>> e = numpy.array([1,2])
+    >>> u = numpy.array([3,4])
+
+    >>> scaling(G_hat,e,u,input_type='symbolic')
+    Matrix([
+    [  3.0/(s + 2), 4.0*s/(s**2 - 1)],
+    [7.5*s/(s - 1),      2.0/(s + 5)]])
     
     """
     
