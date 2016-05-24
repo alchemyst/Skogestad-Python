@@ -524,6 +524,21 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     ----------
     G_scaled   : scaled plant function
     Gd_scaled  : scaled plant disturbance function
+
+    Example
+    -------
+    >>> s = sympy.Symbol("s")
+
+    >>> G_hat = sympy.Matrix([[1/(s + 2), s/(s**2 - 1)],
+    ...                       [5*s/(s - 1), 1/(s + 5)]])
+
+    >>> e = numpy.array([1,2])
+    >>> u = numpy.array([3,4])
+
+    >>> scaling(G_hat,e,u,input_type='symbolic')
+    Matrix([
+    [  3.0/(s + 2), 4.0*s/(s**2 - 1)],
+    [7.5*s/(s - 1),      2.0/(s + 5)]])
     
     """
     
@@ -1940,6 +1955,53 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
+def num_denom (A, symbolic_expr = False):
+
+    sym_den = 0
+    sym_num = 0
+    s = sympy.Symbol('s')
+
+    if type(A) == mimotf:
+        denom   = 1
+        num     = 1
+        
+        for j in range(A.matrix.shape[1]):
+            denom = list(numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs))
+            num   = list(numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs))
+            if symbolic_expr == True:
+                for n in range(len(denom)):
+                    sym_den = (sym_den + denom[len(denom) - n- 1] * s**n).simplify()
+                for n in range(len(num)):
+                    sym_num = (sym_num + num[len(num) - n- 1] * s**n).simplify()
+                return sym_num, sym_den
+            else:
+                return num, denom
+            
+    elif type(A) == tf:
+        denom = []
+        num = []
+            
+        denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
+        num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
+        if symbolic_expr == True:
+            for n in range(len(denom)):
+                sym_den = (sym_den + denom[len(denom) - n - 1] * s**n).simplify()
+            for n in range(len(num)):
+                sym_num = (sym_num + num[len(num) - n - 1] * s**n).simplify()
+            return sym_num, sym_den
+        else:
+            return num, denom
+    else:
+        sym_num, sym_den = A.as_numer_denom()
+        if not symbolic_expr:
+            num_poly   = sympy.Poly(sym_num)
+            numer      = [float(k) for k in num_poly.all_coeffs()]
+            den_poly   = sympy.Poly(sym_den)
+            denom      = [float(k) for k in den_poly.all_coeffs()]
+            return numer, denom
+        else:
+            return sym_num, sym_den
+
 def minors(G, order):
     '''
     Returns the order minors of a MIMO tf G.
@@ -1948,18 +2010,20 @@ def minors(G, order):
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            minor.append(G[rowstokeep,colstokeep].det().simplify())
-
+            minor.append(det(G[rowstokeep,colstokeep]))
     return minor
 
 
 def lcm_of_all_minors(G):
+    '''
+    Returns the lowest common multiple of all minors of G 
+    '''
     Nrows, Ncols = G.shape
     lcm = 1
     for i in range(1, min(Nrows, Ncols) + 1, 1):
         allminors = minors(G, i)
         for m in allminors:
-            numer, denom = m.as_numer_denom()
+            numer, denom = num_denom(m,symbolic_expr = True)
             lcm = sympy.lcm(lcm, denom)
     return lcm
 
@@ -1971,33 +2035,28 @@ def poles(G):
 
     Parameters
     ----------
-    G : numpy matrix (n x n)
+    G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
 
     Returns
     -------
-    zero : array
-        List of zeros.
+    pole : array
+        List of poles.
 
     Example
     -------
-    >>> def G(s):
-    ...     return 1 / (s + 2) * numpy.matrix([[s - 1,  4],
-    ...                                       [4.5, 2 * (s - 1)]])
+    >>> s = tf([1,0],[1])
+    >>> G = mimotf([[(s - 1) / (s + 2), 4 / (s + 2)],
+    ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
-    [-2.00000000000000]
+    array([-2.])
 
-    Note
-    ----
-    Not applicable for a non-squared plant, yet.
     '''
 
-    s = sympy.Symbol('s')
-    G = sympy.Matrix(G(s))  # convert to sympy matrix object
-
     lcm = lcm_of_all_minors(G)
-
-    pole = sympy.solve(lcm,s)
+    lcm_poly = sympy.Poly(lcm)
+    lcm_coeff = [float(k) for k in lcm_poly.all_coeffs()]
+    pole = numpy.roots(lcm_coeff)
 
     return pole
 
