@@ -2099,6 +2099,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
 
     Example
     -------
+    >>> s = tf([1,0],[1])
     >>> G = mimotf([[(s - 1) / (s + 2), 4 / (s + 2)],
     ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> zeros(G)
