@@ -1975,18 +1975,16 @@ def num_denom (A, symbolic_expr = False):
         denom   = 1
         num     = 1
         
-        for j in range(A.matrix.shape[1]):
-            denom = list(numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs))
-            num   = list(numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs))
-            print(num)
-            if symbolic_expr == True:
-                for n in range(len(denom)):
-                    sym_den = (sym_den + denom[- n- 1] * s**n).simplify()
-                for n in range(len(num)):
-                    sym_num = (sym_num + num[- n- 1] * s**n).simplify()
-                return sym_num, sym_den
-            else:
-                return num, denom
+        denom = [numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs) for j in range(A.matrix.shape[1])]
+        num   = [numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs) for j in range(A.matrix.shape[1])]
+        if symbolic_expr == True:
+            for n in range(len(denom)):
+                sym_den = (sym_den + denom[- n- 1] * s**n).simplify()
+            for n in range(len(num)):
+                sym_num = (sym_num + num[- n- 1] * s**n).simplify()
+            return sym_num, sym_den
+        else:
+            return num, denom
             
     elif type(A) == tf:
         denom = []
