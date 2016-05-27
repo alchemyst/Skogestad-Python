@@ -16,19 +16,15 @@ G22 = 2 * (s - 1) / (s + 2)
 G = mimotf([[G11, G12],
             [G21, G22]])
 
-
 def Gdk(s, k):
-    return 6 / (s + 2) * np.matrix([[k],
-                                    [1]])
-
+    return 6 / (s + 2) * np.matrix([[k],[1]])
 
 def Gd(s):
     k = 1
     return Gdk(s, k)
 
-
 def Gdz(s):
-    k = sp.Symbol('k')
+    k = sp.Symbol('k',real=True)
     return Gdk(s, k)
 
 z_vec = G.zeros()
@@ -36,17 +32,11 @@ for z in z_vec:
     if z > 0:
         eq = distRHPZ(G, Gdz, z)
         print('For RHP-zero {0} the general condition is {1} < 1'.format(z, eq))
-        print('For k=1, |yzH.gd({0})| is {1}'.format(z, distRHPZ(G, Gd, z)))
-
-# Uncomment to find general solution
-#        k_range = sp.solve(eq - 1)
-#        print 'For acceptable control, k should be in the range {0}.'.format(k_range)
-#        print 'The plant is not input-output controllable if k < {0} or k > {1}.'.format(k_range[0], k_range[1])
-#
-# >>> Windows output:
-# ... For acceptable control, k should be in the range [-0.535183758487996, 1.86851709182133].
-# ... The plant is not input-output controllable if k < -0.535183758487996 or k > 1.86851709182133.
-
+        print('For k=1, |yzH.gd({0})| is {1} < 1'.format(z, distRHPZ(G, Gd, z)))
+        k = sp.Symbol('k',real=True)
+        k_range = sp.solve(eq - 1)
+        print('For acceptable control, k should be in the range {0}.'.format(k_range))
+        print('The plant is not input-output controllable if k < {0} or k > {1}.'.format(k_range[0], k_range[1]))
 
 # The section below demonstrates more utilsplot functions
 
