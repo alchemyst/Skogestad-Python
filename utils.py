@@ -395,7 +395,7 @@ class mimotf(object):
         >>> G.poles()
         array([-2.])
         """
-        return self.det().poles()
+        return poles(self)
 
     def zeros(self):
         return self.det().zeros()
