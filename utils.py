@@ -399,7 +399,7 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.poles()
-        array([-2.])
+        [-2.]
         """
         return poles(self)
 
