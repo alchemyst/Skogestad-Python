@@ -63,6 +63,8 @@ plt.legend()
 plt.xlabel('Frequency  [rad/s]')
 plt.ylabel('Magnitude')
 
+plt.show()
+
 # Note that minimum singular value of G(iw) where w < wB* is located at steady state (w=0)
 
 u, _, _ = np.linalg.svd(G(0))
