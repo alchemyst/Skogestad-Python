@@ -287,7 +287,7 @@ class tf(object):
 # TODO: Concatenate tf objects into MIMO structure
 
 def RHPonly(x,round_precision = 2):
-    return return list(set(numpy.round(xi, round_precision) for xi in x if xi.real > 0))
+    return list(set(numpy.round(xi, round_precision) for xi in x if xi.real > 0))
 
 @numpy.vectorize
 def evalfr(G, s):
