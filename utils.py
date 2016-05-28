@@ -286,6 +286,12 @@ class tf(object):
         return r
 # TODO: Concatenate tf objects into MIMO structure
 
+def RHPonly(x):
+    RHPx = []
+    for i in range(len(x)):
+        if x[i].real > 0:
+            RHPx.append(numpy.round(x[i], 2))
+    return list(set(RHPx))
 
 @numpy.vectorize
 def evalfr(G, s):
@@ -393,12 +399,12 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.poles()
-        array([-2.])
+        [-2.0]
         """
-        return self.det().poles()
+        return poles(self)
 
     def zeros(self):
-        return self.det().zeros()
+        return zeros(self)
 
     def cofactor_mat(self):
         A = self.matrix
@@ -2119,10 +2125,9 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         for m in allminors:
             numer, denom = num_denom(m,symbolic_expr=True)
             if denom != lcm:
-                numer *= lcm/denom
+                numer *= denom
             if numer.find('s'):
-                num_poly   = sympy.Poly(numer)
-                num_coeff  = [float(k) for k in num_poly.all_coeffs()]
+                num_coeff  = [float(k) for k in numer.as_poly().all_coeffs()]
                 if not gcd:
                     gcd = numpy.poly1d(num_coeff)
                 else:
