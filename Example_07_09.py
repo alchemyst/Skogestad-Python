@@ -5,22 +5,17 @@ import matplotlib.pyplot as plt
 def G(s):
     return 3 * (-2 * s + 1) / ((5 * s + 1) * (10 * s + 1))
 
-
 def K(s, kc):
     return kc * (12.7 * s + 1) / (12.7 * s)
-
 
 def Wi(s):
     return (10 * s + 0.33) / ((10 / 5.25) * s + 1)
 
-
 def Gnom(s):
     return 4 * (-3 * s + 1) / ((4 * s + 1) ** 2)
 
-
 def l(Gn, G):
     return np.abs((Gn - G) / G)
-
 
 def T(G, K):
     return (G * K) / (1 + G * K)
