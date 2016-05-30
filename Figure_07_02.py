@@ -22,7 +22,8 @@ def circle(centerx, centery, radius):
     y = centery + np.sin(angle)*radius
     plt.plot(x, y, 'r-')
 
-varrange = np.arange(2, 3, 0.1)
+def randomparameters():
+    return [2 + np.random.rand() for i in range(3)]
 
 N = 1000
 
@@ -31,11 +32,10 @@ for omega in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
     frn = G(s)
     r = abs(w_A(s))
 
-    frp = np.array([G_P(k,tau,theta,s)
-                    for k in varrange
-                    for tau in varrange
-                    for theta in varrange])
-    plt.plot(np.real(frp), np.imag(frp), 'b.')
+    for i in range(N):
+        k, tau, theta = randomparameters()
+        frp = G_P(k, tau, theta, s)
+        plt.plot(np.real(frp), np.imag(frp), 'b.')
 
     plt.plot(np.real(frn), np.imag(frn), 'ro')
     circle(np.real(frn), np.imag(frn), r)
@@ -50,12 +50,11 @@ plt.ylabel('Imaginary part (Im)')
 
 plt.figure(2)
 frn = G(s)
-frp = np.array([G_P(k,tau,theta,s)
-                for k in varrange
-                for tau in varrange
-                for theta in varrange])
-deviation = np.abs(frp - frn)
-distance = np.max(deviation,axis=0)
+distance = np.zeros_like(omega)
+for i in range(N):
+    k, tau, theta = randomparameters()
+    frp = G_P(k, tau, theta, s)
+    distance = np.maximum(abs(frp - frn), distance)
 
 plt.loglog(omega, distance, 'b--')
 plt.loglog(omega, list(map(abs, w_A(s))), 'r')
