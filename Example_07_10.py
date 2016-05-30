@@ -2,7 +2,6 @@ import utils
 import numpy as np
 import sympy as sp
 from scipy.optimize import fsolve
-from cmath import sqrt
 
 s = utils.tf([1,0],[1])
 L = (-s + 2)/(s*(s + 2))
