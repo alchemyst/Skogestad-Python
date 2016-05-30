@@ -1,4 +1,4 @@
-from __future__ import print_function, print_function
+from __future__ import print_function
 
 import numpy
 import matplotlib.pyplot as plt
@@ -7,14 +7,11 @@ import matplotlib.pyplot as plt
 def G(s):
     return 1/(s + 1)
 
-
 def wI(s):
     return (0.125*s + 0.25)/(0.125*s/4 + 1)
 
-
 def lI(Gp, G):
     return numpy.abs((Gp - G) / G)
-
 
 def satisfy(wI, G, Gp, params, s):
     distance = numpy.zeros((len(params), len(s)))
