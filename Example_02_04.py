@@ -6,7 +6,7 @@ from utils import feedback, tf, marginsclosedloop, ControllerTuning
 from utilsplot import step_response_plot, bodeclosedloop
 
 s = tf([1, 0], 1)
-G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
+G = 3*(-2*s + 1)/((10*s + 1)*(5*s + 1))
 
 [Kc, Taui, Ku, Pu] = ControllerTuning(G, method='ZN')
 print('Kc:', np.round(Ku / 2.2, 3))
@@ -14,7 +14,7 @@ print('Taui:', np.round(Pu / 1.2, 3))
 print('Ku:', np.round(Ku, 3))
 print('Pu:', np.round(Pu, 3))
 
-K1 = Kc * (1 + 1 / (Taui * s))
+K1 = Kc*(1 + 1/(Taui*s))
 K = K1[0]  # use this code to remove array
 L = G * K
 T = feedback(L, 1)

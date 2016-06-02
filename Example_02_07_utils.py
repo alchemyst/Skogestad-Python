@@ -4,14 +4,13 @@ import matplotlib.pyplot as plt
 import utilsplot
 import numpy as np
 
-
-s = tf([1, 0], 1)
+s = tf([1,0], 1)
 z = 0.1
 tau = 1
 
-L = (-s+z)/(s*(tau*s + tau*z + 2))
-T = (-s+z)/((s+z)*(tau*s+1))
-S = 1/(1+L)
+L = (-s + z)/(s*(tau*s + tau*z + 2))
+T = (-s + z)/((s + z)*(tau*s + 1))
+S = 1/(1 + L)
 
 mT = maxpeak(T)
 mS = maxpeak(S)
