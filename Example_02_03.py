@@ -49,4 +49,6 @@ else:
           + ' and Kc = ' + '%.2f' % Limit2)
 
 plt.plot(Krange, unstable_vec, 'rD')
+plt.xlabel('Kc')
+plt.ylabel('Stability: 0=unstable, 1=stable')
 plt.show()
