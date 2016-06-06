@@ -54,10 +54,13 @@ def Analyses_second_order(v, t, max_peeks):
     print('overshoot = ', overshoot)
 
     total_varaince = np.sum(np.abs(np.diff(y)))
-    print('Total Varaince ', total_varaince)
+    print('Total Variance ', total_varaince)
 
-    plt.plot(time_max, max_v, 'rD')
-    plt.plot(time_min, min_v, 'bD')
+    plt.plot(time_max, max_v, 'rD',label='maximum')
+    plt.plot(time_min, min_v, 'bD',label='minimum')
+    plt.xlabel('Time')
+    plt.ylabel('y(t)')
+    plt.legend()
     plt.show()
 
 # example
@@ -66,6 +69,7 @@ def Analyses_second_order(v, t, max_peeks):
 
 f = scs.lti([1], [1, 0.8, 1])
 [t, y] = f.step()
+
 
 #y = np.random.random(20)
 #t = np.linspace(0, 19, 20)
