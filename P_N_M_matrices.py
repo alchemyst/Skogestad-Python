@@ -4,14 +4,13 @@ Created on Thu May 09 18:25:34 2013
 
 @author: Simon Streicher
 """
-
+from __future__ import print_function
 import scipy.linalg as sc_lin
 import numpy as np
 import numpy.matlib
 
 # Calculates the P, N and M matrices for the six different kinds
 # of unstructured uncertainty in MIMO systems.
-
 
 # Approach: Use arrays for easy manipulation and convert to matrices
 # for linear algebra computations.
@@ -188,16 +187,16 @@ for k in range(len(omega)):
 # Input the step to view
 step = 500
 
-print "The following results is for step: " + str(step)
-print "and corresponds to a frequency of: " + str(omega[step]) + " rad/time"
+print("The following results is for step: " + str(step))
+print("and corresponds to a frequency of: " + str(omega[step]) + " rad/time")
 
-print "The P-matrix is:"
-print Pstore[step]
-print ""
+print("The P-matrix is:")
+print(Pstore[step])
+print("")
 
-print "The N-matrix is:"
-print Nstore[step]
-print ""
+print("The N-matrix is:")
+print(Nstore[step])
+print("")
 
-print "The M-matrix is:"
-print Mstore[step]
+print("The M-matrix is:")
+print(Mstore[step])

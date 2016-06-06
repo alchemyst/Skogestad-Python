@@ -312,7 +312,7 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
     return Bandwidth
 
 
-def mino_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
+def mimo_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     """
     Nyquist stability plot for MIMO system.
 
