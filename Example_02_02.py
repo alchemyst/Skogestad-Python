@@ -5,7 +5,7 @@ from utils import feedback, tf
 
 # Process model of G with various Controller Gains
 s = tf([1, 0], 1)
-G = 3 * (-2 * s + 1) / ((10 * s + 1) * (5 * s + 1))
+G = 3*(-2*s + 1)/((10*s + 1)*(5*s + 1))
 
 tspan = np.linspace(0, 50, 100)
 
