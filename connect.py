@@ -6,6 +6,8 @@ Created on Wed May 22 19:03:56 2013
 """
 from __future__ import print_function
 from utils import tf, feedback, tf_step
+import matplotlib.pyplot as plt
+import utilsplot
 
 """
 This function aims to be the Python equivalent of the MatLab connect function
@@ -27,12 +29,13 @@ C = 20*(s**2 + s + 60) / s / (s**2 + 40*s + 400)
 S = tf(10, [1, 10])
 
 T = F * feedback(G*C, S)
-
-# This is the same figure as in the reference
-
-tf_step(T, 6)
-
-
+# This is NOT the same figure as in the reference
+t, y = tf_step(T, 6)
+plt.plot(t, y)
+plt.xlabel('Time')
+plt.ylabel('y(t)')
+plt.show()
+#utilsplot.step(T, t_end = 6)
 
 # Assign names to lines as in second example
 F.u = 'r';  F.y = 'uF'
@@ -40,17 +43,14 @@ C.u = 'e';  C.y = 'uC'
 G.u = 'u';  G.y = 'ym'
 S.u = 'ym'; S.y = 'y'
 
-
 # There must be a better way to call the name of an object if the object has
 # already been assigned a name....
-
 F.name = 'F'
 C.name = 'C'
 G.name = 'G'
 S.name = 'S'
 
 print(S)
-
 
 def connect(blocks, line_in, line_out):
     """
