@@ -1,6 +1,6 @@
 from __future__ import print_function
 import numpy as np
-import scipy as sc
+from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 
 
@@ -20,7 +20,7 @@ def Nyquist(w_start, w_end):
     def mod(w):
         return np.abs(G(w))-1
 
-    w_start_n = sc.optimize.fsolve(mod, 0.001)
+    w_start_n = fsolve(mod, 0.001)
     print(w_start_n)
 
     plt.plot(np.real(G(w_start_n)), np.imag(G(w_start_n)), 'rD')
