@@ -1237,21 +1237,16 @@ def sym2mimotf(Gmat):
         for j in range(cols):
             G = Gmat[i,j]
             #select function denominator and convert is to list of coefficients
-            Gnum = G.as_numer_denom()[0]
-            if Gnum.is_Number: # can't convert single value to Poly
-                Gtf_num = float(Gnum)
-
-            else:
-                Gnum_poly = sympy.Poly(Gnum)
-                Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
-
-            Gden = G.as_numer_denom()[1]
-            if Gden.is_Number:
-                Gtf_den = float(Gden)
-
-            else:
-                Gden_poly = sympy.Poly(Gden)
-                Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
+            Gnum, Gden = G.as_numer_denom()
+            def poly_coeffs(G_comp):
+                if G_comp.is_Number:# can't convert single value to Poly
+                    G_comp_tf=float(G_comp)
+                else:
+                    G_comp_poly = sympy.Poly(G_comp)
+                    G_comp_tf = [float(k) for k in G_comp_poly.all_coeffs()]
+                return G_comp_tf
+            Gtf_num=poly_coeffs(Gnum)
+            Gtf_den=poly_coeffs(Gden)
             Gtf[i].append(tf(Gtf_num,Gtf_den))
     Gmimotf = mimotf(Gtf)
 
@@ -1560,7 +1555,7 @@ def state_observability_matrix(a, c):
     return observability_m
 
 
-def Kalman_controllable(A,B,C):
+def kalman_controllable(A,B,C):
     """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
        Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
     Parameters
@@ -1599,7 +1594,7 @@ def Kalman_controllable(A,B,C):
 
     >>> C = numpy.matrix([0, 0, 1, 1])
 
-    >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
+    >>> Ac, Bc, Cc = kalman_controllable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ac)
@@ -1634,7 +1629,7 @@ def Kalman_controllable(A,B,C):
         return Ac,Bc,Cc
 
 
-def Kalman_observable(A,B,C):
+def kalman_observable(A,B,C):
     """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
         Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
 
@@ -1673,7 +1668,7 @@ def Kalman_observable(A,B,C):
     ...                   [0]])
 
     >>> C = numpy.matrix([0, 0, 1, 1])
-    >>> Ao, Bo, Co = Kalman_observable(A, B, C)
+    >>> Ao, Bo, Co = kalman_observable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ao)
