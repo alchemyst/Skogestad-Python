@@ -766,6 +766,12 @@ def polygcd(a, b):
         a = b
         b = r
     return a/a[len(a)]
+    
+def polylcm(a, b):        
+    gcd = polygcd(a, b)
+    Ka,_ = numpy.polydiv(b,gcd)
+    Kb,_ = numpy.polydiv(a,gcd)
+    return (numpy.polymul(Ka,a))
 
 
 def arrayfun(f, A):
@@ -1473,6 +1479,128 @@ def feedback_mimo(forward, backward=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
+
+def tf2ss(H):
+    
+    '''
+    Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
+    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf 
+    which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
+
+    Parameters
+    ----------
+    H : mimotf
+        The mimotf object transfer function form
+    
+    Returns
+    -------
+    Ac : numpy matrix
+        The state matrix of the observable system
+    Bc : nump matrix
+        The input matrix of the observable system
+    Cc : numpy matrix
+        The output matrix of the observable system
+    Dc : numpy matrix
+        The output matrix of the observable system
+    
+    Example
+    -------
+    >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
+    ...             [tf(1,[1,1]),tf(1,[1,1])]])
+
+    >>> Ac, Bc, Cc, Dc = tf2ss(H)
+    >>> Ac
+    matrix([[ 0.,  1.,  0.],
+            [-2., -3.,  0.],
+            [ 0.,  0., -1.]])
+    >>> Bc
+    matrix([[ 0.,  0.],
+            [ 1.,  0.],
+            [ 0.,  1.]])
+    >>> Cc
+    matrix([[-1., -1.,  1.],
+            [ 2.,  1.,  1.]])
+    >>> Dc
+    matrix([[ 1.,  0.],
+            [ 0.,  0.]])
+    '''
+
+    Hrows,Hcols = H.shape
+    d=[[] for k in range(Hcols)]  #construct some empty lists for use later
+    mu=[[] for k in range(Hcols)]
+    Lvect = [[] for k in range(Hcols)]
+    L = numpy.empty(0)
+    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d)) 
+    Hinf = numpy.asmatrix(numpy.zeros((Hrows,Hcols)))
+
+    for j in range(Hcols):
+        lcm = numpy.poly1d(1)
+        for i in range(Hrows):
+            lcm = polylcm(lcm,H[i,j].denominator)  #find the lcm of the denominators of the elements in each column
+            if H[i,j].numerator.order == H[i,j].denominator.order:  # check if the individual elements are proper
+                Hinf[i,j ]= H[i,j].numerator.coeffs[0]/H[i,j].denominator.coeffs[0]  #approximate the limit as s->oo for the transfer function elements
+            elif H[i,j].numerator.order > H[i,j].denominator.order:
+                return 'please enter a matrix of stricly proper transfer functions'
+                
+
+        d[j] = tf(lcm)  #convert lcm to a tf object
+        mu[j] = lcm.order
+        D[j,j] = d[j]  #create a diagonal matrix of lcms
+
+        Lvect[j] = list((d[j].numerator.coeffs[1:]))  #create a list of coeffs of the lcm for that column, excluding the highest order element
+        Lvect[j].reverse()
+        L = sc_linalg.block_diag(L,Lvect[j])  #create a block diagonal matrix from the list of lists
+
+    Lmat = numpy.asmatrix(L) #convert L to a matrix
+    N = H*D
+    MS = N-Hinf*D
+
+    def num_coeffs(x):
+        return x.numerator.coeffs
+
+    def offdiag(m):
+        identity = numpy.eye(m-1)
+        vzeros = numpy.zeros((m-1,1))
+        hzeros = numpy.zeros((1,m))
+        mat = numpy.concatenate((vzeros,identity),axis=1)
+        mat = numpy.concatenate((mat,hzeros),axis=0)
+        return numpy.asmatrix(mat[:m,:m])
+
+    def lowerdiag(m):
+        vzeros = numpy.zeros((m,1))
+        vzeros[len(vzeros)-1] = 1  
+        return vzeros
+
+    MSrows,MScols=MS.shape
+
+    for j in range(MScols):  #this loop generate the M matrix, which forms the output matrix, C
+        maxlength = max(len(num_coeffs(MS[k,j])) for k in range(MSrows))
+        Mvect = numpy.zeros((MSrows,maxlength))
+        for i in range(MS.shape[0]):
+            M_coeffs = list(num_coeffs(MS[i,j]))
+            M_coeffs.reverse()
+            Mvect[i,maxlength-len(M_coeffs):] = M_coeffs
+        if j == 0:
+            Mmat = numpy.matrix(Mvect)
+        else:
+            Mmat = numpy.asmatrix(numpy.hstack((Mmat,numpy.matrix(Mvect))))
+
+    Acbar = numpy.empty(0)
+    Bcbar = numpy.empty(0)
+    
+    for order in mu:
+        Acbar = sc_linalg.block_diag(Acbar,offdiag(order))  #constructs an off diagonal matrix used to form the state matrix
+        Bcbar = sc_linalg.block_diag(Bcbar,lowerdiag(order))  #constructs a lower diagonal matrix which forms the input matrix
+    
+    Acbar = numpy.asmatrix(Acbar)
+    Bcbar = numpy.asmatrix(Bcbar)
+    Ac = Acbar-Bcbar*Lmat
+    Bc = Bcbar
+    Cc = Mmat
+    Dc = Hinf
+    
+    return Ac,Bc,Cc,Dc
+    
 
 def state_controllability(A, B):
     '''
