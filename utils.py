@@ -766,6 +766,12 @@ def polygcd(a, b):
         a = b
         b = r
     return a/a[len(a)]
+    
+def polylcm(a, b):        
+    gcd = polygcd(a, b)
+    Ka,_ = numpy.polydiv(b,gcd)
+    Kb,_ = numpy.polydiv(a,gcd)
+    return (numpy.polymul(Ka,a))
 
 
 def arrayfun(f, A):
@@ -1231,30 +1237,27 @@ def sym2mimotf(Gmat):
     """
     rows, cols = Gmat.shape
     #create empty list of lists. This will be appended to form mimotf input list
-    Gtf=[[] for y in range(rows)]
+    Gtf = [[] for y in range(rows)]
 
     for i in range(rows):
         for j in range(cols):
             G = Gmat[i,j]
             #select function denominator and convert is to list of coefficients
-            Gnum = G.as_numer_denom()[0]
-            if Gnum.is_Number: # can't convert single value to Poly
-                Gtf_num = float(Gnum)
-
-            else:
-                Gnum_poly = sympy.Poly(Gnum)
-                Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
-
-            Gden = G.as_numer_denom()[1]
-            if Gden.is_Number:
-                Gtf_den = float(Gden)
-
-            else:
-                Gden_poly = sympy.Poly(Gden)
-                Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
+            Gnum, Gden = G.as_numer_denom()
+            
+            def poly_coeffs(G_comp):
+                if G_comp.is_Number:  # can't convert single value to Poly
+                    G_comp_tf = float(G_comp)
+                else:
+                    G_comp_poly = sympy.Poly(G_comp)
+                    G_comp_tf = [float(k) for k in G_comp_poly.all_coeffs()]
+                return G_comp_tf
+                
+            Gtf_num = poly_coeffs(Gnum)
+            Gtf_den = poly_coeffs(Gden)
             Gtf[i].append(tf(Gtf_num,Gtf_den))
+            
     Gmimotf = mimotf(Gtf)
-
     return Gmimotf
 
 
@@ -1477,6 +1480,128 @@ def feedback_mimo(forward, backward=None, positive=False):
 ###############################################################################
 
 
+def tf2ss(H):
+    
+    '''
+    Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
+    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf 
+    which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
+
+    Parameters
+    ----------
+    H : mimotf
+        The mimotf object transfer function form
+    
+    Returns
+    -------
+    Ac : numpy matrix
+        The state matrix of the observable system
+    Bc : nump matrix
+        The input matrix of the observable system
+    Cc : numpy matrix
+        The output matrix of the observable system
+    Dc : numpy matrix
+        The output matrix of the observable system
+    
+    Example
+    -------
+    >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
+    ...             [tf(1,[1,1]),tf(1,[1,1])]])
+
+    >>> Ac, Bc, Cc, Dc = tf2ss(H)
+    >>> Ac
+    matrix([[ 0.,  1.,  0.],
+            [-2., -3.,  0.],
+            [ 0.,  0., -1.]])
+    >>> Bc
+    matrix([[ 0.,  0.],
+            [ 1.,  0.],
+            [ 0.,  1.]])
+    >>> Cc
+    matrix([[-1., -1.,  1.],
+            [ 2.,  1.,  1.]])
+    >>> Dc
+    matrix([[ 1.,  0.],
+            [ 0.,  0.]])
+    '''
+
+    Hrows,Hcols = H.shape
+    d=[[] for k in range(Hcols)]  #construct some empty lists for use later
+    mu=[[] for k in range(Hcols)]
+    Lvect = [[] for k in range(Hcols)]
+    L = numpy.empty(0)
+    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d)) 
+    Hinf = numpy.asmatrix(numpy.zeros((Hrows,Hcols)))
+
+    for j in range(Hcols):
+        lcm = numpy.poly1d(1)
+        for i in range(Hrows):
+            lcm = polylcm(lcm,H[i,j].denominator)  #find the lcm of the denominators of the elements in each column
+            if H[i,j].numerator.order == H[i,j].denominator.order:  # check if the individual elements are proper
+                Hinf[i,j ]= H[i,j].numerator.coeffs[0]/H[i,j].denominator.coeffs[0]  #approximate the limit as s->oo for the transfer function elements
+            elif H[i,j].numerator.order > H[i,j].denominator.order:
+                return 'please enter a matrix of stricly proper transfer functions'
+                
+
+        d[j] = tf(lcm)  #convert lcm to a tf object
+        mu[j] = lcm.order
+        D[j,j] = d[j]  #create a diagonal matrix of lcms
+
+        Lvect[j] = list((d[j].numerator.coeffs[1:]))  #create a list of coeffs of the lcm for that column, excluding the highest order element
+        Lvect[j].reverse()
+        L = sc_linalg.block_diag(L,Lvect[j])  #create a block diagonal matrix from the list of lists
+
+    Lmat = numpy.asmatrix(L) #convert L to a matrix
+    N = H*D
+    MS = N-Hinf*D
+
+    def num_coeffs(x):
+        return x.numerator.coeffs
+
+    def offdiag(m):
+        identity = numpy.eye(m-1)
+        vzeros = numpy.zeros((m-1,1))
+        hzeros = numpy.zeros((1,m))
+        mat = numpy.concatenate((vzeros,identity),axis=1)
+        mat = numpy.concatenate((mat,hzeros),axis=0)
+        return numpy.asmatrix(mat[:m,:m])
+
+    def lowerdiag(m):
+        vzeros = numpy.zeros((m,1))
+        vzeros[len(vzeros)-1] = 1  
+        return vzeros
+
+    MSrows,MScols=MS.shape
+
+    for j in range(MScols):  #this loop generate the M matrix, which forms the output matrix, C
+        maxlength = max(len(num_coeffs(MS[k,j])) for k in range(MSrows))
+        Mvect = numpy.zeros((MSrows,maxlength))
+        for i in range(MS.shape[0]):
+            M_coeffs = list(num_coeffs(MS[i,j]))
+            M_coeffs.reverse()
+            Mvect[i,maxlength-len(M_coeffs):] = M_coeffs
+        if j == 0:
+            Mmat = numpy.matrix(Mvect)
+        else:
+            Mmat = numpy.asmatrix(numpy.hstack((Mmat,numpy.matrix(Mvect))))
+
+    Acbar = numpy.empty(0)
+    Bcbar = numpy.empty(0)
+    
+    for order in mu:
+        Acbar = sc_linalg.block_diag(Acbar,offdiag(order))  #constructs an off diagonal matrix used to form the state matrix
+        Bcbar = sc_linalg.block_diag(Bcbar,lowerdiag(order))  #constructs a lower diagonal matrix which forms the input matrix
+    
+    Acbar = numpy.asmatrix(Acbar)
+    Bcbar = numpy.asmatrix(Bcbar)
+    Ac = Acbar-Bcbar*Lmat
+    Bc = Bcbar
+    Cc = Mmat
+    Dc = Hinf
+    
+    return Ac,Bc,Cc,Dc
+    
+
 def state_controllability(A, B):
     '''
     This method checks if the state space description of the system is state
@@ -1560,9 +1685,9 @@ def state_observability_matrix(a, c):
     return observability_m
 
 
-def Kalman_controllable(A,B,C):
+def kalman_controllable(A,B,C):
     """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-       Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
+       Can be used in sequentially with kalman_observable to obtain a minimal realisation.
     Parameters
     ----------
     A : numpy matrix
@@ -1599,7 +1724,7 @@ def Kalman_controllable(A,B,C):
 
     >>> C = numpy.matrix([0, 0, 1, 1])
 
-    >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
+    >>> Ac, Bc, Cc = kalman_controllable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ac)
@@ -1634,9 +1759,9 @@ def Kalman_controllable(A,B,C):
         return Ac,Bc,Cc
 
 
-def Kalman_observable(A,B,C):
+def kalman_observable(A,B,C):
     """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-        Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
+        Can be used in sequentially with kalman_controllable to obtain a minimal realisation.
 
     Parameters
     ----------
@@ -1673,7 +1798,7 @@ def Kalman_observable(A,B,C):
     ...                   [0]])
 
     >>> C = numpy.matrix([0, 0, 1, 1])
-    >>> Ao, Bo, Co = Kalman_observable(A, B, C)
+    >>> Ao, Bo, Co = kalman_observable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ao)
