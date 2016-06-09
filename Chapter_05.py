@@ -12,7 +12,7 @@ All of the below function are from pages 206-207 and the associated rules that
 analyse the controllability of SISO problems
 """
 
-# TODO merge all siso_controllability.py routines with this file
+# TO DO merge all siso_controllability.py routines with this file
 def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     """
     This is rule one of chapter five
@@ -66,19 +66,23 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
             print('First condition met, wc > wd')
         else:
             print('First condition no met, wc < wd')
-        print('Seconds conditions requires |S(jw)| <= |1/Gd(jw)|')
+        print('Second condition requires |S(jw)| <= |1/Gd(jw)|')
 
     if plot:
-        plt.figure('Rule 1')
-
-        w, mag_s = df.setup_plot(['|S|', '1/R', '$w_r$'], w1, w2, G, K, wr)
-
-        inv_gd = 1 / Gd
+        w = np.logspace(w1,w2,1000)
+        s = 1j*w
+        S = 1/(1+G*K)
+        gain = np.abs(S(s))
+        inv_gd = 1/Gd
         mag_i = np.abs(inv_gd(s))
 
-        plt.loglog(w, mag_s)
-        plt.loglog(w, mag_i, ls = '--')
-        df.setup_plot(['|S|', '1/|Gd|'])
+        plt.figure('Rule 1')
+        plt.loglog(w, gain, label = '|S|')
+        plt.loglog(w, mag_i, ls = '--',label='|1/G_d |')
+        plt.xlabel('Frequency [rad/s]')
+        plt.ylabel('Magnitude')
+        plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+        plt.show()
 
     return valid1, wc, wd
 
@@ -127,14 +131,21 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
 
     if message:
         print('Rule 2:')
-        print('Conditions requires |S(jw)| <= ', invref)
+        print('Conditions requires |S(jw)| <= ', np.round(invref,2))
 
     if plot:
-        plt.figure('Rule 2')
+        w = np.logspace(w1,w2,1000)
+        s = 1j*w
+        S = 1/(1+G*K)
+        gain = np.abs(S(s))
 
-        w, mag_s = df.setup_plot(['|S|', '1/R', '$w_r$'], w1, w2, G, K, wr)
-        plt.loglog(w, mag_s)
-        plt.loglog(w,  invref * np.ones(len(w)), ls = '--')
+        plt.figure('Rule 2')
+        plt.loglog(w, gain, label = '|S|')
+        plt.loglog(w,  invref * np.ones(len(w)), ls = '--', label = '1/R')
+        plt.xlabel('Frequency [rad/s]')
+        plt.ylabel('Magnitude')
+        plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+        plt.show()
 
     return invref
 
@@ -232,15 +243,20 @@ def rule4(G, R, wr, message=False, w1=-4, w2=2):
     s = 1j * w
 
     mag_g = np.abs(G(s))
-    mag_rr = (R - 1) * np.ones(len(w))
+    mag_rr = (R - 1)*np.ones(len(w))
 
     if message:
         print('Rule 4:')
+        print('To avoid input saturation when setpoints change, we require |G(jw)| > R - 1')
 
     plt.figure('Rule 4')
-    plt.loglog(w, mag_g)
-    plt.loglog(w,  mag_rr, ls = '--')
-    df.setup_plot(['|G|', 'R - 1', '$w_r$'], wr, mag_g)
+    plt.loglog(w, mag_g, label='|G|')
+    plt.loglog(w,  mag_rr, ls = '--', label='R - 1')
+    plt.xlabel('Frequency [rad/s]')
+    plt.ylabel('Magnitude')
+    plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+    plt.show()
+    #df.setup_plot(['|G|', 'R - 1', '$w_r$'], wr, mag_g)
 
 
 def rule5(G, Gm=1, message=False):
@@ -283,11 +299,11 @@ def rule5(G, Gm=1, message=False):
     if message:
         print('Rule 5:')
         if TimeDelay == 0:
-            print('There isn t any deadtime in the system')
+            print("There isn't any deadtime in the system")
         if valid5:
-            print('wc < 1 / theta :', wc , '<' , wtd)
+            print('wc < 1 / theta :', np.round(wc,2) , '<' , np.round(wtd,2))
         else:
-            print('wc > 1 / theta :', wc , '>' , wtd)
+            print('wc > 1 / theta :', np.round(wc,2) , '>' , np.round(wtd,2))
 
     return valid5, wtd
 
@@ -296,7 +312,7 @@ def rule6(G, Gm, message=False):
     """
     This is rule six of chapter five
 
-    Calculates if tight control at low frequencies with ZHP-zeros is possible
+    Calculates if tight control at low frequencies with RHP-zeros is possible
 
     Parameters
     ----------
@@ -320,7 +336,7 @@ def rule6(G, Gm, message=False):
     """
 
     GGm = G * Gm
-    zeros = np.roots(GGm.numerator)
+    zeros = GGm.zeros()
 
     _,_,wc,_ = margins(GGm)
 
@@ -328,21 +344,21 @@ def rule6(G, Gm, message=False):
     if len(zeros) > 0:
         if np.imag(np.min(zeros)) == 0:
             # If the roots aren't imaginary.
-            # Looking for the minimum values of the zeros = > results
-            # in the tightest control.
-            wz = (np.min(np.abs(zeros)))/2.000
-            valid6 = wc < 0.86 * np.abs(wz)
+            # Looking for the minimum values of the zeros => 
+            # results in the tightest control.
+            wz = (np.min(np.abs(zeros)))/2
+            valid6 = wc < 0.86*np.abs(wz)
         else:
-            wz = 0.8600*np.abs(np.min(zeros))
-            valid6 = wc < wz /2
+            wz = 0.86*np.abs(np.min(zeros))
+            valid6 = wc < wz/2
     else: valid6 = False
 
     if message:
         print('Rule 6:')
         if wz != 0:
-            print('These are the roots of the transfer function matrix GGm' , zeros)
+            print('These are the roots of the transfer function matrix GGm', zeros)
         if valid6:
-            print('The critical frequency of S for the system to be controllable is' , wz)
+            print('The critical frequency of S for the system to be controllable is', wz)
         else: print('No zeros in the system to evaluate')
     return valid6, wz
 
@@ -379,19 +395,19 @@ def rule7(G, Gm, message=False):
     # Rule 7 determining the phase of GGm at -180 deg.
     # This is solved visually from a plot.
 
-    GGm = G * Gm
-    _,_,wc,w_180 = margins(GGm)
+    GGm = G*Gm
+    _, _, wc, wu = margins(GGm)
 
-    valid7 = wc < w_180
+    valid7 = wc < wu
 
     if message:
         print('Rule 7:')
         if valid7:
-            print('wc < wu :' , wc , '<' , w_180)
+            print('wc < wu :' , wc , '<' , wu)
         else:
-            print('wc > wu :' , wc , '>' , w_180)
+            print('wc > wu :' , wc , '>' , wu)
 
-    return valid7
+    return valid7, wu
 
 
 def rule8(G, message=False):
@@ -418,12 +434,12 @@ def rule8(G, message=False):
     """
     #Rule 8 for critical frequency min value due to poles
 
-    poles = np.roots(G.denominator)
+    poles = G.poles()
     _,_,wc,_ = margins(G)
 
     wp = 0
     if np.max(poles) < 0:
-        wp = 2 * np.max(np.abs(poles))
+        wp = 2*np.max(np.abs(poles))
         valid8 = wc > wp
     else: valid8 = False
 
@@ -439,26 +455,42 @@ def rule8(G, message=False):
 
 def allSISOrules(G, deadtime, Gd, K, R, wr, Gm):
 
-    rule1(G, Gd, K, True, True)
+    _, wc, wd = rule1(G, Gd, K, True, True)
     rule2(G, R, K, 50, True, True)
     rule3(G, Gd, True)
     rule4(G, R, wr, True)
-    G.deadtime = deadtime
-    rule5(G, Gm, True)
-    rule6(G, Gm, True)
-    rule7(G, Gm, True)
-    rule8(G, True)
-
+    _, wtd = rule5(G, Gm, True)
+    _, wz = rule6(G, Gm, True)
+    _, wu = rule7(G, Gm, True)
+    _, wp = rule8(G, True)
+    
+    w = np.logspace(-4, 2, 1000)
+    s = 1j*w
+    L = G*K/(1+G*K)
+    plt.figure('Combined SISO Controllability Rules')
+    plt.loglog(w, np.abs(G(s)), label = '|G|')
+    plt.loglog(w, np.abs(Gd(s)), label = '|Gd|')
+    plt.loglog(w, np.abs(L(s)), label = '|L|')
+    plt.axvline(wd, ls='--', color = 'k', label='$\omega_d$')
+    plt.axvline(wc, ls='--', color = 'k', label='$\omega_c$')
+    plt.scatter(wp, 1, color='blue', label='$2p$')
+    plt.scatter(wz, 1, color='lime', label='$z/2$')
+    plt.scatter(wu, 1, color='magenta', label='$\omega_u$')
+    plt.scatter(wtd, 1, color='red', label='$1/ \theta$')
+    plt.legend()
+    plt.xlim([10**-4,10**4])
+    plt.ylim([10**-1,10**3])
+    plt.show()
 
 if __name__ == '__main__': # only executed when called directly, not executed when imported
 
     s = tf([1, 0], 1)
 
     # Example plant based on Example 2.9 and Example 2.16
-    G = (s + 200) / ((10 * s + 1) * (0.05 * s + 1)**2)
+    G = (s + 200)/((10*s + 1)*(0.05*s + 1)**2)
     deadtime = 0.002
-    Gd = 33 / (10 * s + 1)
-    K = 0.4 * ((s + 2) / s) * (0.075 * s + 1)
+    Gd = 33/(10 * s + 1)
+    K = 0.4*((s + 2)/s)*(0.075*s + 1)
     R = 3.0
     wr = 10
     Gm = 1 #Measurement model
