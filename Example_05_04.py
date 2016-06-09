@@ -2,6 +2,7 @@ from utils import tf, RHPonly, polygcd
 import numpy as np
 import numpy.linalg as nplinalg
 import sympy as sp
+from sympy.core.compatibility import as_int
 
 def add_deadtime_SISO(G, deadtime):
     G = (tf(list(G.numerator.coeffs), list(G.denominator.coeffs),deadtime = deadtime))
@@ -38,7 +39,7 @@ def Gstable(G,poles):
     if numer.find('s'):
         num_coeff  = ceoff_symbolic_poly(numer)
     else:
-        num_coeff = numer
+        num_coeff = as_int(numer)
     if denom.find('s'):
         den_coeff  = ceoff_symbolic_poly(denom)
     else:
