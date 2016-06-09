@@ -5,13 +5,13 @@ from utilsplot import step_response_plot
 from utils import feedback, tf
 
 
-s = tf([1, 0], 1)
+s = tf([1,0], 1)
 
 Kd = 0.5
 
-G = 5 / ((10 * s + 1) * (s - 1))
-Gd = Kd / ((s + 1) * (0.2 * s + 1))
-K = 0.04 / s * ((10 * s + 1)**2) / ((0.1 * s + 1)**2)
+G = 5/((10*s + 1)*(s - 1))
+Gd = Kd/((s + 1)*(0.2*s + 1))
+K = 0.04/s*((10*s + 1)**2)/((0.1*s + 1)**2)
 
 L = G * K
 
