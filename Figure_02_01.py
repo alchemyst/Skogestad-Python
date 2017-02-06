@@ -1,16 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-w = 0.2
+w = 0.2 #rad/s
 s = w*1j
 G = 5*np.exp(-2*s)/(10*s + 1)
 
 t = np.linspace(0, 100, 200)
-GM = np.abs(G)
-PM = np.angle(G)
+GN = np.abs(G)      #Gain at w = 0.2 rad/s
+PS = np.angle(G)    #Phase Shift at w = 0.2 rad/s
 
 u = np.sin(w*t)
-y = GM*np.sin(w*t + PM)
+y = GN*np.sin(w*t + PS)
 
 plt.figure('Figure 2.1')
 plt.title('Sinusoidal response for system G(s)')
