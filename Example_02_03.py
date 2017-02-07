@@ -48,5 +48,8 @@ else:
     print('Stable between Kc = ' + '%.2f' % Limit1 \
           + ' and Kc = ' + '%.2f' % Limit2)
 
-plt.plot(Krange, unstable_vec, 'rD')
+plt.plot(Krange, unstable_vec, 'rD', label ='0=unstable\n1=stable')
+plt.xlabel('Kc')
+plt.ylabel('Stability')
+plt.legend()
 plt.show()

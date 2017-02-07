@@ -11,7 +11,7 @@ wI1 = (T * s + 0.2) / (T/2.5 * s + 1)
 plt.loglog(w, np.abs(wI1), "r")
 
 wI2 = wI1 * (s**2 + 1.6 * s + 1) / (s**2 + 1.4 * s + 1)
-plt.loglog(w, np.abs(wI2), "m--")
+plt.loglog(w, np.abs(wI2), "--",color='lime',linewidth=2)
 
 k = 2.5
 tau = 2.5

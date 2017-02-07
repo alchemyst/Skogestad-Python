@@ -1,4 +1,4 @@
-from __future__ import print_function, print_function
+from __future__ import print_function
 
 import numpy
 import matplotlib.pyplot as plt
@@ -7,14 +7,11 @@ import matplotlib.pyplot as plt
 def G(s):
     return 1/(s + 1)
 
-
 def wI(s):
     return (0.125*s + 0.25)/(0.125*s/4 + 1)
 
-
 def lI(Gp, G):
     return numpy.abs((Gp - G) / G)
-
 
 def satisfy(wI, G, Gp, params, s):
     distance = numpy.zeros((len(params), len(s)))
@@ -98,13 +95,12 @@ def frequency_plot_setup(axlim, w_start=None, w_end=None, points=None):
 def setup_plot(legend_list, w1=False, w2=False, G=False, K=False, wr=False):
 
     if w1 and w2 and G:
-        w = np.logspace(w1,w2,1000)
+        w = numpy.logspace(w1,w2,1000)
         s = 1j*w
         S = 1/(1+G*K)
-        gain = np.abs(S(s))
-        plt.loglog(wr*np.ones(2), [np.max(gain), np.min(gain)], ls=':')
-    plt.legend(legend_list,
-               bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
+        gain = numpy.abs(S(s))
+        plt.loglog(wr*numpy.ones(2), [numpy.max(gain), numpy.min(gain)], ls=':')
+    plt.legend(legend_list, bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
     plt.grid()
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')

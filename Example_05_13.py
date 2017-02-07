@@ -5,21 +5,21 @@ from utilsplot import step_response_plot
 from utils import feedback, tf
 
 
-s = tf([1, 0], 1)
+s = tf([1,0], 1)
 
 Kd = 0.5
 
 G = 5/((10*s + 1)*(s - 1))
 Gd = Kd/((s + 1)*(0.2*s + 1))
-K = 0.04/s * ((10*s + 1)**2)/((0.1*s + 1)**2)
+K = 0.04/s*((10*s + 1)**2)/((0.1*s + 1)**2)
 
 L = G * K
 
 # Transfer function between disturbance and output y
-S = feedback(1, L)*Gd
+S = feedback(1, L) * Gd
 
 # Transfer function between disturbance and controller input u
-Gu = -S*K
+Gu = -S * K
 
 plt.figure('Figure 5.16 (a)')
 

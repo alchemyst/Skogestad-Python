@@ -6,10 +6,10 @@ from utilsplot import step_response_plot, bodeclosedloop
 
 
 s = tf([1, 0], 1)
-G = 4 / ((s - 1) * (0.02 * s + 1)**2)
+G = 4/((s - 1)*(0.02*s + 1)**2)
 Kc = 1.25
 Tauc = 1.5
-K = Kc * (1 + 1 / (Tauc * s))
+K = Kc*(1 + 1/(Tauc*s))
 L = K * G
 T = feedback(L, 1)
 S = feedback(1, L)

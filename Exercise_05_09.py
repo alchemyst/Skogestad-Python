@@ -24,7 +24,7 @@ for w in ws:
 
 plt.loglog(ws, omegas)
 plt.xlabel("Freq")
-plt.ylabel("1/W_p")
+plt.ylabel("$1/W_p$")
 plt.show()
 
 

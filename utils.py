@@ -286,6 +286,8 @@ class tf(object):
         return r
 # TODO: Concatenate tf objects into MIMO structure
 
+def RHPonly(x,round_precision = 2):
+    return list(set(numpy.round(xi, round_precision) for xi in x if xi.real > 0))
 
 @numpy.vectorize
 def evalfr(G, s):
@@ -374,6 +376,16 @@ class mimotf(object):
         # We only support matrices of transfer functions
         self.shape = self.matrix.shape
 
+    def mimotf_slice(self,rows,cols):
+        nRows = len(rows)
+        nCols = len(cols)
+        result = [[] for r in range(nRows)]
+        for r in range(nRows):
+            for c in range(nCols):
+                result[r].append(tf(list(self[r,c].numerator.coeffs), list(self[r,c].denominator.coeffs)))
+            
+        return mimotf(result)
+
     def det(self):
         return det(self.matrix)
 
@@ -383,12 +395,12 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.poles()
-        array([-2.])
+        [-2.0]
         """
-        return self.det().poles()
+        return poles(self)
 
     def zeros(self):
-        return self.det().zeros()
+        return zeros(self)
 
     def cofactor_mat(self):
         A = self.matrix
@@ -496,7 +508,7 @@ class mimotf(object):
             return result
 
     def __slice__(self, i, j):
-        result = mimotf(self.matrix.__slice__(i, j))
+        result = mimotf(self.matrix[i, j])
         if result.shape == (1, 1):
             return result.matrix[0, 0]
         else:
@@ -524,7 +536,22 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     ----------
     G_scaled   : scaled plant function
     Gd_scaled  : scaled plant disturbance function
-    
+
+    Example
+    -------
+    >>> s = sympy.Symbol("s")
+
+    >>> G_hat = sympy.Matrix([[1/(s + 2), s/(s**2 - 1)],
+    ...                       [5*s/(s - 1), 1/(s + 5)]])
+
+    >>> e = numpy.array([1,2])
+    >>> u = numpy.array([3,4])
+
+    >>> scaling(G_hat,e,u,input_type='symbolic')
+    Matrix([
+    [  3.0/(s + 2), 4.0*s/(s**2 - 1)],
+    [7.5*s/(s - 1),      2.0/(s + 5)]])
+
     """
     
     De        = numpy.diag(e)
@@ -739,6 +766,12 @@ def polygcd(a, b):
         a = b
         b = r
     return a/a[len(a)]
+    
+def polylcm(a, b):        
+    gcd = polygcd(a, b)
+    Ka,_ = numpy.polydiv(b,gcd)
+    Kb,_ = numpy.polydiv(a,gcd)
+    return (numpy.polymul(Ka,a))
 
 
 def arrayfun(f, A):
@@ -1204,30 +1237,27 @@ def sym2mimotf(Gmat):
     """
     rows, cols = Gmat.shape
     #create empty list of lists. This will be appended to form mimotf input list
-    Gtf=[[] for y in range(rows)]
+    Gtf = [[] for y in range(rows)]
 
     for i in range(rows):
         for j in range(cols):
             G = Gmat[i,j]
             #select function denominator and convert is to list of coefficients
-            Gnum = G.as_numer_denom()[0]
-            if Gnum.is_Number: # can't convert single value to Poly
-                Gtf_num = float(Gnum)
-
-            else:
-                Gnum_poly = sympy.Poly(Gnum)
-                Gtf_num = [float(k) for k in Gnum_poly.all_coeffs()]
-
-            Gden = G.as_numer_denom()[1]
-            if Gden.is_Number:
-                Gtf_den = float(Gden)
-
-            else:
-                Gden_poly = sympy.Poly(Gden)
-                Gtf_den = [float(k) for k in Gden_poly.all_coeffs()]
+            Gnum, Gden = G.as_numer_denom()
+            
+            def poly_coeffs(G_comp):
+                if G_comp.is_Number:  # can't convert single value to Poly
+                    G_comp_tf = float(G_comp)
+                else:
+                    G_comp_poly = sympy.Poly(G_comp)
+                    G_comp_tf = [float(k) for k in G_comp_poly.all_coeffs()]
+                return G_comp_tf
+                
+            Gtf_num = poly_coeffs(Gnum)
+            Gtf_den = poly_coeffs(Gden)
             Gtf[i].append(tf(Gtf_num,Gtf_den))
+            
     Gmimotf = mimotf(Gtf)
-
     return Gmimotf
 
 
@@ -1450,6 +1480,128 @@ def feedback_mimo(forward, backward=None, positive=False):
 ###############################################################################
 
 
+def tf2ss(H):
+    
+    '''
+    Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
+    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf 
+    which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
+
+    Parameters
+    ----------
+    H : mimotf
+        The mimotf object transfer function form
+    
+    Returns
+    -------
+    Ac : numpy matrix
+        The state matrix of the observable system
+    Bc : nump matrix
+        The input matrix of the observable system
+    Cc : numpy matrix
+        The output matrix of the observable system
+    Dc : numpy matrix
+        The output matrix of the observable system
+    
+    Example
+    -------
+    >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
+    ...             [tf(1,[1,1]),tf(1,[1,1])]])
+
+    >>> Ac, Bc, Cc, Dc = tf2ss(H)
+    >>> Ac
+    matrix([[ 0.,  1.,  0.],
+            [-2., -3.,  0.],
+            [ 0.,  0., -1.]])
+    >>> Bc
+    matrix([[ 0.,  0.],
+            [ 1.,  0.],
+            [ 0.,  1.]])
+    >>> Cc
+    matrix([[-1., -1.,  1.],
+            [ 2.,  1.,  1.]])
+    >>> Dc
+    matrix([[ 1.,  0.],
+            [ 0.,  0.]])
+    '''
+
+    Hrows,Hcols = H.shape
+    d=[[] for k in range(Hcols)]  #construct some empty lists for use later
+    mu=[[] for k in range(Hcols)]
+    Lvect = [[] for k in range(Hcols)]
+    L = numpy.empty(0)
+    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d)) 
+    Hinf = numpy.asmatrix(numpy.zeros((Hrows,Hcols)))
+
+    for j in range(Hcols):
+        lcm = numpy.poly1d(1)
+        for i in range(Hrows):
+            lcm = polylcm(lcm,H[i,j].denominator)  #find the lcm of the denominators of the elements in each column
+            if H[i,j].numerator.order == H[i,j].denominator.order:  # check if the individual elements are proper
+                Hinf[i,j ]= H[i,j].numerator.coeffs[0]/H[i,j].denominator.coeffs[0]  #approximate the limit as s->oo for the transfer function elements
+            elif H[i,j].numerator.order > H[i,j].denominator.order:
+                return 'please enter a matrix of stricly proper transfer functions'
+                
+
+        d[j] = tf(lcm)  #convert lcm to a tf object
+        mu[j] = lcm.order
+        D[j,j] = d[j]  #create a diagonal matrix of lcms
+
+        Lvect[j] = list((d[j].numerator.coeffs[1:]))  #create a list of coeffs of the lcm for that column, excluding the highest order element
+        Lvect[j].reverse()
+        L = sc_linalg.block_diag(L,Lvect[j])  #create a block diagonal matrix from the list of lists
+
+    Lmat = numpy.asmatrix(L) #convert L to a matrix
+    N = H*D
+    MS = N-Hinf*D
+
+    def num_coeffs(x):
+        return x.numerator.coeffs
+
+    def offdiag(m):
+        identity = numpy.eye(m-1)
+        vzeros = numpy.zeros((m-1,1))
+        hzeros = numpy.zeros((1,m))
+        mat = numpy.concatenate((vzeros,identity),axis=1)
+        mat = numpy.concatenate((mat,hzeros),axis=0)
+        return numpy.asmatrix(mat[:m,:m])
+
+    def lowerdiag(m):
+        vzeros = numpy.zeros((m,1))
+        vzeros[len(vzeros)-1] = 1  
+        return vzeros
+
+    MSrows,MScols=MS.shape
+
+    for j in range(MScols):  #this loop generate the M matrix, which forms the output matrix, C
+        maxlength = max(len(num_coeffs(MS[k,j])) for k in range(MSrows))
+        Mvect = numpy.zeros((MSrows,maxlength))
+        for i in range(MS.shape[0]):
+            M_coeffs = list(num_coeffs(MS[i,j]))
+            M_coeffs.reverse()
+            Mvect[i,maxlength-len(M_coeffs):] = M_coeffs
+        if j == 0:
+            Mmat = numpy.matrix(Mvect)
+        else:
+            Mmat = numpy.asmatrix(numpy.hstack((Mmat,numpy.matrix(Mvect))))
+
+    Acbar = numpy.empty(0)
+    Bcbar = numpy.empty(0)
+    
+    for order in mu:
+        Acbar = sc_linalg.block_diag(Acbar,offdiag(order))  #constructs an off diagonal matrix used to form the state matrix
+        Bcbar = sc_linalg.block_diag(Bcbar,lowerdiag(order))  #constructs a lower diagonal matrix which forms the input matrix
+    
+    Acbar = numpy.asmatrix(Acbar)
+    Bcbar = numpy.asmatrix(Bcbar)
+    Ac = Acbar-Bcbar*Lmat
+    Bc = Bcbar
+    Cc = Mmat
+    Dc = Hinf
+    
+    return Ac,Bc,Cc,Dc
+    
+
 def state_controllability(A, B):
     '''
     This method checks if the state space description of the system is state
@@ -1533,9 +1685,9 @@ def state_observability_matrix(a, c):
     return observability_m
 
 
-def Kalman_controllable(A,B,C):
+def kalman_controllable(A,B,C):
     """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-       Can be used in sequentially with Kalman_observable to obtain a minimal realisation.
+       Can be used in sequentially with kalman_observable to obtain a minimal realisation.
     Parameters
     ----------
     A : numpy matrix
@@ -1572,7 +1724,7 @@ def Kalman_controllable(A,B,C):
 
     >>> C = numpy.matrix([0, 0, 1, 1])
 
-    >>> Ac, Bc, Cc = Kalman_controllable(A, B, C)
+    >>> Ac, Bc, Cc = kalman_controllable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ac)
@@ -1607,9 +1759,9 @@ def Kalman_controllable(A,B,C):
         return Ac,Bc,Cc
 
 
-def Kalman_observable(A,B,C):
+def kalman_observable(A,B,C):
     """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-        Can be used in sequentially with Kalman_controllable to obtain a minimal realisation.
+        Can be used in sequentially with kalman_controllable to obtain a minimal realisation.
 
     Parameters
     ----------
@@ -1646,7 +1798,7 @@ def Kalman_observable(A,B,C):
     ...                   [0]])
 
     >>> C = numpy.matrix([0, 0, 1, 1])
-    >>> Ao, Bo, Co = Kalman_observable(A, B, C)
+    >>> Ao, Bo, Co = kalman_observable(A, B, C)
     >>> def round(A):
     ...     return numpy.round(A + 1e-5, 3)
     >>> round(Ao)
@@ -1940,6 +2092,52 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
+def num_denom (A, symbolic_expr = False):
+
+    sym_den = 0
+    sym_num = 0
+    s = sympy.Symbol('s')
+
+    if type(A) == mimotf:
+        denom   = 1
+        num     = 1
+        
+        denom = [numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs) for j in range(A.matrix.shape[1])]
+        num   = [numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs) for j in range(A.matrix.shape[1])]
+        if symbolic_expr == True:
+            for n in range(len(denom)):
+                sym_den = (sym_den + denom[- n- 1] * s**n).simplify()
+            for n in range(len(num)):
+                sym_num = (sym_num + num[- n- 1] * s**n).simplify()
+            return sym_num, sym_den
+        else:
+            return num, denom
+            
+    elif type(A) == tf:
+        denom = []
+        num = []
+            
+        denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
+        num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
+        if symbolic_expr == True:
+            for n in range(len(denom)):
+                sym_den = (sym_den + denom[- n - 1] * s**n).simplify()
+            for n in range(len(num)):
+                sym_num = (sym_num + num[- n - 1] * s**n).simplify()
+            return sym_num, sym_den
+        else:
+            return num, denom
+    #else:
+    #    sym_num, sym_den = A.as_numer_denom()
+    #    if not symbolic_expr:
+    #        num_poly   = sympy.Poly(sym_num)
+    #        numer      = [float(k) for k in num_poly.all_coeffs()]
+    #        den_poly   = sympy.Poly(sym_den)
+    #        denom      = [float(k) for k in den_poly.all_coeffs()]
+    #        return numer, denom
+    #    else:
+    #        return sym_num, sym_den
+
 def minors(G, order):
     '''
     Returns the order minors of a MIMO tf G.
@@ -1948,18 +2146,24 @@ def minors(G, order):
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            minor.append(G[rowstokeep,colstokeep].det().simplify())
-
+            G_slice = G.mimotf_slice(rowstokeep,colstokeep)
+            if type(G_slice) == tf:
+                minor.append(G_slice)
+            elif (type(G_slice) == mimotf) and (G_slice.shape[0] == G_slice.shape[1]):
+                minor.append(G_slice.det())
     return minor
 
 
 def lcm_of_all_minors(G):
+    '''
+    Returns the lowest common multiple of all minors of G 
+    '''
     Nrows, Ncols = G.shape
     lcm = 1
     for i in range(1, min(Nrows, Ncols) + 1, 1):
         allminors = minors(G, i)
         for m in allminors:
-            numer, denom = m.as_numer_denom()
+            numer, denom = num_denom(m,symbolic_expr = True)
             lcm = sympy.lcm(lcm, denom)
     return lcm
 
@@ -1971,35 +2175,32 @@ def poles(G):
 
     Parameters
     ----------
-    G : numpy matrix (n x n)
+    G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
 
     Returns
     -------
-    zero : array
-        List of zeros.
+    pole : array
+        List of poles.
 
     Example
     -------
-    >>> def G(s):
-    ...     return 1 / (s + 2) * numpy.matrix([[s - 1,  4],
-    ...                                       [4.5, 2 * (s - 1)]])
+    >>> s = tf([1,0],[1])
+    >>> G = mimotf([[(s - 1) / (s + 2), 4 / (s + 2)],
+    ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
-    [-2.00000000000000]
+    [-2.0]
 
-    Note
-    ----
-    Not applicable for a non-squared plant, yet.
     '''
-
-    s = sympy.Symbol('s')
-    G = sympy.Matrix(G(s))  # convert to sympy matrix object
+    if not (type(G) == tf or type(G) == mimotf):
+    	G = sym2mimotf(G)
 
     lcm = lcm_of_all_minors(G)
+    lcm_poly = sympy.Poly(lcm)
+    lcm_coeff = [float(k) for k in lcm_poly.all_coeffs()]
+    pole = numpy.roots(lcm_coeff)
 
-    pole = sympy.solve(lcm,s)
-
-    return pole
+    return list(set(pole))
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
@@ -2011,7 +2212,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
 
     Parameters
     ----------
-    G : numpy matrix (n x n)
+    G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
     A, B, C, D : numpy matrix
         State space parameters
@@ -2019,15 +2220,15 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     Returns
     -------
     zero : array
-        List of zeros.
+           List of zeros.
 
     Example
     -------
-    >>> def G(s):
-    ...     return 1 / (s + 2) * numpy.matrix([[s - 1,  4],
-    ...                                        [4.5, 2 * (s - 1)]])
+    >>> s = tf([1,0],[1])
+    >>> G = mimotf([[(s - 1) / (s + 2), 4 / (s + 2)],
+    ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> zeros(G)
-    [4.00000000000000]
+    [4.0]
 
     Note
     ----
@@ -2037,23 +2238,25 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     # TODO create a beter function to accept parameters and switch between tf and ss
 
     if G:
-        s = sympy.Symbol('s')
-        G = sympy.Matrix(G(s))  # convert to sympy matrix object
-
+        if not (type(G) == tf or type(G) == mimotf):
+            G = sym2mimotf(G)
         lcm = lcm_of_all_minors(G)
-
-        allminors = minors(G, G.rank())
+        allminors = minors(G, G.shape[0])
         gcd = None
         for m in allminors:
-            numer, denom = m.as_numer_denom()
+            numer, denom = num_denom(m,symbolic_expr=True)
             if denom != lcm:
-                numer *= lcm/denom
+                numer *= denom
             if numer.find('s'):
+                num_coeff  = [float(k) for k in numer.as_poly().all_coeffs()]
                 if not gcd:
-                    gcd = numer
+                    gcd = numpy.poly1d(num_coeff)
                 else:
-                    gcd = sympy.gcd(gcd, numer)
-        return sympy.solve(gcd, s)
+                    gcd = polygcd(gcd,numpy.poly1d(num_coeff))
+            else:
+                gcd = poly1d(numer)
+        zero = numpy.roots(gcd)
+        return list(set(zero))
 
     elif A is not None:
         M = numpy.bmat([[A, B],

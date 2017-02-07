@@ -1,9 +1,8 @@
 from __future__ import print_function
 import numpy as np
 
-from utils import pole_zero_directions, BoundST, tf, mimotf
+from utils import pole_zero_directions, BoundST, tf, mimotf, RHPonly
 from reporting import display_export_data
-
 
 s = tf([1, 0])
 
@@ -23,18 +22,10 @@ z = G.zeros()
 print('All Poles: {0}'.format(p))
 print('All Zeros: {0}\n'.format(z))
 
-def RHPonly(x):
-    RHPx = []
-    for i in range(len(x)):
-        if x[i].real > 0:
-            RHPx.append(np.round(x[i].real,2))
-    return list(set(RHPx))
-
 RHPzeros = RHPonly(z)
 RHPpoles = RHPonly(p)
 print("RHP poles only: ", RHPpoles)
 print("RHP zeros only: ", RHPzeros)
-
 
 # selected p & z
 p = [3.]

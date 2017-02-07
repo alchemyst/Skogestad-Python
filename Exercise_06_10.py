@@ -25,10 +25,10 @@ G = utils.mimotf(C*utils.mimotf(s*np.eye(2) - A).inverse()*B + D)
 # a) Controllability analysis
 
 G_poles = G.poles()
-G_rhp_poles = G_poles[np.real(G_poles) >= 0]
+G_rhp_poles = utils.RHPonly(G_poles)
 # G has stable poles, -10 with multiplicity of 2 and -1
 G_zeros = G.zeros()
-G_rhp_zeros = G_zeros[np.real(G_zeros) >= 0]
+G_rhp_zeros = utils.RHPonly(G_zeros)
 # G has a LHP zero @ -10 and a RHP zero @ 0.1
 # Zero at 0.1 limits bandwidth to wB* < 0.05
 
@@ -62,6 +62,8 @@ plt.axhline(w[wB_index], linestyle='--')
 plt.legend()
 plt.xlabel('Frequency  [rad/s]')
 plt.ylabel('Magnitude')
+
+plt.show()
 
 # Note that minimum singular value of G(iw) where w < wB* is located at steady state (w=0)
 
