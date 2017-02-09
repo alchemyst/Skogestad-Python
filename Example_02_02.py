@@ -8,6 +8,8 @@ s = tf([1, 0], 1)
 G = 3*(-2*s + 1)/((10*s + 1)*(5*s + 1))
 
 tspan = np.linspace(0, 50, 100)
+plt.figure('Figure 2.6')
+plt.title('Effect of proportional gain Kc on closed loop response')
 
 #  calculate the time domain response
 Ks = [0.5, 1.5, 2, 2.5, 3.0]

@@ -6,11 +6,12 @@ s = w*1j
 G = 5*np.exp(-2*s)/(10*s + 1)
 
 t = np.linspace(0, 100, 200)
-GM = np.abs(G)
-PM = np.angle(G)
+# Calculate System Gain and Phase Shift
+SG = np.abs(G)
+PS = np.angle(G)
 
 u = np.sin(w*t)
-y = GM*np.sin(w*t + PM)
+y = SG*np.sin(w*t + PS)
 
 plt.figure('Figure 2.1')
 plt.title('Sinusoidal response for system G(s)')
