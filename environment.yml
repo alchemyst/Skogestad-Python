@@ -11,3 +11,5 @@ dependencies:
  - nose
  - pip:
    - control
+   - python-coveralls
+   - nose-cov
