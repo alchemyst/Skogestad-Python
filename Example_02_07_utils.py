@@ -27,9 +27,16 @@ print('Mt = ', np.round(mT, 1))
 
 [t, y] = tf_step(T, 50)
 plt.figure('Figure 2.17')
+plt.title('Step response for system T')
 plt.plot(t, y)
 plt.xlabel('time (s)')
 plt.ylabel('y(t)')
+# Calculate rise time tr
+y90 = y[y<=0.9]
+tr = t[len(y90)]
+print('rise time = ',np.round(tr, 1) ,'s')
+plt.axhline(0.9, color='black', linestyle='--',linewidth=0.5)
+plt.axvline(tr, color='black', linestyle='--',linewidth=0.5)
 plt.show()
 
 w = np.logspace(-2, 2, 1000)
@@ -38,6 +45,7 @@ gain_T = np.abs(T(s))
 gain_S = np.abs(S(s))
 
 plt.figure('Figure 2.18')
+plt.title('Bode Plots of |S| and |T|')
 plt.loglog(w, gain_T)
 plt.loglog(w, gain_S)
 yrange = np.logspace(-2, 2)
@@ -45,7 +53,7 @@ plt.loglog(wb*np.ones(len(yrange)), yrange, 'k--')
 plt.loglog(wbt*np.ones(len(yrange)), yrange, 'k--')
 plt.loglog(w_180*np.ones(len(yrange)), yrange, 'k--')
 plt.legend(["| T |", "| S |"])
-plt.xlabel('w')
+plt.xlabel('w (rad/s')
 plt.ylabel('Magnitude')
 plt.text(wb-0.005, 10**(-1), 'wB')
 plt.text((wbt-0.15), 10**(-1), 'wBT')
