@@ -4,9 +4,9 @@ language: python
 
 python:
   - "2.7"
-  - "3.3"
   - "3.4"
   - "3.5"
+  - "3.6"
 
 cache:
   apt: true
@@ -36,19 +36,16 @@ before_install:
 
 # Install packages
 install:
-  # TODO: Figure out how to read this from requirements.txt
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose sympy future
-  - pip install control
-  # Coverage packages are on the binstar channel which no longer works
-  - pip install python-coveralls nose-cov
-# TODO: Package 
+  - conda env create --file environment.yml python=$TRAVIS_PYTHON_VERSION
+  - source activate skogestad
+# TODO: Package
 #  - python setup.py install
- 
+
 # Run test
 script:
   - coverage run runall.py
   - coverage run -a utils.py
- 
+
 after_success:
   - coveralls --config_file .coveragerc
 

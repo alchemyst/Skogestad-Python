@@ -8,7 +8,7 @@ import doc_func as df
 from utils import tf, margins
 
 """
-All of the below function are from pages 206-207 and the associated rules that
+All of the functions below are from pages 206-207 and the associated rules that
 analyse the controllability of SISO problems
 """
 
