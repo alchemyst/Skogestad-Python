@@ -15,14 +15,14 @@ M = 2.
 A = 0.1
 wB = 1
 n = 2.
-w = np.logspace(-2,2,1000)
+w = np.logspace(-2, 2, 1000)
 s = w*1j
 Wp_2_105 = (s/M + wB)/(s + wB*A)
 Wp_2_106 = ((s/(M**(1/n)) + wB)**n)/((s + wB*A**(1/n))**n)
 plt.figure('Performance Weights')
 plt.clf()
-plt.loglog(w, 1/Wp_2_105, 'k-', label='$W_p2.105$')
-plt.loglog(w, 1/Wp_2_106, 'b-', label='$W_p2.106$')
+plt.loglog(w, 1/np.abs(Wp_2_105), 'k-', label='$W_p2.105$')
+plt.loglog(w, 1/np.abs(Wp_2_106), 'b-', label='$W_p2.106$')
 plt.legend(loc='upper left', fontsize=10, ncol=1)
 plt.axhline(1, ls=':', color='red', lw=2)
 plt.text(0.012, 1.1, 'Mag = 1', color='red', fontsize=10)
