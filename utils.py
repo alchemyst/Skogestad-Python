@@ -383,7 +383,7 @@ class mimotf(object):
         for r in range(nRows):
             for c in range(nCols):
                 result[r].append(tf(list(self[r,c].numerator.coeffs), list(self[r,c].denominator.coeffs)))
-            
+
         return mimotf(result)
 
     def det(self):
@@ -516,21 +516,21 @@ class mimotf(object):
 
 def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     """
-    Receives symbolic matrix of plant and disturbance transfer functions 
+    Receives symbolic matrix of plant and disturbance transfer functions
     as well as array of maximum deviations, scales plant variables according to eq () and ()
-    
+
     Parameters
     -----------
     G_hat       : matrix of plant WITHOUT deadtime
-    e           : array of maximum plant output variable deviations 
+    e           : array of maximum plant output variable deviations
                   in same order as G matrix plant outputs
-    u           : array of maximum plant input variable deviations 
+    u           : array of maximum plant input variable deviations
                   in same order as G matrix plant inputs
     input_type  : specifies whether input is symbolic matrix or utils mimotf
     Gd_hat      : optional
                   matrix of plant disturbance model WITHOUT deadtime
     d           : optional
-                  array of maximum plant disturbance variable deviations 
+                  array of maximum plant disturbance variable deviations
                   in same order as Gd matrix plant disturbances
     Returns
     ----------
@@ -553,11 +553,11 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
     [7.5*s/(s - 1),      2.0/(s + 5)]])
 
     """
-    
+
     De        = numpy.diag(e)
     De_inv    = numpy.linalg.inv(De)
     Du        = numpy.diag(u)
-    
+
     if Gd_hat and d:
         Dd = numpy.diag(d)
 
@@ -575,7 +575,7 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
                 return G_scaled[0,0]
             else:
                 return G_scaled
-            
+
     elif input_type == 'mimotf':
         De_inv_utils= [[] for r in range(De_inv.shape[0])]
         Du_utils    = [[] for r in range(Du.shape[0])]
@@ -586,11 +586,11 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
         for r in range(Du.shape[0]):
             for c in range(Du.shape[1]):
                 Du_utils[r].append(tf([Du[r,c]]))
-        
+
         De_inv_mimo = mimotf(De_inv_utils)
         Du_mimo = mimotf(Du_utils)
         G_scaled  = De_inv_mimo*(G_hat)*(Du_mimo)
-        
+
         if Gd_hat and d:
             Dd_utils    = [[] for r in range(Dd.shape[0])]
             for r in range(Dd.shape[0]):
@@ -609,7 +609,7 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
                 return G_scaled
     else:
         raise ValueError('No input type specified')
-                
+
 def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
@@ -766,8 +766,8 @@ def polygcd(a, b):
         a = b
         b = r
     return a/a[len(a)]
-    
-def polylcm(a, b):        
+
+def polylcm(a, b):
     gcd = polygcd(a, b)
     Ka,_ = numpy.polydiv(b,gcd)
     Kb,_ = numpy.polydiv(a,gcd)
@@ -1244,7 +1244,7 @@ def sym2mimotf(Gmat):
             G = Gmat[i,j]
             #select function denominator and convert is to list of coefficients
             Gnum, Gden = G.as_numer_denom()
-            
+
             def poly_coeffs(G_comp):
                 if G_comp.is_Number:  # can't convert single value to Poly
                     G_comp_tf = float(G_comp)
@@ -1252,11 +1252,11 @@ def sym2mimotf(Gmat):
                     G_comp_poly = sympy.Poly(G_comp)
                     G_comp_tf = [float(k) for k in G_comp_poly.all_coeffs()]
                 return G_comp_tf
-                
+
             Gtf_num = poly_coeffs(Gnum)
             Gtf_den = poly_coeffs(Gden)
             Gtf[i].append(tf(Gtf_num,Gtf_den))
-            
+
     Gmimotf = mimotf(Gtf)
     return Gmimotf
 
@@ -1481,17 +1481,17 @@ def feedback_mimo(forward, backward=None, positive=False):
 
 
 def tf2ss(H):
-    
+
     '''
     Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
-    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf 
+    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf
     which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
 
     Parameters
     ----------
     H : mimotf
         The mimotf object transfer function form
-    
+
     Returns
     -------
     Ac : numpy matrix
@@ -1502,7 +1502,7 @@ def tf2ss(H):
         The output matrix of the observable system
     Dc : numpy matrix
         The output matrix of the observable system
-    
+
     Example
     -------
     >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
@@ -1529,8 +1529,8 @@ def tf2ss(H):
     d=[[] for k in range(Hcols)]  #construct some empty lists for use later
     mu=[[] for k in range(Hcols)]
     Lvect = [[] for k in range(Hcols)]
-    L = numpy.empty(0)
-    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d)) 
+    Llist = []
+    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d))
     Hinf = numpy.asmatrix(numpy.zeros((Hrows,Hcols)))
 
     for j in range(Hcols):
@@ -1540,8 +1540,8 @@ def tf2ss(H):
             if H[i,j].numerator.order == H[i,j].denominator.order:  # check if the individual elements are proper
                 Hinf[i,j ]= H[i,j].numerator.coeffs[0]/H[i,j].denominator.coeffs[0]  #approximate the limit as s->oo for the transfer function elements
             elif H[i,j].numerator.order > H[i,j].denominator.order:
-                return 'please enter a matrix of stricly proper transfer functions'
-                
+                raise ValueError('please enter a matrix of stricly proper transfer functions')
+
 
         d[j] = tf(lcm)  #convert lcm to a tf object
         mu[j] = lcm.order
@@ -1549,9 +1549,9 @@ def tf2ss(H):
 
         Lvect[j] = list((d[j].numerator.coeffs[1:]))  #create a list of coeffs of the lcm for that column, excluding the highest order element
         Lvect[j].reverse()
-        L = sc_linalg.block_diag(L,Lvect[j])  #create a block diagonal matrix from the list of lists
+        Llist.append(Lvect[j])  #create a block diagonal matrix from the list of lists
 
-    Lmat = numpy.asmatrix(L) #convert L to a matrix
+    Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist)) #convert L to a matrix
     N = H*D
     MS = N-Hinf*D
 
@@ -1568,7 +1568,7 @@ def tf2ss(H):
 
     def lowerdiag(m):
         vzeros = numpy.zeros((m,1))
-        vzeros[len(vzeros)-1] = 1  
+        vzeros[len(vzeros)-1] = 1
         return vzeros
 
     MSrows,MScols=MS.shape
@@ -1585,22 +1585,18 @@ def tf2ss(H):
         else:
             Mmat = numpy.asmatrix(numpy.hstack((Mmat,numpy.matrix(Mvect))))
 
-    Acbar = numpy.empty(0)
-    Bcbar = numpy.empty(0)
-    
-    for order in mu:
-        Acbar = sc_linalg.block_diag(Acbar,offdiag(order))  #constructs an off diagonal matrix used to form the state matrix
-        Bcbar = sc_linalg.block_diag(Bcbar,lowerdiag(order))  #constructs a lower diagonal matrix which forms the input matrix
-    
-    Acbar = numpy.asmatrix(Acbar)
-    Bcbar = numpy.asmatrix(Bcbar)
-    Ac = Acbar-Bcbar*Lmat
+    # construct an off diagonal matrix used to form the state matrix
+    Acbar = numpy.asmatrix(sc_linalg.block_diag(*[offdiag(order) for order in mu]))
+    # construct a lower diagonal matrix which forms the input matrix
+    Bcbar = numpy.asmatrix(sc_linalg.block_diag(*[lowerdiag(order) for order in mu]))
+
+    Ac = Acbar - Bcbar*Lmat
     Bc = Bcbar
     Cc = Mmat
     Dc = Hinf
-    
+
     return Ac,Bc,Cc,Dc
-    
+
 
 def state_controllability(A, B):
     '''
@@ -2101,7 +2097,7 @@ def num_denom (A, symbolic_expr = False):
     if type(A) == mimotf:
         denom   = 1
         num     = 1
-        
+
         denom = [numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs) for j in range(A.matrix.shape[1])]
         num   = [numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs) for j in range(A.matrix.shape[1])]
         if symbolic_expr == True:
@@ -2112,11 +2108,11 @@ def num_denom (A, symbolic_expr = False):
             return sym_num, sym_den
         else:
             return num, denom
-            
+
     elif type(A) == tf:
         denom = []
         num = []
-            
+
         denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
         num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
         if symbolic_expr == True:
@@ -2156,7 +2152,7 @@ def minors(G, order):
 
 def lcm_of_all_minors(G):
     '''
-    Returns the lowest common multiple of all minors of G 
+    Returns the lowest common multiple of all minors of G
     '''
     Nrows, Ncols = G.shape
     lcm = 1
