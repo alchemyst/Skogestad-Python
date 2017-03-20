@@ -1,0 +1,13 @@
+name: skogestad
+dependencies:
+ - future
+ - matplotlib
+ - scipy
+ - sympy
+ - mock
+ - numpydoc
+ - nose
+ - pip:
+   - control
+   - python-coveralls
+   - nose-cov
