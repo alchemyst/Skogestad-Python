@@ -2,7 +2,6 @@ import sympy
 import numpy
 from scipy import signal
 import matplotlib.pyplot as plt
-get_ipython().magic('matplotlib notebook')
 
 s = sympy.Symbol('s')
 G = 3*(-2*s+1)/((10*s+1)*(5*s+1))
@@ -25,4 +24,4 @@ for i in yt:
     plt.plot(i[0], i[1])
 leg = ["Kc = " + str(i) for i in Kc]
 plt.legend(leg, loc = 6,  bbox_to_anchor=(0.85, 0.9))
-
+plt.show()

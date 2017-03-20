@@ -1,7 +1,7 @@
 import sympy
 import numpy
 import matplotlib.pyplot as plt
-get_ipython().magic('matplotlib notebook')
+
 
 s, t = sympy.symbols('s, t')
 G = 3*(-2*s+1)/((10*s+1)*(5*s+1))
@@ -19,8 +19,9 @@ axes = plt.gca()
 axes.set_ylim([-0.5, 2.5])
 axes.set_xlabel('Time[sec]')
 
-for i in ytm:
-    plt.plot(tm, i)
+for i in yt:
+    plt.plot(t, i)
 
 leg = ["Kc = " + str(float(i)) for i in Kc]
 plt.legend(leg, loc = 6,  bbox_to_anchor=(0.85, 0.9))
+plt.show()
