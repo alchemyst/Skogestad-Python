@@ -1308,6 +1308,33 @@ def RGA(G):
     return G*Ginv.T
 
 
+def IterRGA(A, n):
+    """
+    Computes the n'th iteration of the RGA.
+
+    Parameters
+    ----------
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+
+    Returns
+    -------
+    n'th iteration of RGA matrix : matrix
+        iterated RGA matrix of complex numbers.
+
+    Example
+    -------
+    >>> G = np.array([[1, 2], [-1, 1]])
+    >>> IterRGA(G, 4)
+    array([[0.00, 1.00],
+           [1.00, 0.00.]])
+
+    """
+    for _ in range(0, n):
+        A = RGA(A)
+    return A
+
+
 def sigmas(A, position=None):
     """
     Returns the singular values of A
