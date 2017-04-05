@@ -1324,10 +1324,10 @@ def IterRGA(A, n):
 
     Example
     -------
-    >>> G = np.array([[1, 2], [-1, 1]])
-    >>> IterRGA(G, 4)
-    array([[0.00, 1.00],
-           [1.00, 0.00.]])
+    >>> G = numpy.array([[1, 2], [-1, 1]])
+    >>> IterRGA(G, 4).round(3)
+    array([[-0.004,  1.004],
+           [ 1.004, -0.004]])
 
     """
     for _ in range(0, n):
