@@ -106,8 +106,12 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
+<<<<<<< HEAD
     def __init__(self, numerator, denominator=1, deadtime=0, name='', 
                  u='', y='', prec=5):
+=======
+    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=5, integercoeffs=True):
+>>>>>>> upstream/master
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -117,10 +121,11 @@ class tf(object):
         self.denominator = numpy.poly1d(denominator)
         self.deadtime = deadtime
         self.zerogain = False
-        self.simplify(dec=prec)
         self.name = name
         self.u = u
         self.y = y
+        self.integercoeffs = integercoeffs
+        self.simplify(dec=prec)
 
     def inverse(self):
         """
@@ -143,28 +148,29 @@ class tf(object):
         assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
         "Error in simplifying rational, remainder=\n{}".format(remainder)
 
-        # Round numerator and denominator for coefficient simplification
-        self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
-        self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
+        if self.integercoeffs:
+            # Round numerator and denominator for coefficient simplification
+            self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
+            self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
 
-        # Determine most digits in numerator & denominator
-        num_dec = 0
-        den_dec = 0
-        for i in range(len(self.numerator.coeffs)):
-            num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
-        for j in range(len(self.denominator.coeffs)):
-            den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
+            # Determine most digits in numerator & denominator
+            num_dec = 0
+            den_dec = 0
+            for i in range(len(self.numerator.coeffs)):
+                num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
+            for j in range(len(self.denominator.coeffs)):
+                den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
 
-        # Convert coefficients to integers
-        self.numerator = self.numerator*10**(max(num_dec, den_dec))
-        self.denominator = self.denominator*10**(max(num_dec, den_dec))
+            # Convert coefficients to integers
+            self.numerator = self.numerator*10**(max(num_dec, den_dec))
+            self.denominator = self.denominator*10**(max(num_dec, den_dec))
 
-        # Decimal-less representation of coefficients
-        num_gcd = gcd(self.numerator.coeffs)
-        den_gcd = gcd(self.denominator.coeffs)
-        tf_gcd = gcd([num_gcd, den_gcd])
-        self.numerator = self.numerator/tf_gcd
-        self.denominator = self.denominator/tf_gcd
+            # Decimal-less representation of coefficients
+            num_gcd = gcd(self.numerator.coeffs)
+            den_gcd = gcd(self.denominator.coeffs)
+            tf_gcd = gcd([num_gcd, den_gcd])
+            self.numerator = self.numerator/tf_gcd
+            self.denominator = self.denominator/tf_gcd
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -1334,6 +1340,33 @@ def RGA(G):
     G = numpy.asarray(G)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
+
+
+def IterRGA(A, n):
+    """
+    Computes the n'th iteration of the RGA.
+
+    Parameters
+    ----------
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+
+    Returns
+    -------
+    n'th iteration of RGA matrix : matrix
+        iterated RGA matrix of complex numbers.
+
+    Example
+    -------
+    >>> G = numpy.array([[1, 2], [-1, 1]])
+    >>> IterRGA(G, 4).round(3)
+    array([[-0.004,  1.004],
+           [ 1.004, -0.004]])
+
+    """
+    for _ in range(0, n):
+        A = RGA(A)
+    return A
 
 
 def sigmas(A, position=None):
