@@ -106,12 +106,9 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
-<<<<<<< HEAD
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', 
-                 u='', y='', prec=5):
-=======
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=5, integercoeffs=True):
->>>>>>> upstream/master
+
+    def __init__(self, numerator, denominator=1, deadtime=0, name='',
+                 u='', y='', prec=5, integercoeffs=True):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
