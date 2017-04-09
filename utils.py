@@ -134,34 +134,18 @@ class tf(object):
     def simplify(self, dec=5):
 
         # Polynomial simplification
-        g = polygcd(self.numerator, self.denominator)
-        self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
-        self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
-
-        # Round numerator and denominator for coefficient simplification
-        self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
-        self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
-
-        # Determine most digits in numerator & denominator
-        num_dec = 0
-        den_dec = 0
-        for i in range(len(self.numerator.coeffs)):
-            num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
-        for j in range(len(self.denominator.coeffs)):
-            den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
-
-        # Convert coefficients to integers
-        self.numerator = self.numerator*10**(max(num_dec, den_dec))
-        self.denominator = self.denominator*10**(max(num_dec, den_dec))
-
-        # Decimal-less representation of coefficients
-        num_gcd = gcd(self.numerator.coeffs)
-        den_gcd = gcd(self.denominator.coeffs)
-        tf_gcd = gcd([num_gcd, den_gcd])
-        self.numerator = self.numerator/tf_gcd
-        self.denominator = self.denominator/tf_gcd
+        k = self.numerator[self.numerator.order]/self.denominator[self.denominator.order]
+        ps = self.poles().tolist()
+        zs = self.zeros().tolist()
+        
+        for i in zs:
+            for j in ps:
+                if abs(i-j)< dec:
+                    zs.remove(i)
+                    ps.remove(j)
+        
+        self.numerator = k*numpy.poly1d(zs, True)
+        self.denominator = numpy.poly1d(ps, True)
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
