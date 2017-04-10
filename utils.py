@@ -1400,7 +1400,7 @@ def sigmas(A, position=None):
     sigmas = numpy.linalg.svd(A, compute_uv=False)
     if position is not None:
         if position == 'max':
-            sigmas = sigmas[1]
+            sigmas = sigmas[0]
         elif position == 'min':
             sigmas = sigmas[-1]
         else: 
