@@ -394,7 +394,7 @@ class mimotf(object):
         for r in range(nRows):
             for c in range(nCols):
                 result[r].append(tf(list(self[r, c].numerator.coeffs),
-                    list(self[r, c].denominator.coeffs)))
+                                    list(self[r, c].denominator.coeffs)))
 
         return mimotf(result)
 
