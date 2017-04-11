@@ -239,8 +239,11 @@ class tf(object):
         if isinstance(other, numpy.matrix):
             return other.__add__(self)
         # Zero-gain functions are special
-        if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
-            raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
+        dterrormsg = "Transfer functions can only be added if " \
+                     "their deadtimes are the same. self={}, other={}"
+        if self.deadtime != other.deadtime and not (
+                self.zerogain or other.zerogain):
+            raise ValueError(dterrormsg.format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
                   other.numerator*self.denominator, gcd, self.deadtime +
@@ -531,7 +534,8 @@ class mimotf(object):
 def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
     """
     Receives symbolic matrix of plant and disturbance transfer functions
-    as well as array of maximum deviations, scales plant variables according to eq () and ()
+    as well as array of maximum deviations, scales plant variables according
+    to eq () and ()
 
     Parameters
     -----------
@@ -769,7 +773,8 @@ def polygcd(a, b):
     """
     Find the Greatest Common Divisor of two polynomials
     using Euclid's algorithm:
-    http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
+    http://en.wikipedia.org/wiki/
+    Polynomial_greatest_common_divisor#Euclidean_algorithm
 
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
@@ -1235,7 +1240,8 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 
 
 def sym2mimotf(Gmat):
-    """Converts a MIMO transfer function system in sympy.Matrix form to a mimotf object making use of individual tf objects.
+    """Converts a MIMO transfer function system in sympy.Matrix form to a
+    mimotf object making use of individual tf objects.
 
     Parameters
     ----------
@@ -1535,9 +1541,12 @@ def feedback_mimo(forward, backward=None, positive=False):
 def tf2ss(H):
 
     '''
-    Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
-    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf
-    which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
+    Converts a mimotf object to the controllable canonical form state space
+    representation. This method and the examples were obtained from course work
+    notes available at
+    http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf
+    which appears to derive the method from "A Linear Systems Primer"
+    by Antsaklis and Birkhauser.
 
     Parameters
     ----------
@@ -1740,8 +1749,10 @@ def state_observability_matrix(a, c):
 
 
 def kalman_controllable(A, B, C):
-    """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-       Can be used in sequentially with kalman_observable to obtain a minimal realisation.
+    """Computes the Kalman Controllable Canonical Form of the inout system
+    A, B, C, making use of QR Decomposition. Can be used in sequentially with
+    kalman_observable to obtain a minimal realisation.
+
     Parameters
     ----------
     A : numpy matrix
@@ -1753,7 +1764,8 @@ def kalman_controllable(A, B, C):
     rounding factor : integer
         The number of significant
     factor : int
-        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        The number of additional significant digits after the first significant
+        digit to round the returned matrix elements to.
 
     Returns
     -------
@@ -1820,8 +1832,9 @@ def kalman_controllable(A, B, C):
 
 
 def kalman_observable(A, B, C):
-    """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-        Can be used in sequentially with kalman_controllable to obtain a minimal realisation.
+    """Computes the Kalman Observable Canonical Form of the inout system
+    A, B, C, making use of QR Decomposition. Can be used in sequentially
+    with kalman_controllable to obtain a minimal realisation.
 
     Parameters
     ----------
@@ -1834,7 +1847,8 @@ def kalman_observable(A, B, C):
     rounding factor : integer
         The number of significant
     factor : int
-        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        The number of additional significant digits after the first significant
+        digit to round the returned matrix elements to.
 
     Returns
     -------
@@ -1898,9 +1912,12 @@ def kalman_observable(A, B, C):
         return Ao, Bo, Co
 
 
-def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
+def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix,
+                                                 uncontrollable=True,
+                                                 unobservable=False,
                                                  rank=None):
-    """"remove the uncontrollable or unobservable states from the A, B and C state space matrices
+    """"remove the uncontrollable or unobservable states from the A, B and C
+    state space matrices
 
     :param a: numpy matrix
               the A matrix in the state space model
@@ -1915,29 +1932,37 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
                               the controllable or observable matrix
 
     :param uncontrollable: boolean
-                           set to True to remove uncontrollable states (default) or to false
+                           set to True to remove uncontrollable states
+                           (default) or to false
 
     :param unobservable: boolean
-                         set to True to remove unobservable states or to false (default)
+                         set to True to remove unobservable states or to false
+                         (default)
 
     :param rank: optional (int)
                  rank of the controllable or observable matrix
-                 if the rank is available set the rank=(rank of matrix) to avoid calculating matrix rank twice
+                 if the rank is available set the rank=(rank of matrix) to
+                 avoid calculating matrix rank twice
                  by default rank=None and will be calculated
 
     Default: remove the uncontrollable states
-    To remove the unobservable states set uncontrollable=False and unobservable=True
+    To remove the unobservable states set uncontrollable=False
+    and unobservable=True
 
     return: the Kalman Canonical matrices
-            Ac, Bc, Cc (the controllable subspace of A, B and C) if uncontrollable=True and unobservable=False
-            or Ao, Bo, Co (the observable subspace of A, B and C) if uncontrollable=False and unobservable=True
+            Ac, Bc, Cc (the controllable subspace of A, B and C)
+            if uncontrollable=True and unobservable=False
+            or Ao, Bo, Co (the observable subspace of A, B and C)
+            if uncontrollable=False and unobservable=True
 
     Note:
-    If the controllable subspace of A, B and C are given (Ac, Bc and Cc) and the unobservable states are removed the
-    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    If the controllable subspace of A, B and C are given (Ac, Bc and Cc)
+    and the unobservable states are removed the matrices Aco, Bco and Cco
+    (the controllable and observable subspace of A, B and C) will be returned
 
-    If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
-    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    If the observable subspace of A, B and C are given (Ao, Bo and Co) and
+    the uncontrollable states are removed the matrices Aco, Bco and Cco
+    (the controllable and observable subspace of A, B and C) will be returned
 
     Examples
     --------
@@ -2057,8 +2082,9 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
 
 
 def minimal_realisation(a, b, c):
-    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
-    second edition p 119 equations 4.3 and 4.4
+    """"This function will obtain a minimal realisation for a state space
+    model in the form given in Skogestad second edition p 119 equations
+    4.3 and 4.4
 
     :param a: numpy matrix
               the A matrix in the state space model
@@ -2601,7 +2627,8 @@ def distRej(G, gd):
         The inverse of the 2-norm of a single disturbance gd.
 
     distCondNum : float
-        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
+        The disturbance condition number
+        :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
 
     yd : numpy matrix
         Disturbance direction.
