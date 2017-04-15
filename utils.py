@@ -60,14 +60,14 @@ class tf(object):
     addition
 
     >>> G + G2
-    tf([ 3.  2.], [ 2.  3.  1.])
+    tf([ 1.5  1. ], [ 1.   1.5  0.5])
     >>> G + G # check for simplification
     tf([ 2.], [ 1.  1.])
 
     multiplication
 
     >>> G * G2
-    tf([ 1.], [ 2.  3.  1.])
+    tf([ 0.5], [ 1.   1.5  0.5])
 
     division
 
@@ -85,12 +85,12 @@ class tf(object):
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 1.], [ 2.  1.]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 0.5], [ 1.   0.5]), other=tf([ 1.], [ 1.  1.], deadtime=2)
 
     Although we can add a zero-gain tf to anything
 
     >>> G2 + 0*G3
-    tf([ 1.], [ 2.  1.])
+    tf([ 0.5], [ 1.   0.5])
 
     >>> 0*G2 + G3
     tf([ 1.], [ 1.  1.], deadtime=2)
@@ -106,7 +106,7 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=5):
+    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=3):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -131,21 +131,35 @@ class tf(object):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
 
-    def simplify(self, dec=5):
+    def simplify(self, dec=3):
 
         # Polynomial simplification
         k = self.numerator[self.numerator.order]/self.denominator[self.denominator.order]
         ps = self.poles().tolist()
         zs = self.zeros().tolist()
+        ps_to_canc_ind = []    #contains index of poles to be cancelled
+        zs_to_canc_ind = []    #contains index of poles to be cancelled
         
-        for i in zs:
-            for j in ps:
-                if abs(i-j)< dec:
-                    zs.remove(i)
-                    ps.remove(j)
+        for i in range(0, len(zs)):
+            for j in range(0, len(ps)):
+                if abs(zs[i]-ps[j])< 10**-dec:
+                    if j not in ps_to_canc_ind:
+                        ps_to_canc_ind.append(j)
+                        zs_to_canc_ind.append(i)
+                        break
         
-        self.numerator = k*numpy.poly1d(zs, True)
-        self.denominator = numpy.poly1d(ps, True)
+        cancelled = 0    #number of roots cancelled
+        for i in ps_to_canc_ind:
+            del ps[i - cancelled]
+            cancelled += 1
+
+        cancelled = 0
+        for j in zs_to_canc_ind:
+            del zs[j - cancelled]
+            cancelled += 1
+            
+        self.numerator = numpy.poly1d([round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+        self.denominator = numpy.poly1d([round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -404,8 +418,8 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
-        matrix([[tf([-1.  1.], [-1.  4.]), tf([ 2.], [-1.  4.])],
-                [tf([ 9.], [ -4.  16.]), tf([-1.  1.], [-2.  8.])]], dtype=object)
+        matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
+                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]], dtype=object)
 
         >>> G.inverse()*G.matrix
         matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
