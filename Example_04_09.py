@@ -7,4 +7,5 @@ G = 1/(1.25*(s + 1)*(s + 2)) * mimotf([[s - 1, s],
                                        [-6, s - 2]])
 
 print('Poles: ', G.poles())
+# TODO: Incorrect result. G has no zeros
 print('Zeros: ', G.zeros())
