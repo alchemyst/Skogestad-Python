@@ -37,7 +37,7 @@ plt.show()
 
 """
 from __future__ import print_function
-import numpy #do not abbreviate this module as np in utilsplot.py
+import numpy  # do not abbreviate this module as np in utilsplot.py
 import matplotlib.pyplot as plt
 import utils
 import doc_func as df
@@ -68,7 +68,7 @@ def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     """
 
     f = plt.get_fignums()[-1]  # useful when multiple figures are added
-    fig = plt.figure(f)  # call of plt.figure('plot name') still required externally
+    fig = plt.figure(f)  # call plt.figure('name') still required externally
     bigax = fig.add_subplot(111)
     bigax.spines['top'].set_color('none')  # remove solid line on major axis
     bigax.spines['bottom'].set_color('none')
@@ -76,7 +76,7 @@ def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     bigax.spines['right'].set_color('none')
     bigax.tick_params(labelcolor='grey', top='off', bottom='off',
                       left='off', right='off')  # remove dashes on major axis
-    plt.setp(bigax.get_xticklabels(), visible=False)  # remove values on major axis
+    plt.setp(bigax.get_xticklabels(), visible=False)  # remove major axis vals
     plt.setp(bigax.get_yticklabels(), visible=False)
 
     box = bigax.get_position()
@@ -91,7 +91,7 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
     plt.figure(figure_num)
     N = direction.shape[0]
     for i in range(N):
-        #label = '%s Input Dir %i' % (name, i+1)
+        # Label = '%s Input Dir %i' % (name, i+1)
 
         plt.subplot(N, 1, i + 1)
         plt.title(name)
@@ -138,7 +138,8 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     plt.loglog(w, gains)
     if margin:
         plt.axvline(w_180, color='black')
-        plt.text(w_180, numpy.average([numpy.max(gains), numpy.min(gains)]), r'$\angle$G(jw) = -180$\degree$')
+        plt.text(w_180, numpy.average([
+        numpy.max(gains), numpy.min(gains)]), r'$\angle$G(jw) = -180$\degree$')
     plt.axhline(1., color='red', linestyle='--')
     plt.axis(axlim)
     plt.grid()
@@ -150,7 +151,8 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     plt.semilogx(w, phaseangle)
     if margin:
         plt.axvline(wc, color='black')
-        plt.text(wc, numpy.average([numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
+        plt.text(wc, numpy.average([
+        numpy.max(phaseangle), numpy.min(phaseangle)]), '|G(jw)| = 1')
     plt.axhline(-180., color='red', linestyle='--')
     plt.axis(axlim)
     plt.grid()
@@ -160,7 +162,8 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     return GM, PM
 
 
-def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
+def bodeclosedloop(G, K, w_start=-2, w_end=2,
+                   axlim=None, points=1000, margin=False):
     """
     Shows the bode plot for a controller model
 
@@ -207,7 +210,9 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2, axlim=None, points=1000, margin=Fa
 ###############################################################################
 
 
-def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=False, sv_all=False):
+def mimo_bode(G, w_start=-2, w_end=2,
+              axlim=None, points=1000,
+              Kin=None, text=False, sv_all=False):
     """
     Plots the max and min singular values of G and computes the crossover
     frequency.
@@ -271,7 +276,8 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
         for i in range(len(w)):
             Sv[i, :] = utils.sigmas(G(s[i]))
             if not f:
-                if (labB == 'wC' and Sv[i, -1] < 1) or (labB == 'wB' and Sv[i, 0] > 0.707):
+                if (labB == 'wC' and Sv[i, -1] < 1) or (
+                labB == 'wB' and Sv[i, 0] > 0.707):
                     wA = w[i]
                     f = True
         ymin = numpy.min(Sv[:, -1])
@@ -281,7 +287,8 @@ def mimo_bode(G, w_start=-2, w_end=2, axlim=None, points=1000, Kin=None, text=Fa
             plt.loglog(w, Sv[:, -1], 'g', label=('$\sigma_{min}(%s)$') % labP)
         else:
             for j in range(dim):
-                plt.loglog(w, Sv[:, j], label=('$\sigma_{%s}(%s)$' % (j, labP)))
+                plt.loglog(w, Sv[:, j], label=(
+                '$\sigma_{%s}(%s)$' % (j, labP)))
         plt.axhline(crossover, ls=':', lw=2, color='r')
         if text:
             plt.axvline(wA, ls=':', lw=2, color='r')
@@ -368,7 +375,7 @@ def mimo_nyquist_plot(L, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.plot(x, y_up, 'b:', x, y_down, 'b:', lw=2)
     plt.plot(0, 0, 'r*', ms=10)
     plt.grid(True)
-    plt.axis('equal')   # Ensure the unit circle remains round on resizing the figure
+    plt.axis('equal')  # Ensure unit circle is round when resizing figure
 
 
 def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
@@ -468,7 +475,8 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     plt.legend()
 
 
-def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='elements', input_label=None, output_label=None):
+def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
+             plot_type='elements', input_label=None, output_label=None):
     """
     Plots the relative gain interaction between each output and input pairing
 
@@ -504,7 +512,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
-    dim = G(0).shape # Number of rows and columns in SS transfer function
+    dim = G(0).shape  # Number of rows and columns in SS transfer function
     freqresp = [G(si) for si in s]
 
     plot_No = 1
@@ -517,15 +525,18 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
         raise ValueError('Input and output label count is not equal')
 
     if plot_type == 'elements':
-        fig = adjust_spine('Frequency [rad/unit time]', 'RGA magnitude', -0.05, -0.03, 0.8, 0.9)
+        fig = adjust_spine(
+        'Frequency [rad/unit time]', 'RGA magnitude', -0.05, -0.03, 0.8, 0.9)
         for i in range(dim[0]):
             for j in range(dim[1]):
                 ax = fig.add_subplot(dim[0], dim[1], plot_No)
                 if labels:
-                    ax.set_title('Output (%s) vs. Input (%s)' % (output_label[i], input_label[j]))
+                    ax.set_title('Output (%s) vs. Input (%s)' % (
+                    output_label[i], input_label[j]))
                 else:
                     ax.set_title('Output %s vs. Input %s' % (i + 1, j + 1))
-                ax.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
+                ax.semilogx(w, numpy.array(numpy.abs(([
+                utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
                 plot_No += 1
 
                 ax.axis(axlim)
@@ -535,14 +546,17 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
                                  box.width * 0.8, box.height * 0.9])
 
     elif plot_type == 'outputs':  # i
-        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
+        fig = adjust_spine(
+        'Frequency [rad/unit time]', 'RGA magnitude', -0.05, -0.03, 1, 0.9)
         for i in range(dim[0]):
             ax = fig.add_subplot(dim[1], 1, plot_No)
             ax.set_title('Output %s vs. input j' % (i + 1))
             rgamax = []
             for j in range(dim[1]):
-                rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                rgas = numpy.array(
+                numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
+                ax.semilogx(
+                w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
                 if j == dim[1] - 1:  # self-scaling algorithm
@@ -559,14 +573,17 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
             plot_No += 1
 
     elif plot_type == 'inputs':  # j
-        fig = adjust_spine('Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
+        fig = adjust_spine(
+        'Frequency [rad/unit time]','RGA magnitude', -0.05, -0.03, 1, 0.9)
         for j in range(dim[1]):
             ax = fig.add_subplot(dim[0], 1, plot_No)
             ax.set_title('Output i vs. input %s' % (j + 1))
             rgamax = []
             for i in range(dim[0]):
-                rgas = numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                ax.semilogx(w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                rgas = numpy.array(
+                numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
+                ax.semilogx(
+                w, rgas, label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
                 if i == dim[1] - 1:  # self-scaling algorithm
@@ -585,7 +602,8 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
     elif plot_type == 'all':
         for i in range(dim[0]):
             for j in range(dim[1]):
-                plt.semilogx(w, numpy.array(numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
+                plt.semilogx(w, numpy.array(numpy.abs((
+                [utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
                 plt.axis(axlim)
                 plt.ylabel('|$\lambda$$_{i,j}$|')
                 plt.xlabel('Frequency [rad/unit time]')
@@ -594,7 +612,8 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0, plot_type='
         raise ValueError("Invalid plot_type parameter.")
 
 
-def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
+def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
+                w_end=2, axlim=None, points=1000, plot_type='all'):
     """
     Plots the RGA number for a specified pairing
 
@@ -632,25 +651,25 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
     ----
     This plotting function can only be used on square systems
     """
-
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
-    dim = numpy.shape(G(0))  # Number of rows and columns in SS transfer function
+    dim = numpy.shape(G(0))  # Number of rows & columns in SS transfer function
     freqresp = [G(si) for si in s]
-
-    if pairing_list is None:  # Setting a blank entry to the default of a diagonal comparison
+    # Setting a blank entry to the default of a diagonal comparison
+    if pairing_list is None:  
         pairing_list = numpy.identity(dim[0])
         pairing_names = 'Diagonal pairing'
     else:
         for pairing in pairing_list:
             if pairing.shape != dim:
-                raise ValueError('RGA_Number_Plot on plots square n by n matrices, make sure input matrix is square')
+                raise ValueError('Make sure input matrix is square')
 
     plot_No = 0
 
     if plot_type == 'all':
         for p in pairing_list:
-            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp], label=pairing_names[plot_No])
+            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp],
+                         label=pairing_names[plot_No])
             plot_No += 1
         plt.axis(axlim)
         plt.ylabel('||$\Lambda$(G) - I||$_{sum}$')
@@ -658,7 +677,8 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         plt.legend()
 
     elif plot_type == 'element':
-        pcount = numpy.shape(pairing_list)[0]  # pairing_list.count not accessible
+        # pairing_list.count not accessible
+        pcount = numpy.shape(pairing_list)[0]
         for p in pairing_list:
             plot_No += 1
             plt.subplot(1, pcount, plot_No)
@@ -672,7 +692,8 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2, w_end=2, a
         raise ValueError("Invalid plot_type parameter.")
 
 
-def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000):
+def dis_rejctn_plot(G, Gd, S=None, w_start=-2,
+                    w_end=2, axlim=None, points=1000):
     """
     A subplot of disturbance condition number to check for input saturation
     (equation 6.43, p238). Two more subplots indicate if the disturbances fall
@@ -705,11 +726,13 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
 
     dim = numpy.shape(Gd(0))[1]  # column count
     inv_norm_gd = numpy.zeros((dim, points))
-    yd = numpy.zeros((dim, points, numpy.shape(Gd(0))[0]), dtype=complex)  # row count
+    yd = numpy.zeros((dim, points, numpy.shape(
+    Gd(0))[0]), dtype=complex)  # row count
     condtn_nm_gd = numpy.zeros((dim, points))
     for i in range(dim):
         for k in range(points):
-            inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = utils.distRej(G(s[k]), Gd(s[k])[:, i])
+            inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = utils.distRej(
+            G(s[k]), Gd(s[k])[:, i])
 
     if S is None:
         sub = 2
@@ -731,20 +754,23 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
     plt.subplot(sub, 1, 2)
     for i in range(dim):
         plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
-        if not S is None:
-            S_yd = numpy.array([numpy.linalg.norm(S(p) * yd[i, p, :].T, 2) for p in range(points)])
+        if S is not None:
+            S_yd = numpy.array([numpy.linalg.norm(
+            S(p) * yd[i, p, :].T, 2) for p in range(points)])
             plt.loglog(w, S_yd, label='$||Sy_d||_2$')
     plt.axis(axlim)
     plt.xlabel('Frequency [rad/unit time]')
     plt.legend()
 
-    if S is not None:  # this subplot should not be repeated with S is not available
+    if S is not None:  # subplot should not be repeated with S is not available
         # Equation 6.45
         plt.subplot(3, 1, 3)
         for i in range(dim):
             plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
-            s_min = numpy.array([utils.sigmas(S(s[p]), 'min') for p in range(points)])
-            s_max = numpy.array([utils.sigmas(S(s[p]), 'max') for p in range(points)])
+            s_min = numpy.array(
+            [utils.sigmas(S(s[p]), 'min') for p in range(points)])
+            s_max = numpy.array(
+            [utils.sigmas(S(s[p]), 'max') for p in range(points)])
             plt.loglog(w, s_min, label='$\sigma_{min}$')
             plt.loglog(w, s_max, label='$\sigma_{max}$')
         plt.axis(axlim)
@@ -752,7 +778,8 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2, w_end=2, axlim=None, points=1000)
         plt.legend()
 
 
-def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, simultaneous=False):
+def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
+                             points=1000, simultaneous=False):
     """
     Plot for input constraints for perfect control. Applies equation 6.50
     (p240).
@@ -797,7 +824,8 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000
     plt.legend()
 
 
-def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=1000, plot_type='all'):
+def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None,
+                           points=1000, plot_type='all'):
     """
     Use these plots to determine the constraints for perfect control in terms
     of combined reference changes. Equation 6.52 (p241) calculates the
@@ -848,15 +876,18 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None, points=100
     elif plot_type == 'tighter':
         plt.loglog(w, bound2, label=lab2)
 
-    else: raise ValueError('Invalid plot_type parameter.')
+    else:
+        raise ValueError('Invalid plot_type parameter.')
 
     mm = bound1 + bound2 + [1]  # ensures that whole graph is visible
-    plt.loglog([wr, wr], [0.5 * numpy.min(mm), 5 * numpy.max(mm)], 'r', ls=':', label='Ref tracked')
+    plt.loglog([wr, wr], [0.5 * numpy.min(mm), 5 * numpy.max(mm)],
+               'r', ls=':', label='Ref tracked')
     plt.loglog([w[0], w[-1]], [1, 1], 'r', label='Bound')
     plt.legend()
 
 
-def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1000, modified=False):
+def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
+                                points=1000, modified=False):
     """
     Subbplots for input constraints for accepatable control. Applies equation
     6.55 (p241).
@@ -895,15 +926,21 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
         for i in range(dimG):
             for k in range(points):
                 U, _, _ = utils.SVD(G(s[k]))
-                acceptable_control[j, i, k] = numpy.abs(U[:, i].H * Gd(s[k])[:, j])
+                acceptable_control[j, i, k] = numpy.abs(
+                U[:, i].H * Gd(s[k])[:, j])
             plt.subplot(dimG, dimGd, plot_No)
             if not modified:
-                plt.loglog(w, sig[:, i], label=('$\sigma_%s$' % (i + 1)))
-                plt.plot(w, acceptable_control[j, i] - one, label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
+                plt.loglog(w, sig[:, i],
+                           label=('$\sigma_%s$' % (i + 1)))
+                plt.plot(w, acceptable_control[j, i] - one,
+                         label=('$|u_%s^H.g_{d%s}|-1$' % (i + 1, j + 1)))
             else:
-                plt.loglog(w, sig[:, i] + one, label=('$\sigma_%s+1$' % (i + 1)))
-                plt.plot(w, acceptable_control[j, i], label=('$|u_%s^H.g_{d%s}|$' % (i + 1, j + 1)))
-                plt.loglog([w[0], w[-1]], [1, 1], 'r', ls=':', label='Applicable')
+                plt.loglog(w, sig[:, i] + one,
+                           label=('$\sigma_%s+1$' % (i + 1)))
+                plt.plot(w, acceptable_control[j, i],
+                         label=('$|u_%s^H.g_{d%s}|$' % (i + 1, j + 1)))
+                plt.loglog([w[0], w[-1]], [1, 1], 'r',
+                           ls=':', label='Applicable')
             plt.xlabel('Frequency [rad/unit time]')
             plt.grid(True)
             plt.axis(axlim)
@@ -916,7 +953,8 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None, points=1
 ###############################################################################
 
 
-def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, points=1000):
+def step(G, t_end=100, initial_val=0, input_label=None,
+         output_label=None, points=1000):
     """
     This function is similar to the MatLab step function.
 
@@ -948,7 +986,8 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
 
     if (input_label is None) and (output_label is None):
         labels = False
-    elif (numpy.shape(input_label)[0] == columns) and (numpy.shape(output_label)[0] == rows):
+    elif (numpy.shape(input_label)[0] == columns) and (
+    numpy.shape(output_label)[0] == rows):
         labels = True
     else:
         raise ValueError('Label count is inconsistent to plant size')
@@ -969,7 +1008,8 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
             else:
                 ax.plot(tspace, nulspace)
             if labels:
-                ax.set_title('Output ({}) vs. Input ({})'.format(output_label[i], input_label[j]))
+                ax.set_title('Output ({}) vs. Input ({})'.format(
+                output_label[i], input_label[j]))
             else:
                 ax.set_title('Output {} vs. Input {}'.format(i + 1, j + 1))
 
@@ -982,7 +1022,7 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
                 yax = ax
                 ax.set_ylabel = output_label[j]
             else:
-                ax.sharey =yax
+                ax.sharey = yax
 
             plt.setp(ax.get_yticklabels(), fontsize=10)
             box = ax.get_position()
@@ -990,7 +1030,8 @@ def step(G, t_end=100, initial_val=0, input_label=None, output_label=None, point
                              box.width * 0.8, box.height * 0.9])
 
 
-def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=2, axlim=None, points=1000):
+def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2,
+                            w_end=2, axlim=None, points=1000):
     """
     A subplot function for both the frequency response and step response for a
     controlled plant
@@ -1051,7 +1092,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     plt.axis(axlim)
     plt.grid(b=None, which='both', axis='both')
     plt.xlabel('Frequency [rad/unit time]')
-    plt.legend(["Kc = %1.2f" % k for k in Kc],loc=4)
+    plt.legend(["Kc = %1.2f" % k for k in Kc], loc=4)
 
     plt.subplot(1, 2, 2)
     plt.title('(b) Response to step in reference')
@@ -1066,7 +1107,9 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2, w_end=
     plt.ylabel('$y(t)$')
 
 
-def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None, points=1000, constraint=None, method='numeric'):
+def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec',
+                       axlim=None, points=1000, constraint=None,
+                       method='numeric'):
     """
     A plot of the step response of a transfer function
 
@@ -1104,11 +1147,12 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     if constraint is None:
         plt.legend(['$y(t)$', '$u(t)$'])
     else:
-        [t, y] = utils.tf_step(U, t_end, initial_val, points, constraint, Y, method)
+        [t, y] = utils.tf_step(
+        U, t_end, initial_val, points, constraint, Y, method)
         plt.plot(t, y[0])
         plt.plot(t, y[1])
-
-        plt.legend(['$y(t)$', '$u(t)$', '$u(t) const$', '$y(t) const$'])  # con = constraint
+        # con = constraint
+        plt.legend(['$y(t)$', '$u(t)$', '$u(t) const$', '$y(t) const$'])
 
     plt.plot([0, t_end], numpy.ones(2), '--')
 
@@ -1116,7 +1160,8 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec', axlim=None,
     plt.xlabel('Time [' + timedim + ']')
 
 
-def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000):
+def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
+                 axlim=None, points=1000):
     """
     MIMO sensitivity S and performance weight Wp plotting funtion.
 
@@ -1200,7 +1245,8 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end, axlim=None, points=1000)
     plt.semilogx(w, magPlotS1*Wpi, 'r-', label='|W$_P$S|')
     plt.axhline(1, color='blue', ls=':', lw=2)
     plt.axvline(wB_req, color='blue', ls=':', lw=2, label='|W$_P$S| = 1')
-    plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95, 'req wB', color='blue', fontsize=10)
+    plt.text(wB_req*1.1, numpy.max(magPlotS1*Wpi)*0.95,
+             'req wB', color='blue', fontsize=10)
     plt.axvline(wB, color='green')
     plt.text(wB*1.1, 0.12, 'wB = %0.3f rad/s' % wB, color='green', fontsize=10)
     plt.axis(axlim)

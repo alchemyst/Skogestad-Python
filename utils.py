@@ -17,7 +17,6 @@ from functools import reduce
 import itertools
 
 
-
 def astf(maybetf):
     """
     :param maybetf: something which could be a tf
@@ -106,7 +105,8 @@ class tf(object):
     tf([ 1.], [ 1.  1.])
     """
 
-    def __init__(self, numerator, denominator=1, deadtime=0, name='', u='', y='', prec=5):
+    def __init__(self, numerator, denominator=1, deadtime=0, name='',
+                 u='', y='', prec=5, integercoeffs=True):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -116,10 +116,11 @@ class tf(object):
         self.denominator = numpy.poly1d(denominator)
         self.deadtime = deadtime
         self.zerogain = False
-        self.simplify(dec=prec)
         self.name = name
         self.u = u
         self.y = y
+        self.integercoeffs = integercoeffs
+        self.simplify(dec=prec)
 
     def inverse(self):
         """
@@ -136,32 +137,35 @@ class tf(object):
         # Polynomial simplification
         g = polygcd(self.numerator, self.denominator)
         self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
+            "Error in simplifying rational, remainder=\n{}".format(remainder)
         self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), "Error in simplifying rational, remainder=\n{}".format(remainder)
+        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
+            "Error in simplifying rational, remainder=\n{}".format(remainder)
 
-        # Round numerator and denominator for coefficient simplification
-        self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
-        self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
+        if self.integercoeffs:
+            # Round numerator and denominator for coefficient simplification
+            self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
+            self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
 
-        # Determine most digits in numerator & denominator
-        num_dec = 0
-        den_dec = 0
-        for i in range(len(self.numerator.coeffs)):
-            num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
-        for j in range(len(self.denominator.coeffs)):
-            den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
+            # Determine most digits in numerator & denominator
+            num_dec = 0
+            den_dec = 0
+            for i in range(len(self.numerator.coeffs)):
+                num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
+            for j in range(len(self.denominator.coeffs)):
+                den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
 
-        # Convert coefficients to integers
-        self.numerator = self.numerator*10**(max(num_dec, den_dec))
-        self.denominator = self.denominator*10**(max(num_dec, den_dec))
+            # Convert coefficients to integers
+            self.numerator = self.numerator*10**(max(num_dec, den_dec))
+            self.denominator = self.denominator*10**(max(num_dec, den_dec))
 
-        # Decimal-less representation of coefficients
-        num_gcd = gcd(self.numerator.coeffs)
-        den_gcd = gcd(self.denominator.coeffs)
-        tf_gcd = gcd([num_gcd, den_gcd])
-        self.numerator = self.numerator/tf_gcd
-        self.denominator = self.denominator/tf_gcd
+            # Decimal-less representation of coefficients
+            num_gcd = gcd(self.numerator.coeffs)
+            den_gcd = gcd(self.denominator.coeffs)
+            tf_gcd = gcd([num_gcd, den_gcd])
+            self.numerator = self.numerator/tf_gcd
+            self.denominator = self.denominator/tf_gcd
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -187,12 +191,14 @@ class tf(object):
         """
         # Check that denominator is 1:
         if self.denominator != numpy.poly1d([1]):
-            raise ValueError('Can only exponentiate multiples of s, not {}'.format(self))
+            raise ValueError(
+                'Can only exponentiate multiples of s, not {}'.format(self))
         s = tf([1, 0], 1)
         ratio = -self/s
 
         if len(ratio.numerator.coeffs) != 1:
-            raise ValueError('Can not determine dead time associated with {}'.format(self))
+            raise ValueError(
+                'Can not determine dead time associated with {}'.format(self))
 
         D = ratio.numerator.coeffs[0]
 
@@ -203,7 +209,8 @@ class tf(object):
             r = str(self.name) + "\n"
         else:
             r = ''
-        r += "tf(" + str(self.numerator.coeffs) + ", " + str(self.denominator.coeffs)
+        r += "tf(" + str(self.numerator.coeffs) + ", " \
+            + str(self.denominator.coeffs)
         if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
         if self.u:
@@ -224,15 +231,19 @@ class tf(object):
         1.0
         """
         return (numpy.polyval(self.numerator, s) /
-                numpy.polyval(self.denominator, s) * numpy.exp(-s * self.deadtime))
+                numpy.polyval(self.denominator, s) *
+                numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
         other = astf(other)
         if isinstance(other, numpy.matrix):
             return other.__add__(self)
         # Zero-gain functions are special
-        if self.deadtime != other.deadtime and not (self.zerogain or other.zerogain):
-            raise ValueError("Transfer functions can only be added if their deadtimes are the same. self={}, other={}".format(self, other))
+        dterrormsg = "Transfer functions can only be added if " \
+                     "their deadtimes are the same. self={}, other={}"
+        if self.deadtime != other.deadtime and not (
+                self.zerogain or other.zerogain):
+            raise ValueError(dterrormsg.format(self, other))
         gcd = self.denominator * other.denominator
         return tf(self.numerator*other.denominator +
                   other.numerator*self.denominator, gcd, self.deadtime +
@@ -286,8 +297,11 @@ class tf(object):
         return r
 # TODO: Concatenate tf objects into MIMO structure
 
-def RHPonly(x,round_precision = 2):
-    return list(set(numpy.round(xi, round_precision) for xi in x if xi.real > 0))
+
+def RHPonly(x, round_precision=2):
+    return list(
+        set(numpy.round(xi, round_precision) for xi in x if xi.real > 0))
+
 
 @numpy.vectorize
 def evalfr(G, s):
@@ -376,13 +390,14 @@ class mimotf(object):
         # We only support matrices of transfer functions
         self.shape = self.matrix.shape
 
-    def mimotf_slice(self,rows,cols):
+    def mimotf_slice(self, rows, cols):
         nRows = len(rows)
         nCols = len(cols)
         result = [[] for r in range(nRows)]
         for r in range(nRows):
             for c in range(nCols):
-                result[r].append(tf(list(self[r,c].numerator.coeffs), list(self[r,c].denominator.coeffs)))
+                result[r].append(tf(list(self[r, c].numerator.coeffs),
+                                    list(self[r, c].denominator.coeffs)))
 
         return mimotf(result)
 
@@ -409,7 +424,8 @@ class mimotf(object):
         C = numpy.zeros((m, n), dtype=object)
         for i in range(m):
             for j in range(n):
-                minorij = det(numpy.delete(numpy.delete(A, i, axis=0), j, axis=1))
+                minorij = det(
+                    numpy.delete(numpy.delete(A, i, axis=0), j, axis=1))
                 C[i, j] = (-1.)**(i+1+j+1)*minorij
         return C
 
@@ -514,10 +530,12 @@ class mimotf(object):
         else:
             return result
 
-def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
+
+def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
     """
     Receives symbolic matrix of plant and disturbance transfer functions
-    as well as array of maximum deviations, scales plant variables according to eq () and ()
+    as well as array of maximum deviations, scales plant variables according
+    to eq () and ()
 
     Parameters
     -----------
@@ -554,63 +572,65 @@ def scaling(G_hat,e,u,input_type = 'symbolic',Gd_hat=None,d=None):
 
     """
 
-    De        = numpy.diag(e)
-    De_inv    = numpy.linalg.inv(De)
-    Du        = numpy.diag(u)
+    De = numpy.diag(e)
+    De_inv = numpy.linalg.inv(De)
+    Du = numpy.diag(u)
 
     if Gd_hat and d:
         Dd = numpy.diag(d)
 
     if input_type == 'symbolic':
-        G_scaled  = De_inv*(G_hat)*(Du)
+        G_scaled = De_inv*(G_hat)*(Du)
         if Gd_hat and d:
-            Dd        = np.diag(d)
+            Dd = numpy.diag(d)
             Gd_scaled = De_inv*(Gd_hat)*(Dd)
-            if G_hat.shape == (1,1):
-                return G_scaled[0,0],Gd_scaled[0,0]
+            if G_hat.shape == (1, 1):
+                return G_scaled[0, 0], Gd_scaled[0, 0]
             else:
-                return G_scaled,Gd_scaled
+                return G_scaled, Gd_scaled
         else:
-            if G_hat.shape == (1,1):
-                return G_scaled[0,0]
+            if G_hat.shape == (1, 1):
+                return G_scaled[0, 0]
             else:
                 return G_scaled
 
     elif input_type == 'mimotf':
-        De_inv_utils= [[] for r in range(De_inv.shape[0])]
-        Du_utils    = [[] for r in range(Du.shape[0])]
+        De_inv_utils = [[] for r in range(De_inv.shape[0])]
+        Du_utils = [[] for r in range(Du.shape[0])]
 
         for r in range(De_inv.shape[0]):
             for c in range(De_inv.shape[1]):
-                De_inv_utils[r].append(tf([De_inv[r,c]]))
+                De_inv_utils[r].append(tf([De_inv[r, c]]))
         for r in range(Du.shape[0]):
             for c in range(Du.shape[1]):
-                Du_utils[r].append(tf([Du[r,c]]))
+                Du_utils[r].append(tf([Du[r, c]]))
 
         De_inv_mimo = mimotf(De_inv_utils)
         Du_mimo = mimotf(Du_utils)
-        G_scaled  = De_inv_mimo*(G_hat)*(Du_mimo)
+        G_scaled = De_inv_mimo*(G_hat)*(Du_mimo)
 
         if Gd_hat and d:
-            Dd_utils    = [[] for r in range(Dd.shape[0])]
+            Dd_utils = [[] for r in range(Dd.shape[0])]
             for r in range(Dd.shape[0]):
                 for c in range(Dd.shape[1]):
-                    Dd_utils[r].append(tf([Dd[r,c]]))
+                    Dd_utils[r].append(tf([Dd[r, c]]))
             Dd_mimo = mimotf(Dd_utils)
             Gd_scaled = De_inv_mimo*(Gd_hat)*(Dd_mimo)
-            if G_hat.shape == (1,1):
-                return G_scaled[0,0],Gd_scaled[0,0]
+            if G_hat.shape == (1, 1):
+                return G_scaled[0, 0], Gd_scaled[0, 0]
             else:
-                return G_scaled,Gd_scaled
+                return G_scaled, Gd_scaled
         else:
-            if G_hat.shape == (1,1):
-                return G_scaled[0,0]
+            if G_hat.shape == (1, 1):
+                return G_scaled[0, 0]
             else:
                 return G_scaled
     else:
         raise ValueError('No input type specified')
 
-def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, method='numeric'):
+
+def tf_step(G, t_end=10, initial_val=0, points=1000,
+            constraint=None, Y=None, method='numeric'):
     """
     Validate the step response data of a transfer function by considering dead
     time and constraints. A unit step response is generated.
@@ -686,8 +706,10 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 if constraint is not None:
                     if (y1[0, 0] > constraint) or bconst:
                         y1[0, 0] = constraint
-                        bconst = True  # once constraint the system is oversaturated
-                        u = 0  # TODO : incorrect, find the correct switching condition
+                        # once constraint the system is oversaturated
+                        bconst = True
+                        # TODO : incorrect, find the correct switch condition
+                        u = 0
                     dxdt2 = A2*x2 + B2*u
                     y2 = C2*x2 + D2*u
                     x2 = x2 + dxdt2 * dt
@@ -697,11 +719,13 @@ def tf_step(G, t_end=10, initial_val=0, points=1000, constraint=None, Y=None, me
                 processdata1.append(y1[0, 0])
             if constraint:
                 processdata = [processdata1, processdata2]
-            else: processdata = processdata1
+            else:
+                processdata = processdata1
         elif method == 'analytic':
             # TODO: calculate intercept of step and constraint line
             timedata, processdata = [0, 0]
-        else: raise ValueError('Invalid function parameters')
+        else:
+            raise ValueError('Invalid function parameters')
 
     # TODO: calculate time response
     return timedata, processdata
@@ -749,7 +773,8 @@ def polygcd(a, b):
     """
     Find the Greatest Common Divisor of two polynomials
     using Euclid's algorithm:
-    http://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
+    http://en.wikipedia.org/wiki/
+    Polynomial_greatest_common_divisor#Euclidean_algorithm
 
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
@@ -767,11 +792,12 @@ def polygcd(a, b):
         b = r
     return a/a[len(a)]
 
+
 def polylcm(a, b):
     gcd = polygcd(a, b)
-    Ka,_ = numpy.polydiv(b,gcd)
-    Kb,_ = numpy.polydiv(a,gcd)
-    return (numpy.polymul(Ka,a))
+    Ka, _ = numpy.polydiv(b, gcd)
+    Kb, _ = numpy.polydiv(a, gcd)
+    return (numpy.polymul(Ka, a))
 
 
 def arrayfun(f, A):
@@ -1061,7 +1087,7 @@ def ControllerTuning(G, method='ZN'):
         corresponding period of oscillations
     """
 
-    settings = {'ZN' : [0.45, 0.83], 'TT' : [0.31, 2.2]}
+    settings = {'ZN': [0.45, 0.83], 'TT': [0.31, 2.2]}
 
     GM, PM, wc, w_180 = margins(G)
     Ku = numpy.abs(1 / G(1j * w_180))
@@ -1153,15 +1179,16 @@ def marginsclosedloop(L):
     def modT(x):
         return numpy.abs(Tw(x)) - 1/numpy.sqrt(2)
 
-    # calculate the freqeuncy at |S(jw)| = 0.707 from below (start searching from 0)
+    # calculate the freqeuncy at |S(jw)| = 0.707 from below (start from 0)
     wb = optimize.fsolve(modS, 0)
-    # calculate the freqeuncy at |T(jw)| = 0.707 from above (start searching from 1)
+    # calculate the freqeuncy at |T(jw)| = 0.707 from above (start from 1)
     wbt = optimize.fsolve(modT, 1)
 
     # Frequency range wb < wc < wbt
     if (PM < 90) and (wb < wc) and (wc < wbt):
         valid = True
-    else: valid = False
+    else:
+        valid = False
     return GM, PM, wc, wb, wbt, valid
 
 
@@ -1195,6 +1222,7 @@ def Wp(wB, M, A, s):
 
     return (s / M + wB) / (s + wB * A)
 
+
 def maxpeak(G, w_start=-2, w_end=2, points=1000):
     """
     Computes the maximum bode magnitude peak of a transfer function
@@ -1210,8 +1238,10 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 #                                Chapter 3                                    #
 ###############################################################################
 
+
 def sym2mimotf(Gmat):
-    """Converts a MIMO transfer function system in sympy.Matrix form to a mimotf object making use of individual tf objects.
+    """Converts a MIMO transfer function system in sympy.Matrix form to a
+    mimotf object making use of individual tf objects.
 
     Parameters
     ----------
@@ -1236,13 +1266,13 @@ def sym2mimotf(Gmat):
 
     """
     rows, cols = Gmat.shape
-    #create empty list of lists. This will be appended to form mimotf input list
+    # Create empty list of lists. Appended to form mimotf input list
     Gtf = [[] for y in range(rows)]
 
     for i in range(rows):
         for j in range(cols):
-            G = Gmat[i,j]
-            #select function denominator and convert is to list of coefficients
+            G = Gmat[i, j]
+            # Select function denominator and convert to list of coefficients
             Gnum, Gden = G.as_numer_denom()
 
             def poly_coeffs(G_comp):
@@ -1255,7 +1285,7 @@ def sym2mimotf(Gmat):
 
             Gtf_num = poly_coeffs(Gnum)
             Gtf_den = poly_coeffs(Gden)
-            Gtf[i].append(tf(Gtf_num,Gtf_den))
+            Gtf[i].append(tf(Gtf_num, Gtf_den))
 
     Gmimotf = mimotf(Gtf)
     return Gmimotf
@@ -1308,6 +1338,33 @@ def RGA(G):
     return G*Ginv.T
 
 
+def IterRGA(A, n):
+    """
+    Computes the n'th iteration of the RGA.
+
+    Parameters
+    ----------
+    G : numpy matrix (n x n)
+        The transfer function G(s) of the system.
+
+    Returns
+    -------
+    n'th iteration of RGA matrix : matrix
+        iterated RGA matrix of complex numbers.
+
+    Example
+    -------
+    >>> G = numpy.array([[1, 2], [-1, 1]])
+    >>> IterRGA(G, 4).round(3)
+    array([[-0.004,  1.004],
+           [ 1.004, -0.004]])
+
+    """
+    for _ in range(0, n):
+        A = RGA(A)
+    return A
+
+
 def sigmas(A, position=None):
     """
     Returns the singular values of A
@@ -1346,12 +1403,13 @@ def sigmas(A, position=None):
     """
 
     sigmas = numpy.linalg.svd(A, compute_uv=False)
-    if not position is None:
+    if position is not None:
         if position == 'max':
-            sigmas = sigmas[1]
+            sigmas = sigmas[0]
         elif position == 'min':
             sigmas = sigmas[-1]
-        else: raise ValueError('Incorrect position parameter')
+        else:
+            raise ValueError('Incorrect position parameter')
 
     return sigmas
 
@@ -1465,7 +1523,7 @@ def feedback_mimo(forward, backward=None, positive=False):
                                   numpy.shape(forward)[1]))
     # Check the dimensions of the input matrices
     if backward.shape[1] != forward.shape[0]:
-        raise ValueError("The column dimension of backward matrix must equal row dimension of forward matrix")
+        raise ValueError("Backward matrix col must equal forward matrix row")
     forward = numpy.asmatrix(forward)
     backward = numpy.asmatrix(backward)
     I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
@@ -1483,9 +1541,12 @@ def feedback_mimo(forward, backward=None, positive=False):
 def tf2ss(H):
 
     '''
-    Converts a mimotf object to the controllable canonical form state space representation. This method and the examples
-    were obtained from course work notes available at http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf
-    which appears to derive the method from "A Linear Systems Primer" by Antsaklis and Birkhauser.
+    Converts a mimotf object to the controllable canonical form state space
+    representation. This method and the examples were obtained from course work
+    notes available at
+    http://www.egr.msu.edu/classes/me851/jchoi/lecture/Lect_20.pdf
+    which appears to derive the method from "A Linear Systems Primer"
+    by Antsaklis and Birkhauser.
 
     Parameters
     ----------
@@ -1525,33 +1586,37 @@ def tf2ss(H):
             [ 0.,  0.]])
     '''
 
-    Hrows,Hcols = H.shape
-    d=[[] for k in range(Hcols)]  #construct some empty lists for use later
-    mu=[[] for k in range(Hcols)]
+    Hrows, Hcols = H.shape
+    d = [[] for k in range(Hcols)]  # Construct some empty lists for use later
+    mu = [[] for k in range(Hcols)]
     Lvect = [[] for k in range(Hcols)]
     Llist = []
-    D = numpy.asmatrix(numpy.zeros((Hcols,Hcols),dtype=numpy.lib.polynomial.poly1d))
-    Hinf = numpy.asmatrix(numpy.zeros((Hrows,Hcols)))
+    D = numpy.asmatrix(numpy.zeros((Hcols, Hcols),
+                                   dtype=numpy.lib.polynomial.poly1d))
+    Hinf = numpy.asmatrix(numpy.zeros((Hrows, Hcols)))
 
     for j in range(Hcols):
         lcm = numpy.poly1d(1)
         for i in range(Hrows):
-            lcm = polylcm(lcm,H[i,j].denominator)  #find the lcm of the denominators of the elements in each column
-            if H[i,j].numerator.order == H[i,j].denominator.order:  # check if the individual elements are proper
-                Hinf[i,j ]= H[i,j].numerator.coeffs[0]/H[i,j].denominator.coeffs[0]  #approximate the limit as s->oo for the transfer function elements
-            elif H[i,j].numerator.order > H[i,j].denominator.order:
-                raise ValueError('please enter a matrix of stricly proper transfer functions')
+            # Find the lcm of the denominators of the elements in each column
+            lcm = polylcm(lcm, H[i, j].denominator)
+            # Check if the individual elements are proper
+            if H[i, j].numerator.order == H[i, j].denominator.order:
+                # Approximate the limit as s->oo for the TF elements
+                Hinf[i, j] = H[i, j].numerator.coeffs[0] / \
+                    H[i, j].denominator.coeffs[0]
+            elif H[i, j].numerator.order > H[i, j].denominator.order:
+                raise ValueError('Enter a matrix of stricly proper TFs')
 
-
-        d[j] = tf(lcm)  #convert lcm to a tf object
+        d[j] = tf(lcm)  # Convert lcm to a tf object
         mu[j] = lcm.order
-        D[j,j] = d[j]  #create a diagonal matrix of lcms
-
-        Lvect[j] = list((d[j].numerator.coeffs[1:]))  #create a list of coeffs of the lcm for that column, excluding the highest order element
+        D[j, j] = d[j]  # Create a diagonal matrix of lcms
+        # Create list of coeffs of lcm for column, excl highest order element
+        Lvect[j] = list((d[j].numerator.coeffs[1:]))
         Lvect[j].reverse()
-        Llist.append(Lvect[j])  #create a block diagonal matrix from the list of lists
+        Llist.append(Lvect[j])  # Create block diag matrix from list of lists
 
-    Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist)) #convert L to a matrix
+    Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist))  # Convert L to matrix
     N = H*D
     MS = N-Hinf*D
 
@@ -1560,42 +1625,44 @@ def tf2ss(H):
 
     def offdiag(m):
         identity = numpy.eye(m-1)
-        vzeros = numpy.zeros((m-1,1))
-        hzeros = numpy.zeros((1,m))
-        mat = numpy.concatenate((vzeros,identity),axis=1)
-        mat = numpy.concatenate((mat,hzeros),axis=0)
-        return numpy.asmatrix(mat[:m,:m])
+        vzeros = numpy.zeros((m-1, 1))
+        hzeros = numpy.zeros((1, m))
+        mat = numpy.concatenate((vzeros, identity), axis=1)
+        mat = numpy.concatenate((mat, hzeros), axis=0)
+        return numpy.asmatrix(mat[:m, :m])
 
     def lowerdiag(m):
-        vzeros = numpy.zeros((m,1))
+        vzeros = numpy.zeros((m, 1))
         vzeros[len(vzeros)-1] = 1
         return vzeros
 
-    MSrows,MScols=MS.shape
-
-    for j in range(MScols):  #this loop generate the M matrix, which forms the output matrix, C
-        maxlength = max(len(num_coeffs(MS[k,j])) for k in range(MSrows))
-        Mvect = numpy.zeros((MSrows,maxlength))
+    MSrows, MScols = MS.shape
+    # This loop generates the M matrix, which forms the output matrix, C
+    for j in range(MScols):
+        maxlength = max(len(num_coeffs(MS[k, j])) for k in range(MSrows))
+        Mvect = numpy.zeros((MSrows, maxlength))
         for i in range(MS.shape[0]):
-            M_coeffs = list(num_coeffs(MS[i,j]))
+            M_coeffs = list(num_coeffs(MS[i, j]))
             M_coeffs.reverse()
-            Mvect[i,maxlength-len(M_coeffs):] = M_coeffs
+            Mvect[i, maxlength-len(M_coeffs):] = M_coeffs
         if j == 0:
             Mmat = numpy.matrix(Mvect)
         else:
-            Mmat = numpy.asmatrix(numpy.hstack((Mmat,numpy.matrix(Mvect))))
+            Mmat = numpy.asmatrix(numpy.hstack((Mmat, numpy.matrix(Mvect))))
 
     # construct an off diagonal matrix used to form the state matrix
-    Acbar = numpy.asmatrix(sc_linalg.block_diag(*[offdiag(order) for order in mu]))
+    Acbar = numpy.asmatrix(
+        sc_linalg.block_diag(*[offdiag(order) for order in mu]))
     # construct a lower diagonal matrix which forms the input matrix
-    Bcbar = numpy.asmatrix(sc_linalg.block_diag(*[lowerdiag(order) for order in mu]))
+    Bcbar = numpy.asmatrix(
+        sc_linalg.block_diag(*[lowerdiag(order) for order in mu]))
 
     Ac = Acbar - Bcbar*Lmat
     Bc = Bcbar
     Cc = Mmat
     Dc = Hinf
 
-    return Ac,Bc,Cc,Dc
+    return Ac, Bc, Cc, Dc
 
 
 def state_controllability(A, B):
@@ -1681,9 +1748,11 @@ def state_observability_matrix(a, c):
     return observability_m
 
 
-def kalman_controllable(A,B,C):
-    """Computes the Kalman Controllable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-       Can be used in sequentially with kalman_observable to obtain a minimal realisation.
+def kalman_controllable(A, B, C):
+    """Computes the Kalman Controllable Canonical Form of the inout system
+    A, B, C, making use of QR Decomposition. Can be used in sequentially with
+    kalman_observable to obtain a minimal realisation.
+
     Parameters
     ----------
     A : numpy matrix
@@ -1695,7 +1764,8 @@ def kalman_controllable(A,B,C):
     rounding factor : integer
         The number of significant
     factor : int
-        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        The number of additional significant digits after the first significant
+        digit to round the returned matrix elements to.
 
     Returns
     -------
@@ -1736,28 +1806,35 @@ def kalman_controllable(A,B,C):
     >>> round(Cc)
     array([[ 0.   ,  1.387,  0.053]])
     """
-    nstates = A.shape[1] #compute the number of states
-    _, _, P = state_controllability(A,B) # compute the controllability matrix
-    RP = numpy.linalg.matrix_rank(P) # find the rank of the controllability matrix
+    nstates = A.shape[1]  # Compute the number of states
+    _, _, P = state_controllability(A, B)  # Compute the controllability matrix
+    RP = numpy.linalg.matrix_rank(P)  # Find rank of the controllability matrix
 
     if RP == nstates:
 
-        return A,B,C
+        return A, B, C
 
     elif RP < nstates:
-        T, R = numpy.linalg.qr(P)# compute the QR decomposition of the controllability matrix
-        T1 = numpy.matrix(T[:,0:RP]) # separate the controllable subspace of T
-        T2 = numpy.matrix(T[:,RP:nstates])#separate out the elements orthogonal to the controllable subspace
-        Ac = T1.T*A*T1#calculate the controllable state matrix
-        Bc = T1.T*B#calculate the observable state matrix
-        Cc = C*T1#calculate the observable output matrix
+        # compute the QR decomposition of the controllability matrix
+        T, R = numpy.linalg.qr(P)
+        # separate the controllable subspace of T
+        T1 = numpy.matrix(T[:, 0:RP])
+        # Separate out the elements orthogonal to the controllable subspace
+        T2 = numpy.matrix(T[:, RP:nstates])
+        # Calculate the controllable state matrix
+        Ac = T1.T*A*T1
+        # Calculate the observable state matrix
+        Bc = T1.T*B
+        # Calculate the observable output matrix
+        Cc = C*T1
 
-        return Ac,Bc,Cc
+        return Ac, Bc, Cc
 
 
-def kalman_observable(A,B,C):
-    """Computes the Kalman Observable Canonical Form of the inout system A, B, C, making use of QR Decomposition.
-        Can be used in sequentially with kalman_controllable to obtain a minimal realisation.
+def kalman_observable(A, B, C):
+    """Computes the Kalman Observable Canonical Form of the inout system
+    A, B, C, making use of QR Decomposition. Can be used in sequentially
+    with kalman_controllable to obtain a minimal realisation.
 
     Parameters
     ----------
@@ -1770,7 +1847,8 @@ def kalman_observable(A,B,C):
     rounding factor : integer
         The number of significant
     factor : int
-        The number of additional significant digits after the first significant digit to round the returned matrix elements to.
+        The number of additional significant digits after the first significant
+        digit to round the returned matrix elements to.
 
     Returns
     -------
@@ -1810,28 +1888,36 @@ def kalman_observable(A,B,C):
     >>> round(Co)
     array([[-1.414,  0.   ,  0.   ]])
     """
-    nstates = A.shape[1] #compute the number of states
-    Q = state_observability_matrix(A,C)# compute the observability matrix
-    RQ = numpy.linalg.matrix_rank(Q) # compute the rank of the observability matrix
+    nstates = A.shape[1]  # Compute the number of states
+    Q = state_observability_matrix(A, C)  # Compute the observability matrix
+    RQ = numpy.linalg.matrix_rank(Q)  # Compute rank of observability matrix
 
     if RQ == nstates:
 
         return A, B, C
+    # The system is not state observable
+    elif RQ < nstates:
+        # Compute the QR decomposition of the observability matrix
+        V, R = numpy.linalg.qr(Q.T)
+        # Separate out the elements of  the observable subspace
+        V1 = V[:, 0:RQ]
+        # Separate out the elements othrogonal to the observable subspace
+        V2 = V[:, RQ:nstates]
+        # Calculate the observable state matrix
+        Ao = V1.T*A*V1
+        # Calculate the observable input matrix
+        Bo = V1.T*B
+        # Calculate the observable output matrix
+        Co = C*V1
+        return Ao, Bo, Co
 
-    elif RQ < nstates: #the system is not state observable
-        V ,R = numpy.linalg.qr(Q.T) #compute the QR decomposition of the observability matrix
-        V1 = V[:,0:RQ]# separate out the elements of  the observable subspace
-        V2 = V[:,RQ:nstates] # separate out the elements othrogonal to the observable subspace
-        Ao = V1.T*A*V1 # calculate the observable state matrix
-        Bo = V1.T*B # calculate the observable input matrix
-        Co = C*V1 # calculate the observable output matrix
 
-        return Ao,Bo,Co
-
-
-def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, uncontrollable=True, unobservable=False,
+def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix,
+                                                 uncontrollable=True,
+                                                 unobservable=False,
                                                  rank=None):
-    """"remove the uncontrollable or unobservable states from the A, B and C state space matrices
+    """"remove the uncontrollable or unobservable states from the A, B and C
+    state space matrices
 
     :param a: numpy matrix
               the A matrix in the state space model
@@ -1846,29 +1932,37 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
                               the controllable or observable matrix
 
     :param uncontrollable: boolean
-                           set to True to remove uncontrollable states (default) or to false
+                           set to True to remove uncontrollable states
+                           (default) or to false
 
     :param unobservable: boolean
-                         set to True to remove unobservable states or to false (default)
+                         set to True to remove unobservable states or to false
+                         (default)
 
     :param rank: optional (int)
                  rank of the controllable or observable matrix
-                 if the rank is available set the rank=(rank of matrix) to avoid calculating matrix rank twice
+                 if the rank is available set the rank=(rank of matrix) to
+                 avoid calculating matrix rank twice
                  by default rank=None and will be calculated
 
     Default: remove the uncontrollable states
-    To remove the unobservable states set uncontrollable=False and unobservable=True
+    To remove the unobservable states set uncontrollable=False
+    and unobservable=True
 
     return: the Kalman Canonical matrices
-            Ac, Bc, Cc (the controllable subspace of A, B and C) if uncontrollable=True and unobservable=False
-            or Ao, Bo, Co (the observable subspace of A, B and C) if uncontrollable=False and unobservable=True
+            Ac, Bc, Cc (the controllable subspace of A, B and C)
+            if uncontrollable=True and unobservable=False
+            or Ao, Bo, Co (the observable subspace of A, B and C)
+            if uncontrollable=False and unobservable=True
 
     Note:
-    If the controllable subspace of A, B and C are given (Ac, Bc and Cc) and the unobservable states are removed the
-    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    If the controllable subspace of A, B and C are given (Ac, Bc and Cc)
+    and the unobservable states are removed the matrices Aco, Bco and Cco
+    (the controllable and observable subspace of A, B and C) will be returned
 
-    If the observable subspace of A, B and C are given (Ao, Bo and Co) and the uncontrollable states are removed the
-    matrices Aco, Bco and Cco (the controllable and observable subspace of A, B and C) will be returned
+    If the observable subspace of A, B and C are given (Ao, Bo and Co) and
+    the uncontrollable states are removed the matrices Aco, Bco and Cco
+    (the controllable and observable subspace of A, B and C) will be returned
 
     Examples
     --------
@@ -1937,35 +2031,36 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
     if rank is None:
         rank = numpy.linalg.matrix_rank(con_or_obs_matrix)
 
-    # calculate the difference between the number of states and the number of controllable or observable states
+    # difference between number of states and controllable/observable states
     m = n_states - rank
 
-    # if system is already state controllable or observable return matrices unchanged
+    # if system already state controllable/observable return matrices unchanged
     if m == 0:
         return a, b, c
 
-    # create the a matrix P with dimensions n_states x n_states used to change matrices A, B and C to the
-    # Kalman Canonical Form
+    # create matrix P with dimensions n_states x n_states to change matrices
+    # A, B and C to the Kalman Canonical Form
     P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
 
-    if uncontrollable == True and unobservable == False:
+    if uncontrollable is True and unobservable is False:
         P[:, 0:rank] = con_or_obs_matrix[:, 0:rank]
 
-        # this matrix will replace all the dependent columns in P to make P invertible
+        # matrix will replace the dependent columns in P to make P invertible
         replace_matrix = numpy.matrix(numpy.random.random((n_states, m)))
 
         # make P invertible
         P[:, rank:n_states] = replace_matrix
 
-        # When removing the uncontrollable states the constructed matrix P is actually the inverse of P (P^-1) and
+        # When removing the uncontrollable states the constructed matrix P
+        # is actually the inverse of P (P^-1) and
         # true matrix P is obtained by (P^-1)^-1
         P_inv = P
         P = numpy.linalg.inv(P_inv)
 
-    elif uncontrollable == False and unobservable == True:
+    elif uncontrollable is False and unobservable is True:
         P[0:rank, :] = con_or_obs_matrix[0:rank, :]
 
-        # this matrix will replace all the dependent columns in P to make P invertible
+        # matrix will replace the dependent columns in P to make P invertible
         replace_matrix = numpy.matrix(numpy.random.random((m, n_states)))
 
         # make P invertible
@@ -1987,8 +2082,9 @@ def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix, unc
 
 
 def minimal_realisation(a, b, c):
-    """"This function will obtain a minimal realisation for a state space model in the form given in Skogestad
-    second edition p 119 equations 4.3 and 4.4
+    """"This function will obtain a minimal realisation for a state space
+    model in the form given in Skogestad second edition p 119 equations
+    4.3 and 4.4
 
     :param a: numpy matrix
               the A matrix in the state space model
@@ -2072,39 +2168,47 @@ def minimal_realisation(a, b, c):
     rank_O = numpy.linalg.matrix_rank(O.T)
 
     if rank_C <= rank_O:
-        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(a, b, c, C, rank=rank_C)
+        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(
+            a, b, c, C, rank=rank_C)
 
         O = state_observability_matrix(Ac, Cc)
 
-        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(
+            Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
 
     else:
-        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(a, b, c, O, uncontrollable=False, unobservable=True,
-                                                                  rank=rank_O)
+        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(
+            a, b, c, O, uncontrollable=False, unobservable=True, rank=rank_O)
 
         _, _, C = state_controllability(Ao, Bo)
 
-        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(Ao, Bo, Co, C)
+        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(
+            Ao, Bo, Co, C)
 
     return Aco, Bco, Cco
 
-def num_denom (A, symbolic_expr = False):
+
+def num_denom(A, symbolic_expr=False):
 
     sym_den = 0
     sym_num = 0
     s = sympy.Symbol('s')
 
     if type(A) == mimotf:
-        denom   = 1
-        num     = 1
+        denom = 1
+        num = 1
 
-        denom = [numpy.poly1d(denom) * numpy.poly1d(A.matrix[0,j].denominator.coeffs) for j in range(A.matrix.shape[1])]
-        num   = [numpy.poly1d(num)   * numpy.poly1d(A.matrix[0,j].numerator.coeffs) for j in range(A.matrix.shape[1])]
-        if symbolic_expr == True:
+        denom = [numpy.poly1d(denom) *
+                 numpy.poly1d(A.matrix[0, j].denominator.coeffs)
+                 for j in range(A.matrix.shape[1])]
+        num = [numpy.poly1d(num) *
+               numpy.poly1d(A.matrix[0, j].numerator.coeffs) 
+               for j in range(A.matrix.shape[1])]
+        if symbolic_expr is True:
             for n in range(len(denom)):
-                sym_den = (sym_den + denom[- n- 1] * s**n).simplify()
+                sym_den = (sym_den + denom[- n - 1] * s**n).simplify()
             for n in range(len(num)):
-                sym_num = (sym_num + num[- n- 1] * s**n).simplify()
+                sym_num = (sym_num + num[- n - 1] * s**n).simplify()
             return sym_num, sym_den
         else:
             return num, denom
@@ -2113,9 +2217,11 @@ def num_denom (A, symbolic_expr = False):
         denom = []
         num = []
 
-        denom = [list(A.denominator.coeffs)[n] for n in range(len(list(A.denominator.coeffs)))]
-        num   = [list(A.numerator.coeffs)[n] for n in range(len(list(A.numerator.coeffs)))]
-        if symbolic_expr == True:
+        denom = [list(A.denominator.coeffs)[n] for n in range(
+            len(list(A.denominator.coeffs)))]
+        num = [list(A.numerator.coeffs)[n] for n in range(
+            len(list(A.numerator.coeffs)))]
+        if symbolic_expr is True:
             for n in range(len(denom)):
                 sym_den = (sym_den + denom[- n - 1] * s**n).simplify()
             for n in range(len(num)):
@@ -2123,16 +2229,19 @@ def num_denom (A, symbolic_expr = False):
             return sym_num, sym_den
         else:
             return num, denom
-    #else:
-    #    sym_num, sym_den = A.as_numer_denom()
-    #    if not symbolic_expr:
-    #        num_poly   = sympy.Poly(sym_num)
-    #        numer      = [float(k) for k in num_poly.all_coeffs()]
-    #        den_poly   = sympy.Poly(sym_den)
-    #        denom      = [float(k) for k in den_poly.all_coeffs()]
-    #        return numer, denom
-    #    else:
-    #        return sym_num, sym_den
+"""
+    else:
+        sym_num, sym_den = A.as_numer_denom()
+        if not symbolic_expr:
+            num_poly   = sympy.Poly(sym_num)
+            numer      = [float(k) for k in num_poly.all_coeffs()]
+            den_poly   = sympy.Poly(sym_den)
+            denom      = [float(k) for k in den_poly.all_coeffs()]
+            return numer, denom
+        else:
+            return sym_num, sym_den
+"""
+
 
 def minors(G, order):
     '''
@@ -2142,10 +2251,11 @@ def minors(G, order):
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            G_slice = G.mimotf_slice(rowstokeep,colstokeep)
+            G_slice = G.mimotf_slice(rowstokeep, colstokeep)
             if type(G_slice) == tf:
                 minor.append(G_slice)
-            elif (type(G_slice) == mimotf) and (G_slice.shape[0] == G_slice.shape[1]):
+            elif (type(G_slice) == mimotf) \
+                    and (G_slice.shape[0] == G_slice.shape[1]):
                 minor.append(G_slice.det())
     return minor
 
@@ -2159,7 +2269,7 @@ def lcm_of_all_minors(G):
     for i in range(1, min(Nrows, Ncols) + 1, 1):
         allminors = minors(G, i)
         for m in allminors:
-            numer, denom = num_denom(m,symbolic_expr = True)
+            numer, denom = num_denom(m, symbolic_expr=True)
             lcm = sympy.lcm(lcm, denom)
     return lcm
 
@@ -2231,7 +2341,8 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
     have values if A is defined.
     '''
-    # TODO create a beter function to accept parameters and switch between tf and ss
+    # TODO create a beter function to accept parameters and
+    # switch between tf and ss
 
     if G:
         if not (type(G) == tf or type(G) == mimotf):
@@ -2240,15 +2351,15 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         allminors = minors(G, G.shape[0])
         gcd = None
         for m in allminors:
-            numer, denom = num_denom(m,symbolic_expr=True)
+            numer, denom = num_denom(m, symbolic_expr=True)
             if denom != lcm:
                 numer *= denom
             if numer.find('s'):
-                num_coeff  = [float(k) for k in numer.as_poly().all_coeffs()]
+                num_coeff = [float(k) for k in numer.as_poly().all_coeffs()]
                 if not gcd:
                     gcd = numpy.poly1d(num_coeff)
                 else:
-                    gcd = polygcd(gcd,numpy.poly1d(num_coeff))
+                    gcd = polygcd(gcd, numpy.poly1d(num_coeff))
             else:
                 gcd = poly1d(numer)
         zero = numpy.roots(gcd)
@@ -2328,7 +2439,8 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
     elif dir_type == 'z':
         dt = -1
         e = 0
-    else: raise ValueError('Incorrect dir_type parameter')
+    else:
+        raise ValueError('Incorrect dir_type parameter')
 
     N = len(vec)
     if display_type == 'a':
@@ -2341,7 +2453,7 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
         d = vec[i]
         g = G(d + e)
 
-        U, _, V =  SVD(g)
+        U, _, V = SVD(g)
         u = V[:, dt]
         y = U[:, dt]
 
@@ -2356,7 +2468,8 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
             valid.append(v)
         elif display_type == 'a':
             pz_dir.append((d, u, y, [v]))
-        else: raise ValueError('Incorrect display_type parameter')
+        else:
+            raise ValueError('Incorrect display_type parameter')
 
     if display_type == 'a':
         display = pz_dir
@@ -2403,28 +2516,28 @@ def BoundST(G, poles, zeros, deadtime=None):
     Yp, _ = pole_zero_directions(G, poles, 'p', 'y')
     Yz, _ = pole_zero_directions(G, zeros, 'z', 'y')
 
-    yp_mat1 = numpy.matrix(numpy.diag(poles)) * \
-                    numpy.matrix(numpy.ones([Np, Np]))
+    yp_mat1 = numpy.matrix(
+        numpy.diag(poles)) * numpy.matrix(numpy.ones([Np, Np]))
     yp_mat2 = yp_mat1.T
     Qp = (Yp.H * Yp) / (yp_mat1 + yp_mat2)
 
-    yz_mat1 = (numpy.matrix(numpy.diag(zeros)) * \
-              numpy.matrix(numpy.ones([Nz, Nz])))
+    yz_mat1 = (numpy.matrix(
+        numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Nz])))
     yz_mat2 = yz_mat1.T
     Qz = (Yz.H * Yz) / (yz_mat1 + yz_mat2)
 
-    yzp_mat1 = numpy.matrix(numpy.diag(zeros)) * \
-               numpy.matrix(numpy.ones([Nz, Np]))
-    yzp_mat2 = numpy.matrix(numpy.ones([Nz, Np])) * \
-               numpy.matrix(numpy.diag(poles))
+    yzp_mat1 = numpy.matrix(
+        numpy.diag(zeros)) * numpy.matrix(numpy.ones([Nz, Np]))
+    yzp_mat2 = numpy.matrix(
+        numpy.ones([Nz, Np])) * numpy.matrix(numpy.diag(poles))
     Qzp = Yz.H * Yp / (yzp_mat1 - yzp_mat2)
 
     if deadtime is None:
 
-        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))).dot(Qzp).dot(sc_linalg.sqrtm(numpy.linalg.inv(Qp)))
+        pre_mat = sc_linalg.sqrtm((numpy.linalg.inv(Qz))).dot(Qzp).dot(
+            sc_linalg.sqrtm(numpy.linalg.inv(Qp)))
         # Final equation 6.8
         Ms_min = numpy.sqrt(1 + (numpy.max(sigmas(pre_mat))) ** 2)
-
 
     else:
         # Equation 6.16 (p226) uses maximum deadtime per output channel to
@@ -2439,23 +2552,26 @@ def BoundST(G, poles, zeros, deadtime=None):
             dead_time_vec_max_row[i] = numpy.max(abs(deadtime[i]))
 
         def Dead_time_matrix(s, dead_time_vec_max_row):
-            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(dead_time_vec_max_row, s)))
+            dead_time_matrix = numpy.diag(numpy.exp(numpy.multiply(
+                dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros((Np,Np))
+        Q_dead = numpy.zeros((Np, Np))
 
         for i in range(Np):
             for j in range(Np):
-                numerator_mat = (numpy.transpose(numpy.conjugate(Yp[:, i])) *
-                                   Dead_time_matrix(poles[i], dead_time_vec_max_row) * \
-                                   Dead_time_matrix(poles[j], dead_time_vec_max_row) * Yp[:, j])
+                numerator_mat = (numpy.transpose(
+                    numpy.conjugate(Yp[:, i])) * Dead_time_matrix(
+                        poles[i], dead_time_vec_max_row) * Dead_time_matrix(
+                            poles[j], dead_time_vec_max_row) * Yp[:, j])
+
                 denominator_mat = poles[i] + poles[j]
                 Q_dead[i, j] = numerator_mat / denominator_mat
 
-        lambda_mat = sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)) \
-                        .dot(Qp + Qzp.dot(numpy.linalg.pinv(Qz)) \
-                        .dot(numpy.transpose(numpy.conjugate(Qzp)))) \
-                        .dot(sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)))
+        lambda_mat = sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)).dot(
+            Qp + Qzp.dot(numpy.linalg.pinv(Qz)).dot(numpy.transpose(
+                numpy.conjugate(Qzp)))).dot(sc_linalg.sqrtm(
+                    numpy.linalg.pinv(Q_dead)))
 
         # Final equation 6.19
         Ms_min = float(numpy.real(numpy.max(numpy.linalg.eig(lambda_mat)[0])))
@@ -2511,7 +2627,8 @@ def distRej(G, gd):
         The inverse of the 2-norm of a single disturbance gd.
 
     distCondNum : float
-        The disturbance condition number :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
+        The disturbance condition number
+        :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
 
     yd : numpy matrix
         Disturbance direction.
@@ -2548,7 +2665,7 @@ def distRHPZ(G, Gd, RHP_Z):
     ----
     The return value should be less than 1.
     '''
-    if numpy.real(RHP_Z) < 0: # RHP-z
+    if numpy.real(RHP_Z) < 0:  # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')
     Dist_RHPZ = numpy.abs(Yz.H * Gd(RHP_Z))[0, 0]
