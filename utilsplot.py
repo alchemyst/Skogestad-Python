@@ -558,7 +558,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
             for j in range(dim[1]):
                 rgas = numpy.array(
                     numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                ax.semilogx(w, rgas, 
+                ax.semilogx(w, rgas,
                             label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
                 rgamax.append(max(rgas))
 
