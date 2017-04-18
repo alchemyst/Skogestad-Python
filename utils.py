@@ -134,28 +134,30 @@ class tf(object):
     def simplify(self, dec=3):
 
         # Polynomial simplification
-        k = self.numerator[self.numerator.order]/self.denominator[self.denominator.order]
+        k = self.numerator[self.numerator.order] / \
+            self.denominator[self.denominator.order]
         ps = self.poles().tolist()
-        ps.sort(key=lambda x: x.imag)   
+        ps.sort(key=lambda x: x.imag)
         ps.sort(key=lambda x: abs(x.imag))
-        ps.sort(key=lambda x: x.real)        #ensure conjugate roots appear with each other
+        ps.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
         zs = self.zeros().tolist()
         zs.sort(key=lambda x: x.imag)
-        zs.sort(key=lambda x: abs(x.imag))    
-        zs.sort(key=lambda x: x.real)        #ensure conjugate roots appear with each other
-        
-        ps_to_canc_ind = []    #contains index of poles to be cancelled
-        zs_to_canc_ind = []    #contains index of poles to be cancelled
-        
+        zs.sort(key=lambda x: abs(x.imag))
+        zs.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
+
+        ps_to_canc_ind = []  # Contains index of poles to be cancelled
+        zs_to_canc_ind = []  # Contains index of poles to be cancelled
+
         zs_iter = iter(range(len(zs)))
         conj_canc = False
         for i in zs_iter:
             for j in range(len(ps)):
-                if abs(zs[i]-ps[j])< 10**-dec:
+                if abs(zs[i]-ps[j]) < 10**-dec:
                     if j not in ps_to_canc_ind:
                         ps_to_canc_ind.append(j)
                         zs_to_canc_ind.append(i)
-                        if zs[i].imag != 0:    #conjugate pair of roots can be cancelled
+                        # Conjugate pair of roots can be cancelled
+                        if zs[i].imag != 0:
                             ps_to_canc_ind.append(j+1)
                             zs_to_canc_ind.append(i+1)
                             conj_canc = True
@@ -164,8 +166,8 @@ class tf(object):
                 conj_canc = False
                 next(zs_iter)
                 continue
-        
-        cancelled = 0    #number of roots cancelled
+
+        cancelled = 0  # Number of roots cancelled
         for i in ps_to_canc_ind:
             del ps[i - cancelled]
             cancelled += 1
@@ -174,10 +176,12 @@ class tf(object):
         for j in zs_to_canc_ind:
             del zs[j - cancelled]
             cancelled += 1
-            
-        self.numerator = numpy.poly1d([round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
-        self.denominator = numpy.poly1d([round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
-        
+
+        self.numerator = numpy.poly1d(
+            [round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+        self.denominator = numpy.poly1d(
+            [round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
+ 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -2213,7 +2217,7 @@ def num_denom(A, symbolic_expr=False):
                  numpy.poly1d(A.matrix[0, j].denominator.coeffs)
                  for j in range(A.matrix.shape[1])]
         num = [numpy.poly1d(num) *
-               numpy.poly1d(A.matrix[0, j].numerator.coeffs) 
+               numpy.poly1d(A.matrix[0, j].numerator.coeffs)
                for j in range(A.matrix.shape[1])]
         if symbolic_expr is True:
             for n in range(len(denom)):
