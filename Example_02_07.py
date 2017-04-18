@@ -19,6 +19,7 @@ def TF(num, den, s):
 w = np.logspace(-2, 2, 100)
 z = 0.1
 tau = 1
+wbt = 1/tau
 
 # Coeff found in sage of the T function
 Tnum = [-1, z]
@@ -35,7 +36,6 @@ plt.title('Time domain response')
 
 # Gain of both S and T transfer functions
 Tgain = np.abs([TF(Tnum, Tden, (1j*i)) for i in w])
-
 Sgain = np.abs([TF(Tnum, Tden, (1j*i)) - 1 for i in w])
 
 # Plot Gains
@@ -48,5 +48,6 @@ plt.ylabel('Magnitude')
 plt.xlabel('Frequency [rad/s]')
 plt.title('Magnitude of S and T transfer function')
 plt.show()
+%matplotlib inline
 
 # TODO GM, PM, Ms, Mt, wb, wc

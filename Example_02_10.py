@@ -51,5 +51,10 @@ plt.ylabel("y")
 plt.title("Disturbance response")
 plt.legend(["y0", "y1", "y2", "y3"])
 
-plt.show()
+plt.plot(G.real,G.imag)
+plt.plot(G.conj().real, G.conj().imag)
+plt.plot(-1,0, 'r+')
+plt.axis('equal')
 
+plt.show()
+%matplotlib inline
