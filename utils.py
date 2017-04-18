@@ -59,14 +59,14 @@ class tf(object):
     addition
 
     >>> G + G2
-    tf([ 3.  2.], [ 2.  3.  1.])
+    tf([ 1.5  1. ], [ 1.   1.5  0.5])
     >>> G + G # check for simplification
     tf([ 2.], [ 1.  1.])
 
     multiplication
 
     >>> G * G2
-    tf([ 1.], [ 2.  3.  1.])
+    tf([ 0.5], [ 1.   1.5  0.5])
 
     division
 
@@ -84,12 +84,12 @@ class tf(object):
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 1.], [ 2.  1.]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 0.5], [ 1.   0.5]), other=tf([ 1.], [ 1.  1.], deadtime=2)
 
     Although we can add a zero-gain tf to anything
 
     >>> G2 + 0*G3
-    tf([ 1.], [ 2.  1.])
+    tf([ 0.5], [ 1.   0.5])
 
     >>> 0*G2 + G3
     tf([ 1.], [ 1.  1.], deadtime=2)
@@ -106,7 +106,7 @@ class tf(object):
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
-                 u='', y='', prec=5, integercoeffs=True):
+                 u='', y='', prec=3):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -119,7 +119,6 @@ class tf(object):
         self.name = name
         self.u = u
         self.y = y
-        self.integercoeffs = integercoeffs
         self.simplify(dec=prec)
 
     def inverse(self):
@@ -132,41 +131,53 @@ class tf(object):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
 
-    def simplify(self, dec=5):
+    def simplify(self, dec=3):
 
         # Polynomial simplification
-        g = polygcd(self.numerator, self.denominator)
-        self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
-        self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
+        k = self.numerator[self.numerator.order]/self.denominator[self.denominator.order]
+        ps = self.poles().tolist()
+        ps.sort(key=lambda x: x.imag)   
+        ps.sort(key=lambda x: abs(x.imag))
+        ps.sort(key=lambda x: x.real)        #ensure conjugate roots appear with each other
+        zs = self.zeros().tolist()
+        zs.sort(key=lambda x: x.imag)
+        zs.sort(key=lambda x: abs(x.imag))    
+        zs.sort(key=lambda x: x.real)        #ensure conjugate roots appear with each other
+        
+        ps_to_canc_ind = []    #contains index of poles to be cancelled
+        zs_to_canc_ind = []    #contains index of poles to be cancelled
+        
+        zs_iter = iter(range(len(zs)))
+        conj_canc = False
+        for i in zs_iter:
+            for j in range(len(ps)):
+                if abs(zs[i]-ps[j])< 10**-dec:
+                    if j not in ps_to_canc_ind:
+                        ps_to_canc_ind.append(j)
+                        zs_to_canc_ind.append(i)
+                        if zs[i].imag != 0:    #conjugate pair of roots can be cancelled
+                            ps_to_canc_ind.append(j+1)
+                            zs_to_canc_ind.append(i+1)
+                            conj_canc = True
+                        break
+            if conj_canc:
+                conj_canc = False
+                next(zs_iter)
+                continue
+        
+        cancelled = 0    #number of roots cancelled
+        for i in ps_to_canc_ind:
+            del ps[i - cancelled]
+            cancelled += 1
 
-        if self.integercoeffs:
-            # Round numerator and denominator for coefficient simplification
-            self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
-            self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
-
-            # Determine most digits in numerator & denominator
-            num_dec = 0
-            den_dec = 0
-            for i in range(len(self.numerator.coeffs)):
-                num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
-            for j in range(len(self.denominator.coeffs)):
-                den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
-
-            # Convert coefficients to integers
-            self.numerator = self.numerator*10**(max(num_dec, den_dec))
-            self.denominator = self.denominator*10**(max(num_dec, den_dec))
-
-            # Decimal-less representation of coefficients
-            num_gcd = gcd(self.numerator.coeffs)
-            den_gcd = gcd(self.denominator.coeffs)
-            tf_gcd = gcd([num_gcd, den_gcd])
-            self.numerator = self.numerator/tf_gcd
-            self.denominator = self.denominator/tf_gcd
-
+        cancelled = 0
+        for j in zs_to_canc_ind:
+            del zs[j - cancelled]
+            cancelled += 1
+            
+        self.numerator = numpy.poly1d([round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+        self.denominator = numpy.poly1d([round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
+        
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -436,8 +447,8 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
-        matrix([[tf([-1.  1.], [-1.  4.]), tf([ 2.], [-1.  4.])],
-                [tf([ 9.], [ -4.  16.]), tf([-1.  1.], [-2.  8.])]], dtype=object)
+        matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
+                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]], dtype=object)
 
         >>> G.inverse()*G.matrix
         matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
