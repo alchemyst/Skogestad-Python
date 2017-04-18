@@ -9,8 +9,8 @@ from __future__ import print_function
 import numpy as np
 import doc_func as df
 
-# Gprime = [[part, range of parameter, function,
-#            True if min and max values wanted, legend string]]
+# Gprime = [[part, range of parameter,
+#            function, True if min and max values wanted, legend string]]
 Gprime = [
     ['a)', np.linspace(0, 1, 101), df.Gp_a, False, '$l_{I}$'],
     ['b)', np.linspace(0, 1, 101), df.Gp_b, False, '$l_{I}$'],
