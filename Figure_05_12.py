@@ -5,7 +5,7 @@ from utils import tf
 
 s = tf([1, 0])
 
-#Figure 5.12
+# Figure 5.12
 G = 4/((s - 1)*(0.02*s + 1)**2)
 Kc = [0.5, 1.25, 2.0]
 tau = 1.25
