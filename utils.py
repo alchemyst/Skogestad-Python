@@ -181,7 +181,7 @@ class tf(object):
             [round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
         self.denominator = numpy.poly1d(
             [round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
- 
+
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -1583,7 +1583,6 @@ def tf2ss(H):
     -------
     >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
     ...             [tf(1,[1,1]),tf(1,[1,1])]])
-
     >>> Ac, Bc, Cc, Dc = tf2ss(H)
     >>> Ac
     matrix([[ 0.,  1.,  0.],
@@ -1599,20 +1598,43 @@ def tf2ss(H):
     >>> Dc
     matrix([[ 1.,  0.],
             [ 0.,  0.]])
+            
+    # This example from the source material doesn't work as shown because the 
+    # common zero and pole in H11 get cancelled during simplification
+    # To suppress this doctest, I've changed >>> to >> in the below run history
+    >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
+    >> Ac, Bc, Cc, Dc = tf2ss(H.T)
+    >> Ac
+    matrix([[ 0.,  1.,  0.,  0.],
+            [ 0.,  0.,  1.,  0.],
+            [ 0.,  0.,  0.,  1.],
+            [-2., -7., -9., -5.],
+    >> Bc
+    matrix([[ 0.],
+            [ 0.],
+            [ 0.],
+            [ 1.]])
+    >> Cc
+    matrix([[ 3., 10.,  11.,  4.],
+            [ 2.,  5.,  4.,  1.]])
+    >> Dc
+    matrix([[ 0.],
+            [ 0.]])
+
     '''
 
-    Hrows, Hcols = H.shape
-    d = [[] for k in range(Hcols)]  # Construct some empty lists for use later
-    mu = [[] for k in range(Hcols)]
-    Lvect = [[] for k in range(Hcols)]
+    p, m = H.shape
+    d = [[] for k in range(m)]  # Construct some empty lists for use later
+    mu = [[] for k in range(m)]
+    Lvect = [[] for k in range(m)]
     Llist = []
-    D = numpy.asmatrix(numpy.zeros((Hcols, Hcols),
+    D = numpy.asmatrix(numpy.zeros((m, m),
                                    dtype=numpy.lib.polynomial.poly1d))
-    Hinf = numpy.asmatrix(numpy.zeros((Hrows, Hcols)))
+    Hinf = numpy.asmatrix(numpy.zeros((p, m)))
 
-    for j in range(Hcols):
+    for j in range(m):
         lcm = numpy.poly1d(1)
-        for i in range(Hrows):
+        for i in range(p):
             # Find the lcm of the denominators of the elements in each column
             lcm = polylcm(lcm, H[i, j].denominator)
             # Check if the individual elements are proper
@@ -1633,37 +1655,32 @@ def tf2ss(H):
 
     Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist))  # Convert L to matrix
     N = H*D
-    MS = N-Hinf*D
+    MS = N - Hinf*D
 
     def num_coeffs(x):
         return x.numerator.coeffs
 
     def offdiag(m):
-        identity = numpy.eye(m-1)
-        vzeros = numpy.zeros((m-1, 1))
-        hzeros = numpy.zeros((1, m))
-        mat = numpy.concatenate((vzeros, identity), axis=1)
-        mat = numpy.concatenate((mat, hzeros), axis=0)
-        return numpy.asmatrix(mat[:m, :m])
+        return numpy.asmatrix(numpy.diag(numpy.ones(m-1), 1))
 
     def lowerdiag(m):
         vzeros = numpy.zeros((m, 1))
-        vzeros[len(vzeros)-1] = 1
+        vzeros[-1] = 1
         return vzeros
 
     MSrows, MScols = MS.shape
     # This loop generates the M matrix, which forms the output matrix, C
+    Mlist = []
     for j in range(MScols):
         maxlength = max(len(num_coeffs(MS[k, j])) for k in range(MSrows))
-        Mvect = numpy.zeros((MSrows, maxlength))
-        for i in range(MS.shape[0]):
+        assert maxlength == mu[j]
+        Mj = numpy.zeros((p, maxlength))
+        for i in range(MSrows):
             M_coeffs = list(num_coeffs(MS[i, j]))
             M_coeffs.reverse()
-            Mvect[i, maxlength-len(M_coeffs):] = M_coeffs
-        if j == 0:
-            Mmat = numpy.matrix(Mvect)
-        else:
-            Mmat = numpy.asmatrix(numpy.hstack((Mmat, numpy.matrix(Mvect))))
+            Mj[i, maxlength-len(M_coeffs):] = M_coeffs
+        Mlist.append(Mj)
+    Mmat = numpy.asmatrix(numpy.hstack(Mlist))
 
     # construct an off diagonal matrix used to form the state matrix
     Acbar = numpy.asmatrix(
