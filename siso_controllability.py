@@ -29,7 +29,7 @@ R is the max allowed reference change relative to the allowed error.
 """
 
 
-def rule_one_two(S, Gd, R = 1.1,  freq = np.arange(0.001, 1,0.001)):
+def rule_one_two(S, Gd, R=1.1,  freq=np.arange(0.001, 1, 0.001)):
     """
     Parameters: S => sensitivity transfer function
                 Gd => transfer function of the disturbance
@@ -58,8 +58,10 @@ Rule 3: Input constraints arising from disturbances.
 Rule 4: Input constraints arising from set points.
 |G| > R - 1 for acceptable control
 """
-def rule_three_four(G, Gd, R = 1.1, perfect = True,
-                    freq = np.arange(0.001, 1, 0.001)):
+
+
+def rule_three_four(G, Gd, R=1.1, perfect=True,
+                    freq=np.arange(0.001, 1, 0.001)):
     """
     Parameters: G => transfer function of system
                 Gd => transfer function of disturbances on system
@@ -74,15 +76,17 @@ def rule_three_four(G, Gd, R = 1.1, perfect = True,
     plt.subplot(211)
 
     if perfect:
-        plt.loglog(freq_gd, mag_g, color = "red", label = "|G|", ls = "--")
-        plt.loglog(freq_gd, mag_gd, color = "blue", label = "|Gd|")
+        plt.loglog(freq_gd, mag_g, color="red", label="|G|", ls="--")
+        plt.loglog(freq_gd, mag_gd, color="blue", label="|Gd|")
     else:
         gd_min = mag_gd - 1
         gd_min = [x for x in gd_min if x > 0]
-        freq_all = [freq_gd[x] for x in range(len(freq_gd)) if (mag_gd[x]-1) > 0]
-        mag_g_all = [mag_g[x] for x in range(len(freq_gd)) if (mag_gd[x]-1) > 0]
-        plt.loglog(freq_all, gd_min, color = "blue", label = "|Gd| - 1")
-        plt.loglog(freq_all, mag_g_all, color = "red", label = "|G|", ls = "--")
+        freq_all = [
+            freq_gd[x] for x in range(len(freq_gd)) if (mag_gd[x]-1) > 0]
+        mag_g_all = [
+            mag_g[x] for x in range(len(freq_gd)) if (mag_gd[x]-1) > 0]
+        plt.loglog(freq_all, gd_min, color="blue", label="|Gd| - 1")
+        plt.loglog(freq_all, mag_g_all, color="red", label="|G|", ls="--")
 
     plt.legend(loc=3)
     plt.grid()
@@ -95,9 +99,9 @@ def rule_three_four(G, Gd, R = 1.1, perfect = True,
         R_stretch = len(freq_g)*[np.abs(R)]
         plt.loglog(freq_g, R_stretch, color="blue", label="|R|")
     else:
-        R_stretch = np.subtract(len(freq_g)*[np.abs(R)], [1]*len(freq_g) )
+        R_stretch = np.subtract(len(freq_g)*[np.abs(R)], [1]*len(freq_g))
         plt.loglog(freq_g, R_stretch, color="blue", label="|R|-1")
-    plt.legend(loc = 1)
+    plt.legend(loc=1)
     plt.grid()
     plt.ylabel("Magnitude")
     plt.xlabel("Frequency [rad/s]")
@@ -123,7 +127,7 @@ Effectively what you want here is to know if:
 """
 
 
-def dead_time_bound(L, Gd, deadtime, freq = np.arange(0.001, 1,0.001)):
+def dead_time_bound(L, Gd, deadtime, freq=np.arange(0.001, 1, 0.001)):
     """
     Parameters: L => the loop transfer function
                 Gd => Disturbance transfer function
@@ -145,15 +149,15 @@ def dead_time_bound(L, Gd, deadtime, freq = np.arange(0.001, 1,0.001)):
 
     dead_w = 1.0/deadtime
     ymin, ymax = plt.ylim()
-    plt.loglog([dead_w, dead_w], [ymin, ymax], color="red", ls = "--",
-               label = "dead time frequency")
-    plt.loglog([wp_L, wp_L], [ymin, ymax], color="green", ls =":",
-               label = "w_c")
-    plt.loglog([wp_Gd, wp_Gd], [ymin, ymax], color="black", ls = "--",
-               label = " w_d")
+    plt.loglog([dead_w, dead_w], [ymin, ymax], color="red", ls="--",
+               label="dead time frequency")
+    plt.loglog([wp_L, wp_L], [ymin, ymax], color="green", ls=":",
+               label="w_c")
+    plt.loglog([wp_Gd, wp_Gd], [ymin, ymax], color="black", ls="--",
+               label=" w_d")
     print("You require feedback for disturbance rejection up to (w_d) = " +
-           str(wp_Gd) +
-           "\n Remember than w_B < w_c < W_BT and  w_d < w_B hence w_d < w_c.")
+          str(wp_Gd) +
+          "\n Remember than w_B < w_c < W_BT and  w_d < w_B hence w_d < w_c.")
     print("The upper bound on w_c based on the dead time\
            (wc < w_dead = 1/dead_seconds) = " + str(1.0/deadtime))
 
