@@ -57,8 +57,8 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
                 [U, S, V] = np.linalg.svd(G(Poles_G[i]+error_poles_direction))
                 yp_direction[:, i] = U[:, 0]
 
-            yz_mat1 = np.matrix(np.diag(Zeros_G)) * \
-                      np.matrix(np.ones([len(Zeros_G), len(Zeros_G)]))
+            yz_mat1 = (np.matrix(np.diag(Zeros_G)) *
+                       np.matrix(np.ones([len(Zeros_G), len(Zeros_G)])))
             yz_mat2 = yz_mat1.T
 
             Qz = (yz_direction.H*yz_direction)/(yz_mat1+yz_mat2)
@@ -113,11 +113,10 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
 
                 for i in range(len(Poles_G)):
                     for j in range(len(Poles_G)):
-                        denominator_mat = (
-                           np.transpose(np.conjugate(yp_direction[:, i]))*
-                           Dead_time_matrix(Poles_G[i], dead_time_vec_max_row)*
-                           Dead_time_matrix(Poles_G[j], dead_time_vec_max_row)*
-                           yp_direction[:, j])
+                        denominator_mat = ((np.conjugate(yp_direction[:, i]))
+                           *Dead_time_matrix(Poles_G[i], dead_time_vec_max_row)
+                           *Dead_time_matrix(Poles_G[j], dead_time_vec_max_row)
+                           *yp_direction[:, j]).T
 
                         numerator_mat = Poles_G[i]+Poles_G[i]
 
