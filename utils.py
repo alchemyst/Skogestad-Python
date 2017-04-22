@@ -1598,8 +1598,8 @@ def tf2ss(H):
     >>> Dc
     matrix([[ 1.,  0.],
             [ 0.,  0.]])
-            
-    # This example from the source material doesn't work as shown because the 
+
+    # This example from the source material doesn't work as shown because the
     # common zero and pole in H11 get cancelled during simplification
     # To suppress this doctest, I've changed >>> to >> in the below run history
     >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
@@ -2331,7 +2331,7 @@ def poles(G):
 
     '''
     if not (type(G) == tf or type(G) == mimotf):
-    	G = sym2mimotf(G)
+        G = sym2mimotf(G)
 
     lcm = lcm_of_all_minors(G)
     lcm_poly = sympy.Poly(lcm)
