@@ -280,7 +280,7 @@ def mimo_bode(G, w_start=-2, w_end=2,
             Sv[i, :] = utils.sigmas(G(s[i]))
             if not f:
                 if ((labB == 'wC' and Sv[i, -1] < 1) or
-                    (labB == 'wB' and Sv[i, 0] > 0.707)):
+                        (labB == 'wB' and Sv[i, 0] > 0.707)):
                     wA = w[i]
                     f = True
         ymin = numpy.min(Sv[:, -1])
@@ -534,12 +534,12 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
             for j in range(dim[1]):
                 ax = fig.add_subplot(dim[0], dim[1], plot_No)
                 if labels:
-                    ax.set_title('Output (%s) vs. Input (%s)' % (
-                    output_label[i], input_label[j]))
+                    ax.set_title('Output (%s) vs. Input (%s)'
+                                 % (output_label[i], input_label[j]))
                 else:
                     ax.set_title('Output %s vs. Input %s' % (i + 1, j + 1))
-                ax.semilogx(w, numpy.array(numpy.abs(([
-                utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
+                ax.semilogx(w, numpy.array(numpy.abs(
+                    ([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))))
                 plot_No += 1
 
                 ax.axis(axlim)
@@ -1012,7 +1012,7 @@ def step(G, t_end=100, initial_val=0, input_label=None,
                 ax.plot(tspace, nulspace)
             if labels:
                 ax.set_title('Output ({}) vs. Input ({})'.format(
-                output_label[i], input_label[j]))
+                    output_label[i], input_label[j]))
             else:
                 ax.set_title('Output {} vs. Input {}'.format(i + 1, j + 1))
 
