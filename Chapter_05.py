@@ -12,7 +12,8 @@ All of the functions below are from pages 206-207 and the associated rules that
 analyse the controllability of SISO problems
 """
 
-# TO DO merge all siso_controllability.py routines with this file
+
+# TODO merge all siso_controllability.py routines with this file
 def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     """
     This is rule one of chapter five
@@ -55,8 +56,8 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         crossover frequency where | Gd(jwd) | = 1
     """
 
-    _,_,wc,_ = margins(G)
-    _,_,wd,_  = margins(Gd)
+    _, _, wc, _ = margins(G)
+    _, _, wd, _ = margins(Gd)
 
     valid1 = wc > wd
 
@@ -69,7 +70,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         print('Second condition requires |S(jw)| <= |1/Gd(jw)|')
 
     if plot:
-        w = np.logspace(w1,w2,1000)
+        w = np.logspace(w1, w2, 1000)
         s = 1j*w
         S = 1/(1+G*K)
         gain = np.abs(S(s))
@@ -77,8 +78,8 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         mag_i = np.abs(inv_gd(s))
 
         plt.figure('Rule 1')
-        plt.loglog(w, gain, label = '|S|')
-        plt.loglog(w, mag_i, ls = '--',label='|1/G_d |')
+        plt.loglog(w, gain, label='|S|')
+        plt.loglog(w, mag_i, ls='--', label='|1/G_d |')
         plt.xlabel('Frequency [rad/s]')
         plt.ylabel('Magnitude')
         plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
@@ -131,17 +132,17 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
 
     if message:
         print('Rule 2:')
-        print('Conditions requires |S(jw)| <= ', np.round(invref,2))
+        print('Conditions requires |S(jw)| <= ', np.round(invref, 2))
 
     if plot:
-        w = np.logspace(w1,w2,1000)
+        w = np.logspace(w1, w2, 1000)
         s = 1j*w
         S = 1/(1+G*K)
         gain = np.abs(S(s))
 
         plt.figure('Rule 2')
-        plt.loglog(w, gain, label = '|S|')
-        plt.loglog(w,  invref * np.ones(len(w)), ls = '--', label = '1/R')
+        plt.loglog(w, gain, label='|S|')
+        plt.loglog(w,  invref * np.ones(len(w)), ls='--', label='1/R')
         plt.xlabel('Frequency [rad/s]')
         plt.ylabel('Magnitude')
         plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
@@ -188,24 +189,25 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
 
     if message:
         print('Rule 3:')
-        print('Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 at frequencies where |Gd(jw) > 1|')
+        print('Acceptable control conditions require |G(jw)| > |Gd(jw)| - 1 '
+              'at frequencies where |Gd(jw) > 1|')
         print('Perfect control conditions require |G(jw)| > |Gd(jw)|')
 
     plt.figure('Rule 3')
     plt.subplot(211)
     plt.title('Acceptable control')
-    plt.loglog(w, mag_g, label = '|G|')
-    plt.loglog(w, mag_gd - 1, label = '|Gd - 1|', ls = '--')
+    plt.loglog(w, mag_g, label='|G|')
+    plt.loglog(w, mag_gd - 1, label='|Gd - 1|', ls='--')
     plt.loglog(w,  1 * np.ones(len(w)))
-    plt.legend(loc = 3)
+    plt.legend(loc=3)
     plt.grid()
     plt.ylabel('Magnitude')
 
     plt.subplot(212)
     plt.title('Perfect control')
-    plt.loglog(w, mag_g, label = '|G|')
-    plt.loglog(w, mag_gd, label = '|Gd|', ls = '--')
-    plt.legend(loc = 3)
+    plt.loglog(w, mag_g, label='|G|')
+    plt.loglog(w, mag_gd, label='|Gd|', ls='--')
+    plt.legend(loc=3)
     plt.grid()
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')
@@ -247,16 +249,17 @@ def rule4(G, R, wr, message=False, w1=-4, w2=2):
 
     if message:
         print('Rule 4:')
-        print('To avoid input saturation when setpoints change, we require |G(jw)| > R - 1')
+        print('To avoid input saturation when setpoints change, '
+              'we require |G(jw)| > R - 1')
 
     plt.figure('Rule 4')
     plt.loglog(w, mag_g, label='|G|')
-    plt.loglog(w,  mag_rr, ls = '--', label='R - 1')
+    plt.loglog(w,  mag_rr, ls='--', label='R - 1')
     plt.xlabel('Frequency [rad/s]')
     plt.ylabel('Magnitude')
     plt.legend(bbox_to_anchor=(0, 1.01, 1, 0), loc=3, ncol=3)
     plt.show()
-    #df.setup_plot(['|G|', 'R - 1', '$w_r$'], wr, mag_g)
+    # df.setup_plot(['|G|', 'R - 1', '$w_r$'], wr, mag_g)
 
 
 def rule5(G, Gm=1, message=False):
@@ -287,7 +290,7 @@ def rule5(G, Gm=1, message=False):
 
     GGm = G * Gm
     TimeDelay = GGm.deadtime
-    _,_,wc,_ = margins(GGm)
+    _, _, wc, _ = margins(GGm)
 
     valid5 = False
     if TimeDelay == 0:
@@ -301,9 +304,9 @@ def rule5(G, Gm=1, message=False):
         if TimeDelay == 0:
             print("There isn't any deadtime in the system")
         if valid5:
-            print('wc < 1 / theta :', np.round(wc,2) , '<' , np.round(wtd,2))
+            print('wc < 1 / theta :', np.round(wc, 2), '<', np.round(wtd, 2))
         else:
-            print('wc > 1 / theta :', np.round(wc,2) , '>' , np.round(wtd,2))
+            print('wc > 1 / theta :', np.round(wc, 2), '>', np.round(wtd, 2))
 
     return valid5, wtd
 
@@ -338,28 +341,32 @@ def rule6(G, Gm, message=False):
     GGm = G * Gm
     zeros = GGm.zeros()
 
-    _,_,wc,_ = margins(GGm)
+    _, _, wc, _ = margins(GGm)
 
     wz = 0
     if len(zeros) > 0:
         if np.imag(np.min(zeros)) == 0:
             # If the roots aren't imaginary.
-            # Looking for the minimum values of the zeros => 
+            # Looking for the minimum values of the zeros =>
             # results in the tightest control.
             wz = (np.min(np.abs(zeros)))/2
             valid6 = wc < 0.86*np.abs(wz)
         else:
             wz = 0.86*np.abs(np.min(zeros))
             valid6 = wc < wz/2
-    else: valid6 = False
+    else:
+        valid6 = False
 
     if message:
         print('Rule 6:')
         if wz != 0:
-            print('These are the roots of the transfer function matrix GGm', zeros)
+            print('These are the roots of the transfer function '
+                  'matrix GGm', zeros)
         if valid6:
-            print('The critical frequency of S for the system to be controllable is', wz)
-        else: print('No zeros in the system to evaluate')
+            print('The critical frequency of S for the system to be '
+                  'controllable is', wz)
+        else:
+            print('No zeros in the system to evaluate')
     return valid6, wz
 
 
@@ -403,9 +410,9 @@ def rule7(G, Gm, message=False):
     if message:
         print('Rule 7:')
         if valid7:
-            print('wc < wu :' , wc , '<' , wu)
+            print('wc < wu :', wc, '<', wu)
         else:
-            print('wc > wu :' , wc , '>' , wu)
+            print('wc > wu :', wc, '>', wu)
 
     return valid7, wu
 
@@ -432,23 +439,24 @@ def rule8(G, message=False):
     wc : real
         crossover frequency where | G(jwc) | = 1
     """
-    #Rule 8 for critical frequency min value due to poles
+    # Rule 8 for critical frequency min value due to poles
 
     poles = G.poles()
-    _,_,wc,_ = margins(G)
+    _, _, wc, _ = margins(G)
 
     wp = 0
     if np.max(poles) < 0:
         wp = 2*np.max(np.abs(poles))
         valid8 = wc > wp
-    else: valid8 = False
+    else:
+        valid8 = False
 
     if message:
         print('Rule 8:')
         if valid8:
-            print('wc > 2p :', wc , '>' , wp)
+            print('wc > 2p :', wc, '>', wp)
         else:
-            print('wc < 2p :', wc , '<' , wp)
+            print('wc < 2p :', wc, '<', wp)
 
     return valid8, wp
 
@@ -463,26 +471,26 @@ def allSISOrules(G, deadtime, Gd, K, R, wr, Gm):
     _, wz = rule6(G, Gm, True)
     _, wu = rule7(G, Gm, True)
     _, wp = rule8(G, True)
-    
+
     w = np.logspace(-4, 2, 1000)
     s = 1j*w
     L = G*K/(1+G*K)
     plt.figure('Combined SISO Controllability Rules')
-    plt.loglog(w, np.abs(G(s)), label = '|G|')
-    plt.loglog(w, np.abs(Gd(s)), label = '|Gd|')
-    plt.loglog(w, np.abs(L(s)), label = '|L|')
-    plt.axvline(wd, ls='--', color = 'k', label='$\omega_d$')
-    plt.axvline(wc, ls='--', color = 'k', label='$\omega_c$')
+    plt.loglog(w, np.abs(G(s)), label='|G|')
+    plt.loglog(w, np.abs(Gd(s)), label='|Gd|')
+    plt.loglog(w, np.abs(L(s)), label='|L|')
+    plt.axvline(wd, ls='--', color='k', label='$\omega_d$')
+    plt.axvline(wc, ls='--', color='k', label='$\omega_c$')
     plt.scatter(wp, 1, color='blue', label='$2p$')
     plt.scatter(wz, 1, color='lime', label='$z/2$')
     plt.scatter(wu, 1, color='magenta', label='$\omega_u$')
     plt.scatter(wtd, 1, color='red', label='$1/ \theta$')
     plt.legend()
-    plt.xlim([10**-4,10**4])
-    plt.ylim([10**-1,10**3])
+    plt.xlim([10**-4, 10**4])
+    plt.ylim([10**-1, 10**3])
     plt.show()
 
-if __name__ == '__main__': # only executed when called directly, not executed when imported
+if __name__ == '__main__': # only executed when called directly
 
     s = tf([1, 0], 1)
 
@@ -493,6 +501,6 @@ if __name__ == '__main__': # only executed when called directly, not executed wh
     K = 0.4*((s + 2)/s)*(0.075*s + 1)
     R = 3.0
     wr = 10
-    Gm = 1 #Measurement model
+    Gm = 1  # Measurement model
 
     allSISOrules(G, deadtime, Gd, K, R, wr, Gm)

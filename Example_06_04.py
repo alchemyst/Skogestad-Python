@@ -31,10 +31,9 @@ Gs = mimotf([[G11, G12],
 # select RHP-pole
 p = [2.]
 pdir = pole_zero_directions(Gs, p, 'p')
-display_export_data(pdir, 'Poles', ['   u','   y','   e '])
+display_export_data(pdir, 'Poles', ['   u', '   y', '   e '])
 
 # e is 0, thus the calculated vectors are not valid
 up = np.matrix([[0.966],
                 [-0.258]])
 print('||KS|| > {:.3}'.format(BoundKS(Gs, p, up)))
-

@@ -59,14 +59,14 @@ class tf(object):
     addition
 
     >>> G + G2
-    tf([ 3.  2.], [ 2.  3.  1.])
+    tf([ 1.5  1. ], [ 1.   1.5  0.5])
     >>> G + G # check for simplification
     tf([ 2.], [ 1.  1.])
 
     multiplication
 
     >>> G * G2
-    tf([ 1.], [ 2.  3.  1.])
+    tf([ 0.5], [ 1.   1.5  0.5])
 
     division
 
@@ -84,12 +84,12 @@ class tf(object):
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 1.], [ 2.  1.]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 0.5], [ 1.   0.5]), other=tf([ 1.], [ 1.  1.], deadtime=2)
 
     Although we can add a zero-gain tf to anything
 
     >>> G2 + 0*G3
-    tf([ 1.], [ 2.  1.])
+    tf([ 0.5], [ 1.   0.5])
 
     >>> 0*G2 + G3
     tf([ 1.], [ 1.  1.], deadtime=2)
@@ -106,7 +106,7 @@ class tf(object):
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
-                 u='', y='', prec=5, integercoeffs=True):
+                 u='', y='', prec=3):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
@@ -119,7 +119,6 @@ class tf(object):
         self.name = name
         self.u = u
         self.y = y
-        self.integercoeffs = integercoeffs
         self.simplify(dec=prec)
 
     def inverse(self):
@@ -132,40 +131,56 @@ class tf(object):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
 
-    def simplify(self, dec=5):
+    def simplify(self, dec=3):
 
         # Polynomial simplification
-        g = polygcd(self.numerator, self.denominator)
-        self.numerator, remainder = self.numerator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
-        self.denominator, remainder = self.denominator/g
-        assert numpy.allclose(remainder.coeffs, 0, atol=1e-6), \
-            "Error in simplifying rational, remainder=\n{}".format(remainder)
+        k = self.numerator[self.numerator.order] / \
+            self.denominator[self.denominator.order]
+        ps = self.poles().tolist()
+        ps.sort(key=lambda x: x.imag)
+        ps.sort(key=lambda x: abs(x.imag))
+        ps.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
+        zs = self.zeros().tolist()
+        zs.sort(key=lambda x: x.imag)
+        zs.sort(key=lambda x: abs(x.imag))
+        zs.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
 
-        if self.integercoeffs:
-            # Round numerator and denominator for coefficient simplification
-            self.numerator = numpy.poly1d(numpy.round(self.numerator, dec))
-            self.denominator = numpy.poly1d(numpy.round(self.denominator, dec))
+        ps_to_canc_ind = []  # Contains index of poles to be cancelled
+        zs_to_canc_ind = []  # Contains index of poles to be cancelled
 
-            # Determine most digits in numerator & denominator
-            num_dec = 0
-            den_dec = 0
-            for i in range(len(self.numerator.coeffs)):
-                num_dec = max(num_dec, decimals(self.numerator.coeffs[i]))
-            for j in range(len(self.denominator.coeffs)):
-                den_dec = max(den_dec, decimals(self.denominator.coeffs[j]))
+        zs_iter = iter(range(len(zs)))
+        conj_canc = False
+        for i in zs_iter:
+            for j in range(len(ps)):
+                if abs(zs[i]-ps[j]) < 10**-dec:
+                    if j not in ps_to_canc_ind:
+                        ps_to_canc_ind.append(j)
+                        zs_to_canc_ind.append(i)
+                        # Conjugate pair of roots can be cancelled
+                        if zs[i].imag != 0:
+                            ps_to_canc_ind.append(j+1)
+                            zs_to_canc_ind.append(i+1)
+                            conj_canc = True
+                        break
+            if conj_canc:
+                conj_canc = False
+                next(zs_iter)
+                continue
 
-            # Convert coefficients to integers
-            self.numerator = self.numerator*10**(max(num_dec, den_dec))
-            self.denominator = self.denominator*10**(max(num_dec, den_dec))
+        cancelled = 0  # Number of roots cancelled
+        for i in ps_to_canc_ind:
+            del ps[i - cancelled]
+            cancelled += 1
 
-            # Decimal-less representation of coefficients
-            num_gcd = gcd(self.numerator.coeffs)
-            den_gcd = gcd(self.denominator.coeffs)
-            tf_gcd = gcd([num_gcd, den_gcd])
-            self.numerator = self.numerator/tf_gcd
-            self.denominator = self.denominator/tf_gcd
+        cancelled = 0
+        for j in zs_to_canc_ind:
+            del zs[j - cancelled]
+            cancelled += 1
+
+        self.numerator = numpy.poly1d(
+            [round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+        self.denominator = numpy.poly1d(
+            [round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -436,8 +451,8 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
-        matrix([[tf([-1.  1.], [-1.  4.]), tf([ 2.], [-1.  4.])],
-                [tf([ 9.], [ -4.  16.]), tf([-1.  1.], [-2.  8.])]], dtype=object)
+        matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
+                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]], dtype=object)
 
         >>> G.inverse()*G.matrix
         matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
@@ -1568,7 +1583,6 @@ def tf2ss(H):
     -------
     >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
     ...             [tf(1,[1,1]),tf(1,[1,1])]])
-
     >>> Ac, Bc, Cc, Dc = tf2ss(H)
     >>> Ac
     matrix([[ 0.,  1.,  0.],
@@ -1584,20 +1598,43 @@ def tf2ss(H):
     >>> Dc
     matrix([[ 1.,  0.],
             [ 0.,  0.]])
+
+    # This example from the source material doesn't work as shown because the
+    # common zero and pole in H11 get cancelled during simplification
+    # To suppress this doctest, I've changed >>> to >> in the below run history
+    >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
+    >> Ac, Bc, Cc, Dc = tf2ss(H.T)
+    >> Ac
+    matrix([[ 0.,  1.,  0.,  0.],
+            [ 0.,  0.,  1.,  0.],
+            [ 0.,  0.,  0.,  1.],
+            [-2., -7., -9., -5.],
+    >> Bc
+    matrix([[ 0.],
+            [ 0.],
+            [ 0.],
+            [ 1.]])
+    >> Cc
+    matrix([[ 3., 10.,  11.,  4.],
+            [ 2.,  5.,  4.,  1.]])
+    >> Dc
+    matrix([[ 0.],
+            [ 0.]])
+
     '''
 
-    Hrows, Hcols = H.shape
-    d = [[] for k in range(Hcols)]  # Construct some empty lists for use later
-    mu = [[] for k in range(Hcols)]
-    Lvect = [[] for k in range(Hcols)]
+    p, m = H.shape
+    d = [[] for k in range(m)]  # Construct some empty lists for use later
+    mu = [[] for k in range(m)]
+    Lvect = [[] for k in range(m)]
     Llist = []
-    D = numpy.asmatrix(numpy.zeros((Hcols, Hcols),
+    D = numpy.asmatrix(numpy.zeros((m, m),
                                    dtype=numpy.lib.polynomial.poly1d))
-    Hinf = numpy.asmatrix(numpy.zeros((Hrows, Hcols)))
+    Hinf = numpy.asmatrix(numpy.zeros((p, m)))
 
-    for j in range(Hcols):
+    for j in range(m):
         lcm = numpy.poly1d(1)
-        for i in range(Hrows):
+        for i in range(p):
             # Find the lcm of the denominators of the elements in each column
             lcm = polylcm(lcm, H[i, j].denominator)
             # Check if the individual elements are proper
@@ -1618,37 +1655,32 @@ def tf2ss(H):
 
     Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist))  # Convert L to matrix
     N = H*D
-    MS = N-Hinf*D
+    MS = N - Hinf*D
 
     def num_coeffs(x):
         return x.numerator.coeffs
 
     def offdiag(m):
-        identity = numpy.eye(m-1)
-        vzeros = numpy.zeros((m-1, 1))
-        hzeros = numpy.zeros((1, m))
-        mat = numpy.concatenate((vzeros, identity), axis=1)
-        mat = numpy.concatenate((mat, hzeros), axis=0)
-        return numpy.asmatrix(mat[:m, :m])
+        return numpy.asmatrix(numpy.diag(numpy.ones(m-1), 1))
 
     def lowerdiag(m):
         vzeros = numpy.zeros((m, 1))
-        vzeros[len(vzeros)-1] = 1
+        vzeros[-1] = 1
         return vzeros
 
     MSrows, MScols = MS.shape
     # This loop generates the M matrix, which forms the output matrix, C
+    Mlist = []
     for j in range(MScols):
         maxlength = max(len(num_coeffs(MS[k, j])) for k in range(MSrows))
-        Mvect = numpy.zeros((MSrows, maxlength))
-        for i in range(MS.shape[0]):
+        assert maxlength == mu[j]
+        Mj = numpy.zeros((p, maxlength))
+        for i in range(MSrows):
             M_coeffs = list(num_coeffs(MS[i, j]))
             M_coeffs.reverse()
-            Mvect[i, maxlength-len(M_coeffs):] = M_coeffs
-        if j == 0:
-            Mmat = numpy.matrix(Mvect)
-        else:
-            Mmat = numpy.asmatrix(numpy.hstack((Mmat, numpy.matrix(Mvect))))
+            Mj[i, maxlength-len(M_coeffs):] = M_coeffs
+        Mlist.append(Mj)
+    Mmat = numpy.asmatrix(numpy.hstack(Mlist))
 
     # construct an off diagonal matrix used to form the state matrix
     Acbar = numpy.asmatrix(
@@ -2202,7 +2234,7 @@ def num_denom(A, symbolic_expr=False):
                  numpy.poly1d(A.matrix[0, j].denominator.coeffs)
                  for j in range(A.matrix.shape[1])]
         num = [numpy.poly1d(num) *
-               numpy.poly1d(A.matrix[0, j].numerator.coeffs) 
+               numpy.poly1d(A.matrix[0, j].numerator.coeffs)
                for j in range(A.matrix.shape[1])]
         if symbolic_expr is True:
             for n in range(len(denom)):
@@ -2299,7 +2331,7 @@ def poles(G):
 
     '''
     if not (type(G) == tf or type(G) == mimotf):
-    	G = sym2mimotf(G)
+        G = sym2mimotf(G)
 
     lcm = lcm_of_all_minors(G)
     lcm_poly = sympy.Poly(lcm)
