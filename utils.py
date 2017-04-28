@@ -137,50 +137,20 @@ class tf(object):
         k = self.numerator[self.numerator.order] / \
             self.denominator[self.denominator.order]
         ps = self.poles().tolist()
-        ps.sort(key=lambda x: x.imag)
-        ps.sort(key=lambda x: abs(x.imag))
-        ps.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
         zs = self.zeros().tolist()
-        zs.sort(key=lambda x: x.imag)
-        zs.sort(key=lambda x: abs(x.imag))
-        zs.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
 
-        ps_to_canc_ind = []  # Contains index of poles to be cancelled
-        zs_to_canc_ind = []  # Contains index of poles to be cancelled
-
-        zs_iter = iter(range(len(zs)))
-        conj_canc = False
-        for i in zs_iter:
-            for j in range(len(ps)):
-                if abs(zs[i]-ps[j]) < 10**-dec:
-                    if j not in ps_to_canc_ind:
-                        ps_to_canc_ind.append(j)
-                        zs_to_canc_ind.append(i)
-                        # Conjugate pair of roots can be cancelled
-                        if zs[i].imag != 0:
-                            ps_to_canc_ind.append(j+1)
-                            zs_to_canc_ind.append(i+1)
-                            conj_canc = True
-                        break
-            if conj_canc:
-                conj_canc = False
-                next(zs_iter)
-                continue
-
-        cancelled = 0  # Number of roots cancelled
-        for i in ps_to_canc_ind:
-            del ps[i - cancelled]
-            cancelled += 1
-
-        cancelled = 0
-        for j in zs_to_canc_ind:
-            del zs[j - cancelled]
-            cancelled += 1
-
+        ps_to_canc_ind, zs_to_canc_ind = common_roots_ind(ps, zs)
+        cancelled = cancel_by_ind(ps, ps_to_canc_ind)
+        
+        places = 10
+        if cancelled > 0:
+            cancel_by_ind(zs, zs_to_canc_ind)
+            places = dec
+        
         self.numerator = numpy.poly1d(
-            [round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+            [round(i.real, places) for i in k*numpy.poly1d(zs, True)])
         self.denominator = numpy.poly1d(
-            [round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
+            [round(i.real, places) for i in 1*numpy.poly1d(ps, True)])
 
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
@@ -783,13 +753,34 @@ def decimals(fl):
     dec = abs(Decimal(fl).as_tuple().exponent)
     return dec
 
+def common_roots_ind(a, b, dec=3):
+    #Returns the indices of common (approximately equal) roots
+    #of two polynomials
+    a_ind = []  # Contains index of common roots
+    b_ind = []  
+    
+    for i in range(len(a)):
+        for j in range(len(b)):
+            if abs(a[i]-b[j]) < 10**-dec:
+                if j not in b_ind:
+                    b_ind.append(j)
+                    a_ind.append(i)
+                    break
+    return a_ind, b_ind
+
+
+def cancel_by_ind(a, a_ind):
+    #Removes roots by index, returns number of roots
+    #that have been removed
+    cancelled = 0  # Number of roots cancelled
+    for i in a_ind:
+        del a[i - cancelled]
+        cancelled += 1
+    return cancelled
 
 def polygcd(a, b):
     """
-    Find the Greatest Common Divisor of two polynomials
-    using Euclid's algorithm:
-    http://en.wikipedia.org/wiki/
-    Polynomial_greatest_common_divisor#Euclidean_algorithm
+    Find the approximate Greatest Common Divisor of two polynomials
 
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
@@ -799,21 +790,31 @@ def polygcd(a, b):
     >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
     poly1d([ 1.])
     """
-    if len(a) > len(b):
-        a, b = b, a
-    while len(b) > 0 or abs(b[0]) > 0:
-        q, r = a/b
-        a = b
-        b = r
-    return a/a[len(a)]
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
+    a_common, b_common = common_roots_ind(a_roots, b_roots)
+    gcd_roots = []
+    for i in range(len(a_common)):
+        gcd_roots.append((a_roots[a_common[i]]+b_roots[b_common[i]])/2)
+    return numpy.poly1d(gcd_roots, True)
 
 
 def polylcm(a, b):
-    gcd = polygcd(a, b)
-    Ka, _ = numpy.polydiv(b, gcd)
-    Kb, _ = numpy.polydiv(a, gcd)
-    return (numpy.polymul(Ka, a))
-
+    #Finds the approximate lowest common multiple of
+    #two polynomials
+    
+    a_common, b_common = common_roots_ind(a, b)
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
+    cancelled = cancel_by_ind(a_roots, a_common)
+    if cancelled > 0:    #some roots in common
+        gcd = polygcd(a, b)
+        cancelled = cancel_by_ind(b_roots, b_common)
+        lcm_roots = a_roots + b_roots
+        return numpy.polymul(gcd, numpy.poly1d(lcm_roots, True))
+    else:    #no roots in common
+        lcm_roots = a_roots + b_roots
+        return numpy.poly1d(lcm_roots, True)
 
 def arrayfun(f, A):
     """
