@@ -2034,13 +2034,13 @@ def minimal_realisation(a, b, c):
         Ac, Bc, Cc = kalman_controllable(
             a, b, c, P=C, RP=rank_C)
 
-        Oc = state_observability_matrix(Ac, Cc)
-        rank_Oc = numpy.linalg.matrix_rank(Oc.T)
+        ObsCont = state_observability_matrix(Ac, Cc)
+        rank_ObsCont = numpy.linalg.matrix_rank(ObsCont.T)
         n_statesC = numpy.shape(Ac)[0]
         
-        if rank_Oc < n_statesC:
+        if rank_ObsCont < n_statesC:
             Aco, Bco, Cco = kalman_observable(
-                Ac, Bc, Cc, Q=Oc, RQ=rank_Oc)
+                Ac, Bc, Cc, Q=ObsCont, RQ=rank_ObsCont)
         else:
             return Ac, Bc, Cc
 
@@ -2048,13 +2048,13 @@ def minimal_realisation(a, b, c):
         Ao, Bo, Co = kalman_observable(
             a, b, c, Q=O, RQ=rank_O)
 
-        _, _, Co = state_controllability(Ao, Bo)
-        rank_Co = numpy.linalg.matrix_rank(Co)
+        _, _, ContObs = state_controllability(Ao, Bo)
+        rank_ContObs = numpy.linalg.matrix_rank(ContObs)
         n_statesO = numpy.shape(Ao)[0]
 
-        if rank_Co < n_statesO:
+        if rank_ContObs < n_statesO:
             Aco, Bco, Cco = kalman_controllable(
-                Ao, Bo, Co, P=Co, RP=rank_Co)
+                Ao, Bo, Co, P=ContObs, RP=rank_ContObs)
         else:
             return Ao, Bo, Co
     else:
