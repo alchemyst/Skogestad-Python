@@ -11,8 +11,6 @@ import scipy
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
-import fractions
-from decimal import Decimal
 from functools import reduce
 import itertools
 
@@ -743,15 +741,6 @@ def circle(cx, cy, r):
     x = cx + numpy.cos(theta)*r
     return x, y
 
-
-def gcd(ar):
-    return reduce(fractions.gcd, ar)
-
-
-def decimals(fl):
-    fl = str(fl)
-    dec = abs(Decimal(fl).as_tuple().exponent)
-    return dec
 
 def common_roots_ind(a, b, dec=3):
     #Returns the indices of common (approximately equal) roots
