@@ -14,7 +14,6 @@ K = -1*s/((1 + 0.02*s)*(1 + 0.05*s))
 
 plt.figure('Figure 5.8')
 utilsplot.freq_step_response_plot(G, K, Kcs, 0.2, 'S')
-plt.show()
 
 # Plot negative step response
 t = np.linspace(0, 0.2, 1000)
@@ -27,8 +26,7 @@ plt.title('(b) Response to step in reference')
 for Kc in Kcs:
     K2 = Kc * K
     T = feedback(G * K2, 1)
-    Ttf = lti(T.numerator, T.denominator)
-    tout, y, _ = lsim(Ttf, u, t)    
+    tout, y, _ = lsim(lti(T.numerator, T.denominator), u, t)    
     plt.plot(tout, y)
 
 plt.plot(tout, u, color='black', linestyle='--', linewidth=0.25)
