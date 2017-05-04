@@ -128,6 +128,10 @@ class tf(object):
     def step(self, *args):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
+    
+    def lsim(self, *args):
+        """ Negative step response """
+        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)  
 
     def simplify(self, dec=3):
 
