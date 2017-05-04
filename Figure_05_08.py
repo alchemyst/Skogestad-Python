@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import utilsplot
 import numpy as np
-from scipy.signal import lti, lsim
 
 from utils import tf, feedback
 
@@ -26,7 +25,7 @@ plt.title('(b) Response to step in reference')
 for Kc in Kcs:
     K2 = Kc * K
     T = feedback(G * K2, 1)
-    tout, y, _ = lsim(lti(T.numerator, T.denominator), u, t)    
+    tout, y, _ = T.lsim(u, t)    
     plt.plot(tout, y)
 
 plt.plot(tout, u, color='black', linestyle='--', linewidth=0.25)
