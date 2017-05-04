@@ -11,8 +11,6 @@ import scipy
 import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
-import fractions
-from decimal import Decimal
 from functools import reduce
 import itertools
 
@@ -137,51 +135,21 @@ class tf(object):
         k = self.numerator[self.numerator.order] / \
             self.denominator[self.denominator.order]
         ps = self.poles().tolist()
-        ps.sort(key=lambda x: x.imag)
-        ps.sort(key=lambda x: abs(x.imag))
-        ps.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
         zs = self.zeros().tolist()
-        zs.sort(key=lambda x: x.imag)
-        zs.sort(key=lambda x: abs(x.imag))
-        zs.sort(key=lambda x: x.real)  # Ensure conjugate roots appear
 
-        ps_to_canc_ind = []  # Contains index of poles to be cancelled
-        zs_to_canc_ind = []  # Contains index of poles to be cancelled
-
-        zs_iter = iter(range(len(zs)))
-        conj_canc = False
-        for i in zs_iter:
-            for j in range(len(ps)):
-                if abs(zs[i]-ps[j]) < 10**-dec:
-                    if j not in ps_to_canc_ind:
-                        ps_to_canc_ind.append(j)
-                        zs_to_canc_ind.append(i)
-                        # Conjugate pair of roots can be cancelled
-                        if zs[i].imag != 0:
-                            ps_to_canc_ind.append(j+1)
-                            zs_to_canc_ind.append(i+1)
-                            conj_canc = True
-                        break
-            if conj_canc:
-                conj_canc = False
-                next(zs_iter)
-                continue
-
-        cancelled = 0  # Number of roots cancelled
-        for i in ps_to_canc_ind:
-            del ps[i - cancelled]
-            cancelled += 1
-
-        cancelled = 0
-        for j in zs_to_canc_ind:
-            del zs[j - cancelled]
-            cancelled += 1
-
+        ps_to_canc_ind, zs_to_canc_ind = common_roots_ind(ps, zs)
+        cancelled = cancel_by_ind(ps, ps_to_canc_ind)
+        
+        places = 10
+        if cancelled > 0:
+            cancel_by_ind(zs, zs_to_canc_ind)
+            places = dec
+        
         self.numerator = numpy.poly1d(
-            [round(i.real, dec) for i in k*numpy.poly1d(zs, True)])
+            [round(i.real, places) for i in k*numpy.poly1d(zs, True)])
         self.denominator = numpy.poly1d(
-            [round(i.real, dec) for i in 1*numpy.poly1d(ps, True)])
- 
+            [round(i.real, places) for i in 1*numpy.poly1d(ps, True)])
+
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
         if self.numerator == numpy.poly1d([0]):
@@ -774,22 +742,34 @@ def circle(cx, cy, r):
     return x, y
 
 
-def gcd(ar):
-    return reduce(fractions.gcd, ar)
+def common_roots_ind(a, b, dec=3):
+    #Returns the indices of common (approximately equal) roots
+    #of two polynomials
+    a_ind = []  # Contains index of common roots
+    b_ind = []  
+    
+    for i in range(len(a)):
+        for j in range(len(b)):
+            if abs(a[i]-b[j]) < 10**-dec:
+                if j not in b_ind:
+                    b_ind.append(j)
+                    a_ind.append(i)
+                    break
+    return a_ind, b_ind
 
 
-def decimals(fl):
-    fl = str(fl)
-    dec = abs(Decimal(fl).as_tuple().exponent)
-    return dec
-
+def cancel_by_ind(a, a_ind):
+    #Removes roots by index, returns number of roots
+    #that have been removed
+    cancelled = 0  # Number of roots cancelled
+    for i in a_ind:
+        del a[i - cancelled]
+        cancelled += 1
+    return cancelled
 
 def polygcd(a, b):
     """
-    Find the Greatest Common Divisor of two polynomials
-    using Euclid's algorithm:
-    http://en.wikipedia.org/wiki/
-    Polynomial_greatest_common_divisor#Euclidean_algorithm
+    Find the approximate Greatest Common Divisor of two polynomials
 
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
@@ -799,21 +779,31 @@ def polygcd(a, b):
     >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
     poly1d([ 1.])
     """
-    if len(a) > len(b):
-        a, b = b, a
-    while len(b) > 0 or abs(b[0]) > 0:
-        q, r = a/b
-        a = b
-        b = r
-    return a/a[len(a)]
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
+    a_common, b_common = common_roots_ind(a_roots, b_roots)
+    gcd_roots = []
+    for i in range(len(a_common)):
+        gcd_roots.append((a_roots[a_common[i]]+b_roots[b_common[i]])/2)
+    return numpy.poly1d(gcd_roots, True)
 
 
 def polylcm(a, b):
-    gcd = polygcd(a, b)
-    Ka, _ = numpy.polydiv(b, gcd)
-    Kb, _ = numpy.polydiv(a, gcd)
-    return (numpy.polymul(Ka, a))
-
+    #Finds the approximate lowest common multiple of
+    #two polynomials
+    
+    a_common, b_common = common_roots_ind(a, b)
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
+    cancelled = cancel_by_ind(a_roots, a_common)
+    if cancelled > 0:    #some roots in common
+        gcd = polygcd(a, b)
+        cancelled = cancel_by_ind(b_roots, b_common)
+        lcm_roots = a_roots + b_roots
+        return numpy.polymul(gcd, numpy.poly1d(lcm_roots, True))
+    else:    #no roots in common
+        lcm_roots = a_roots + b_roots
+        return numpy.poly1d(lcm_roots, True)
 
 def arrayfun(f, A):
     """
@@ -1583,7 +1573,6 @@ def tf2ss(H):
     -------
     >>> H = mimotf([[tf([1,1],[1,2]),tf(1,[1,1])],
     ...             [tf(1,[1,1]),tf(1,[1,1])]])
-
     >>> Ac, Bc, Cc, Dc = tf2ss(H)
     >>> Ac
     matrix([[ 0.,  1.,  0.],
@@ -1599,20 +1588,43 @@ def tf2ss(H):
     >>> Dc
     matrix([[ 1.,  0.],
             [ 0.,  0.]])
+
+    # This example from the source material doesn't work as shown because the
+    # common zero and pole in H11 get cancelled during simplification
+    # To suppress this doctest, I've changed >>> to >> in the below run history
+    >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
+    >> Ac, Bc, Cc, Dc = tf2ss(H.T)
+    >> Ac
+    matrix([[ 0.,  1.,  0.,  0.],
+            [ 0.,  0.,  1.,  0.],
+            [ 0.,  0.,  0.,  1.],
+            [-2., -7., -9., -5.],
+    >> Bc
+    matrix([[ 0.],
+            [ 0.],
+            [ 0.],
+            [ 1.]])
+    >> Cc
+    matrix([[ 3., 10.,  11.,  4.],
+            [ 2.,  5.,  4.,  1.]])
+    >> Dc
+    matrix([[ 0.],
+            [ 0.]])
+
     '''
 
-    Hrows, Hcols = H.shape
-    d = [[] for k in range(Hcols)]  # Construct some empty lists for use later
-    mu = [[] for k in range(Hcols)]
-    Lvect = [[] for k in range(Hcols)]
+    p, m = H.shape
+    d = [[] for k in range(m)]  # Construct some empty lists for use later
+    mu = [[] for k in range(m)]
+    Lvect = [[] for k in range(m)]
     Llist = []
-    D = numpy.asmatrix(numpy.zeros((Hcols, Hcols),
+    D = numpy.asmatrix(numpy.zeros((m, m),
                                    dtype=numpy.lib.polynomial.poly1d))
-    Hinf = numpy.asmatrix(numpy.zeros((Hrows, Hcols)))
+    Hinf = numpy.asmatrix(numpy.zeros((p, m)))
 
-    for j in range(Hcols):
+    for j in range(m):
         lcm = numpy.poly1d(1)
-        for i in range(Hrows):
+        for i in range(p):
             # Find the lcm of the denominators of the elements in each column
             lcm = polylcm(lcm, H[i, j].denominator)
             # Check if the individual elements are proper
@@ -1633,37 +1645,32 @@ def tf2ss(H):
 
     Lmat = numpy.asmatrix(sc_linalg.block_diag(*Llist))  # Convert L to matrix
     N = H*D
-    MS = N-Hinf*D
+    MS = N - Hinf*D
 
     def num_coeffs(x):
         return x.numerator.coeffs
 
     def offdiag(m):
-        identity = numpy.eye(m-1)
-        vzeros = numpy.zeros((m-1, 1))
-        hzeros = numpy.zeros((1, m))
-        mat = numpy.concatenate((vzeros, identity), axis=1)
-        mat = numpy.concatenate((mat, hzeros), axis=0)
-        return numpy.asmatrix(mat[:m, :m])
+        return numpy.asmatrix(numpy.diag(numpy.ones(m-1), 1))
 
     def lowerdiag(m):
         vzeros = numpy.zeros((m, 1))
-        vzeros[len(vzeros)-1] = 1
+        vzeros[-1] = 1
         return vzeros
 
     MSrows, MScols = MS.shape
     # This loop generates the M matrix, which forms the output matrix, C
+    Mlist = []
     for j in range(MScols):
         maxlength = max(len(num_coeffs(MS[k, j])) for k in range(MSrows))
-        Mvect = numpy.zeros((MSrows, maxlength))
-        for i in range(MS.shape[0]):
+        assert maxlength == mu[j]
+        Mj = numpy.zeros((p, maxlength))
+        for i in range(MSrows):
             M_coeffs = list(num_coeffs(MS[i, j]))
             M_coeffs.reverse()
-            Mvect[i, maxlength-len(M_coeffs):] = M_coeffs
-        if j == 0:
-            Mmat = numpy.matrix(Mvect)
-        else:
-            Mmat = numpy.asmatrix(numpy.hstack((Mmat, numpy.matrix(Mvect))))
+            Mj[i, maxlength-len(M_coeffs):] = M_coeffs
+        Mlist.append(Mj)
+    Mmat = numpy.asmatrix(numpy.hstack(Mlist))
 
     # construct an off diagonal matrix used to form the state matrix
     Acbar = numpy.asmatrix(
@@ -1763,24 +1770,22 @@ def state_observability_matrix(a, c):
     return observability_m
 
 
-def kalman_controllable(A, B, C):
+def kalman_controllable(A, B, C, P=None, RP=None):
     """Computes the Kalman Controllable Canonical Form of the inout system
     A, B, C, making use of QR Decomposition. Can be used in sequentially with
     kalman_observable to obtain a minimal realisation.
 
     Parameters
     ----------
-    A : numpy matrix
-        The system state matrix.
-    B : numpy matrix
-        The system input matrix.
-    C : numpy matrix
-        The system output matrix.
-    rounding factor : integer
-        The number of significant
-    factor : int
-        The number of additional significant digits after the first significant
-        digit to round the returned matrix elements to.
+    A :  numpy matrix
+         The system state matrix.
+    B :  numpy matrix
+         The system input matrix.
+    C :  numpy matrix
+         The system output matrix.
+    P :  (optional) numpy matrix
+         The controllability matrix
+    RP : (optional int)
 
     Returns
     -------
@@ -1822,8 +1827,14 @@ def kalman_controllable(A, B, C):
     array([[ 0.   ,  1.387,  0.053]])
     """
     nstates = A.shape[1]  # Compute the number of states
-    _, _, P = state_controllability(A, B)  # Compute the controllability matrix
-    RP = numpy.linalg.matrix_rank(P)  # Find rank of the controllability matrix
+    
+    #Calculate controllability matrix if necessary
+    if P is None:
+        _, _, P = state_controllability(A, B)
+        
+    # Find rank of the controllability matrix if necessary
+    if RP is None:
+        RP = numpy.linalg.matrix_rank(P) 
 
     if RP == nstates:
 
@@ -1846,25 +1857,24 @@ def kalman_controllable(A, B, C):
         return Ac, Bc, Cc
 
 
-def kalman_observable(A, B, C):
+def kalman_observable(A, B, C, Q=None, RQ=None):
     """Computes the Kalman Observable Canonical Form of the inout system
     A, B, C, making use of QR Decomposition. Can be used in sequentially
     with kalman_controllable to obtain a minimal realisation.
 
     Parameters
     ----------
-    A : numpy matrix
-        The system state matrix.
-    B : numpy matrix
-        The system input matrix.
-    C : numpy matrix
-        The system output matrix.
-    rounding factor : integer
-        The number of significant
-    factor : int
-        The number of additional significant digits after the first significant
-        digit to round the returned matrix elements to.
-
+    A :  numpy matrix
+         The system state matrix.
+    B :  numpy matrix
+         The system input matrix.
+    C :  numpy matrix
+         The system output matrix.
+    Q :  (optional) numpy matrix
+         Observability matrix
+    RQ : (optional) int
+         Rank of observability matrxi
+         
     Returns
     -------
     Ao : numpy matrix
@@ -1904,8 +1914,13 @@ def kalman_observable(A, B, C):
     array([[-1.414,  0.   ,  0.   ]])
     """
     nstates = A.shape[1]  # Compute the number of states
-    Q = state_observability_matrix(A, C)  # Compute the observability matrix
-    RQ = numpy.linalg.matrix_rank(Q)  # Compute rank of observability matrix
+    # Compute the observability matrix if necessary
+    if Q is None:
+        Q = state_observability_matrix(A, C)
+        
+    # Compute rank of observability matrix if necessary
+    if RQ is None:
+        RQ = numpy.linalg.matrix_rank(Q) 
 
     if RQ == nstates:
 
@@ -1925,175 +1940,6 @@ def kalman_observable(A, B, C):
         # Calculate the observable output matrix
         Co = C*V1
         return Ao, Bo, Co
-
-
-def remove_uncontrollable_or_unobservable_states(a, b, c, con_or_obs_matrix,
-                                                 uncontrollable=True,
-                                                 unobservable=False,
-                                                 rank=None):
-    """"remove the uncontrollable or unobservable states from the A, B and C
-    state space matrices
-
-    :param a: numpy matrix
-              the A matrix in the state space model
-
-    :param b: numpy matrix
-              the B matrix in the state space model
-
-    :param c: numpy matrix
-              the C matrix in the state space model
-
-    :param con_or_obs_matrix: numpy matrix
-                              the controllable or observable matrix
-
-    :param uncontrollable: boolean
-                           set to True to remove uncontrollable states
-                           (default) or to false
-
-    :param unobservable: boolean
-                         set to True to remove unobservable states or to false
-                         (default)
-
-    :param rank: optional (int)
-                 rank of the controllable or observable matrix
-                 if the rank is available set the rank=(rank of matrix) to
-                 avoid calculating matrix rank twice
-                 by default rank=None and will be calculated
-
-    Default: remove the uncontrollable states
-    To remove the unobservable states set uncontrollable=False
-    and unobservable=True
-
-    return: the Kalman Canonical matrices
-            Ac, Bc, Cc (the controllable subspace of A, B and C)
-            if uncontrollable=True and unobservable=False
-            or Ao, Bo, Co (the observable subspace of A, B and C)
-            if uncontrollable=False and unobservable=True
-
-    Note:
-    If the controllable subspace of A, B and C are given (Ac, Bc and Cc)
-    and the unobservable states are removed the matrices Aco, Bco and Cco
-    (the controllable and observable subspace of A, B and C) will be returned
-
-    If the observable subspace of A, B and C are given (Ao, Bo and Co) and
-    the uncontrollable states are removed the matrices Aco, Bco and Cco
-    (the controllable and observable subspace of A, B and C) will be returned
-
-    Examples
-    --------
-
-    Example 1: remove uncontrollable states
-
-    >>> A = numpy.matrix([[0, 0, 0, 0],
-    ...                   [0, -2, 0, 0],
-    ...                   [2.5, 2.5, -1, 0],
-    ...                   [2.5, 2.5, 0, -3]])
-
-    >>> B = numpy.matrix([[1],
-    ...                   [1],
-    ...                   [0],
-    ...                   [0]])
-
-    >>> C = numpy.matrix([0, 0, 1, 1])
-
-    >>> controllability_matrix = numpy.matrix([[  1.,   0.,   0.,   0.],
-    ...                                        [  1.,  -2.,   4.,  -8.],
-    ...                                        [  0.,   5., -10.,  20.],
-    ...                                        [  0.,   5., -20.,  70.]])
-
-    >>> Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(A, B, C, controllability_matrix)
-
-    Add null to eliminate negatives null elements (-0.)
-
-    >>> Ac.round(decimals=3) + 0.
-    array([[ 0.,  0.,  0.],
-           [ 1.,  0., -6.],
-           [ 0.,  1., -5.]])
-
-    >>> Bc.round(decimals=3) + 0.
-    array([[ 1.],
-           [ 0.],
-           [ 0.]])
-
-    >>> Cc.round(decimals=3) + 0.
-    array([[  0.,  10., -30.]])
-
-    Example 2: remove unobservable states using Ac, Bc, Cc from example1
-
-    >>> observability_matrix = numpy.matrix([[   0.,   10.,  -30.],
-    ...                                      [  10.,  -30.,   90.],
-    ...                                      [ -30.,   90., -270.]])
-
-     >>> Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(Ac, Bc, Cc, observability_matrix,
-     ...                                                           uncontrollable=False, unobservable=True)
-
-    >>> Ao.round(decimals=3) + 0.
-    array([[ 0.,  1.],
-           [ 0., -3.]])
-
-    >>> Bo.round(decimals=3) + 0.
-    array([[  0.],
-           [ 10.]])
-
-    >>> Co.round(decimals=3) + 0.
-    array([[ 1.,  0.]])
-    """
-
-    # obtain the number of states
-    n_states = numpy.shape(a)[0]
-
-    # obtain matrix rank
-    if rank is None:
-        rank = numpy.linalg.matrix_rank(con_or_obs_matrix)
-
-    # difference between number of states and controllable/observable states
-    m = n_states - rank
-
-    # if system already state controllable/observable return matrices unchanged
-    if m == 0:
-        return a, b, c
-
-    # create matrix P with dimensions n_states x n_states to change matrices
-    # A, B and C to the Kalman Canonical Form
-    P = numpy.asmatrix(numpy.zeros((n_states, n_states)))
-
-    if uncontrollable is True and unobservable is False:
-        P[:, 0:rank] = con_or_obs_matrix[:, 0:rank]
-
-        # matrix will replace the dependent columns in P to make P invertible
-        replace_matrix = numpy.matrix(numpy.random.random((n_states, m)))
-
-        # make P invertible
-        P[:, rank:n_states] = replace_matrix
-
-        # When removing the uncontrollable states the constructed matrix P
-        # is actually the inverse of P (P^-1) and
-        # true matrix P is obtained by (P^-1)^-1
-        P_inv = P
-        P = numpy.linalg.inv(P_inv)
-
-    elif uncontrollable is False and unobservable is True:
-        P[0:rank, :] = con_or_obs_matrix[0:rank, :]
-
-        # matrix will replace the dependent columns in P to make P invertible
-        replace_matrix = numpy.matrix(numpy.random.random((m, n_states)))
-
-        # make P invertible
-        P[rank:n_states, :] = replace_matrix
-
-        P_inv = numpy.linalg.inv(P)
-
-    A_new = P*a*P_inv
-    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 1)
-    A_new = numpy.delete(A_new, numpy.s_[rank:n_states], 0)
-
-    B_new = P*b
-    B_new = numpy.delete(B_new, numpy.s_[rank:n_states], 0)
-
-    C_new = c*P_inv
-    C_new = numpy.delete(C_new, numpy.s_[rank:n_states], 1)
-
-    return A_new, B_new, C_new
 
 
 def minimal_realisation(a, b, c):
@@ -2132,15 +1978,15 @@ def minimal_realisation(a, b, c):
     Add null to eliminate negatives null elements (-0.)
 
     >>> Aco.round(decimals=3) + 0.
-    array([[ 0.,  1.],
-           [ 0., -3.]])
+    array([[-2.038,  5.192],
+           [ 0.377, -0.962]])
 
     >>> Bco.round(decimals=3) + 0.
-    array([[  0.],
-           [ 10.]])
+    array([[ 0.   ],
+           [-1.388]])
 
     >>> Cco.round(decimals=3) + 0.
-    array([[ 1.,  0.]])
+    array([[-1.388,  0.   ]])
 
     Example 2:
 
@@ -2159,17 +2005,19 @@ def minimal_realisation(a, b, c):
     Add null to eliminate negatives null elements (-0.)
 
     >>> Aco.round(decimals=3) + 0.
-    array([[ 1.,  0.],
-           [ 1.,  1.]])
+    array([[ 1.   ,  0.   ],
+           [-1.414,  1.   ]])
 
     >>> Bco.round(decimals=3) + 0.
-    array([[ 1.,  0.],
-           [ 0.,  1.]])
+    array([[-1.   ,  0.   ],
+           [ 0.   ,  1.414]])
 
     >>> Cco.round(decimals=3) + 0.
-    array([[ 1.,  2.]])
+    array([[-1.   ,  1.414]])
     """
-
+    # number of states
+    n_states = numpy.shape(a)[0]
+    
     # obtain the controllability matrix
     _, _, C = state_controllability(a, b)
 
@@ -2182,23 +2030,35 @@ def minimal_realisation(a, b, c):
     # transpose the observability matrix to calculate the column rank
     rank_O = numpy.linalg.matrix_rank(O.T)
 
-    if rank_C <= rank_O:
-        Ac, Bc, Cc = remove_uncontrollable_or_unobservable_states(
-            a, b, c, C, rank=rank_C)
+    if rank_C <= rank_O and rank_C < n_states:
+        Ac, Bc, Cc = kalman_controllable(
+            a, b, c, P=C, RP=rank_C)
 
-        O = state_observability_matrix(Ac, Cc)
+        ObsCont = state_observability_matrix(Ac, Cc)
+        rank_ObsCont = numpy.linalg.matrix_rank(ObsCont.T)
+        n_statesC = numpy.shape(Ac)[0]
+        
+        if rank_ObsCont < n_statesC:
+            Aco, Bco, Cco = kalman_observable(
+                Ac, Bc, Cc, Q=ObsCont, RQ=rank_ObsCont)
+        else:
+            return Ac, Bc, Cc
 
-        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(
-            Ac, Bc, Cc, O, uncontrollable=False, unobservable=True)
+    elif rank_O < n_states:
+        Ao, Bo, Co = kalman_observable(
+            a, b, c, Q=O, RQ=rank_O)
 
+        _, _, ContObs = state_controllability(Ao, Bo)
+        rank_ContObs = numpy.linalg.matrix_rank(ContObs)
+        n_statesO = numpy.shape(Ao)[0]
+
+        if rank_ContObs < n_statesO:
+            Aco, Bco, Cco = kalman_controllable(
+                Ao, Bo, Co, P=ContObs, RP=rank_ContObs)
+        else:
+            return Ao, Bo, Co
     else:
-        Ao, Bo, Co = remove_uncontrollable_or_unobservable_states(
-            a, b, c, O, uncontrollable=False, unobservable=True, rank=rank_O)
-
-        _, _, C = state_controllability(Ao, Bo)
-
-        Aco, Bco, Cco = remove_uncontrollable_or_unobservable_states(
-            Ao, Bo, Co, C)
+        return a, b, c
 
     return Aco, Bco, Cco
 
@@ -2314,7 +2174,7 @@ def poles(G):
 
     '''
     if not (type(G) == tf or type(G) == mimotf):
-    	G = sym2mimotf(G)
+        G = sym2mimotf(G)
 
     lcm = lcm_of_all_minors(G)
     lcm_poly = sympy.Poly(lcm)
