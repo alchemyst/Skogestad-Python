@@ -792,9 +792,9 @@ def polylcm(a, b):
     #Finds the approximate lowest common multiple of
     #two polynomials
     
-    a_common, b_common = common_roots_ind(a, b)
     a_roots = a.r.tolist()
     b_roots = b.r.tolist()
+    a_common, b_common = common_roots_ind(a_roots, b_roots)
     cancelled = cancel_by_ind(a_roots, a_common)
     if cancelled > 0:    #some roots in common
         gcd = polygcd(a, b)
@@ -1630,8 +1630,7 @@ def tf2ss(H):
             # Check if the individual elements are proper
             if H[i, j].numerator.order == H[i, j].denominator.order:
                 # Approximate the limit as s->oo for the TF elements
-                Hinf[i, j] = H[i, j].numerator.coeffs[0] / \
-                    H[i, j].denominator.coeffs[0]
+                Hinf[i, j] = H[i, j](0)
             elif H[i, j].numerator.order > H[i, j].denominator.order:
                 raise ValueError('Enter a matrix of stricly proper TFs')
 
