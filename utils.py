@@ -128,10 +128,6 @@ class tf(object):
     def step(self, *args):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
-    
-    def lsim(self, *args):
-        """ Negative step response """
-        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)  
 
     def simplify(self, dec=3):
 
@@ -1634,7 +1630,8 @@ def tf2ss(H):
             # Check if the individual elements are proper
             if H[i, j].numerator.order == H[i, j].denominator.order:
                 # Approximate the limit as s->oo for the TF elements
-                Hinf[i, j] = H[i, j](0)
+                Hinf[i, j] = H[i, j].numerator.coeffs[0]/\
+                    H[i, j].denominator.coeffs[0]
             elif H[i, j].numerator.order > H[i, j].denominator.order:
                 raise ValueError('Enter a matrix of stricly proper TFs')
 
