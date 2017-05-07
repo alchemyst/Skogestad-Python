@@ -796,9 +796,9 @@ def polylcm(a, b):
     #Finds the approximate lowest common multiple of
     #two polynomials
     
-    a_common, b_common = common_roots_ind(a, b)
     a_roots = a.r.tolist()
     b_roots = b.r.tolist()
+    a_common, b_common = common_roots_ind(a_roots, b_roots)
     cancelled = cancel_by_ind(a_roots, a_common)
     if cancelled > 0:    #some roots in common
         gcd = polygcd(a, b)
