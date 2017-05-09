@@ -38,6 +38,7 @@ before_install:
 install:
   - conda env create --file environment.yml python=$TRAVIS_PYTHON_VERSION
   - source activate skogestad
+  - pip install codeclimate-test-reporter
 # TODO: Package
 #  - python setup.py install
 
@@ -48,7 +49,4 @@ script:
 
 after_success:
   - coveralls --config_file .coveragerc
-
-addons:
-    code_climate:
-        repo_token: 9170a5d7f8682e88b426fd95c2dcaed34f8f27fcf3b3c0bf6515a3e4b49694c9
+  - CODECLIMATE_REPO_TOKEN=9170a5d7f8682e88b426fd95c2dcaed34f8f27fcf3b3c0bf6515a3e4b49694c9 codeclimate-test-reporter
