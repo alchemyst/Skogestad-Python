@@ -25,7 +25,7 @@ def circle(centerx, centery, radius):
 def randomparameters():
     return [2 + np.random.rand() for i in range(3)]
 
-N = 1000
+N = 300
 
 for omega in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
     s = omega * 1j
@@ -40,7 +40,7 @@ for omega in [0.01, 0.05, 0.2, 0.5, 1, 2, 7]:
     plt.plot(np.real(frn), np.imag(frn), 'ro')
     circle(np.real(frn), np.imag(frn), r)
 
-omega = np.logspace(-2, 2, 1000)
+omega = np.logspace(-2, 2, 200)
 s = omega*1j
 fr = G_P(2.5, 2.5, 2.5, s)
 plt.plot(np.real(fr), np.imag(fr), 'r-')
