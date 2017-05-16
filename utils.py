@@ -2357,6 +2357,66 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=0.00001):
 
     return display
 
+def zero_directions_ss(A, B, C, D):
+    """
+    This function calculates the zeros with input and output directions from
+    a state space representation using the method outlined on pg. 140
+    
+    Parameters
+    ----------
+    A : numpy matrix
+        A matrix of state space representation
+    B : numpy matrix
+        B matrix of state space representation
+    C : numpy matrix
+        C matrix of state space representation
+    D : numpy matrix
+        D matrix of state space representation
+
+    Returns
+    -------
+    zeros_in_out : list
+        zeros_in_out[i] contains a zero, input direction vector and
+        output direction vector
+    """
+    M = numpy.bmat([[A, B],
+                    [C, D]])
+    Ig = numpy.zeros_like(M)
+    d = numpy.arange(A.shape[0])
+    Ig[d, d] = 1
+    
+    eigvals_in, zeros_in = scipy.linalg.eig(M, b=Ig)
+    eigvals_out, zeros_out = scipy.linalg.eig(M.T, b=Ig)
+    
+    #The input vector direction is given by u_z as shown in eq. 4.66.
+    #The length of the vector is the same as the number of columns
+    #in the B matrix.
+    eigvals_in_dir = []
+    for i in range(len(eigvals_in)):
+        if numpy.isfinite(eigvals_in[i]) and eigvals_in[i] != 0:
+            eigvals_in_dir.append([eigvals_in[i], zeros_in[-B.shape[1]:,i]])
+    
+    #Similar to the input vector
+    #The length of the vector is the same as the number of rows
+    #in the C matrix.
+    eigvals_out_dir = []
+    for i in range(len(eigvals_out)):
+        if numpy.isfinite(eigvals_out[i]) and eigvals_out[i] != 0:
+            eigvals_out_dir.append([eigvals_out[i], zeros_out[-C.shape[0]:,i]])
+            
+    #The eigenvalues are returned in no specific order. Sorting ensures
+    #that the input and output directions get matched to the correct zero
+    #value
+    eigvals_in_dir.sort(key = lambda x: abs(x[0]))
+    eigvals_out_dir.sort(key = lambda x: abs(x[0]))
+    
+    zeros_in_out = []
+    for i in range(len(eigvals_in_dir)):
+        zeros_in_out.append([eigvals_in_dir[i][0], 
+                             eigvals_in_dir[i][1],
+                             eigvals_out_dir[i][1]])
+    
+    return zeros_in_out
 
 ###############################################################################
 #                                Chapter 6                                    #
