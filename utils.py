@@ -383,8 +383,8 @@ class mimotf(object):
         result = [[] for r in range(nRows)]
         for r in range(nRows):
             for c in range(nCols):
-                result[r].append(tf(list(self[r, c].numerator.coeffs),
-                                    list(self[r, c].denominator.coeffs)))
+                result[r].append(tf(list(self[rows[r], cols[c]].numerator.coeffs),
+                                    list(self[rows[r], cols[c]].denominator.coeffs)))
 
         return mimotf(result)
 
@@ -397,7 +397,7 @@ class mimotf(object):
         >>> G = mimotf([[(s - 1) / (s + 2),  4 / (s + 2)],
         ...            [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.poles()
-        [-2.0]
+        array([-2.])
         """
         return poles(self)
 
@@ -808,6 +808,39 @@ def polylcm(a, b):
     else:    #no roots in common
         lcm_roots = a_roots + b_roots
         return numpy.poly1d(lcm_roots, True)
+
+def multi_polylcm(P):
+    roots_list = [i.r.tolist() for i in P]
+    roots_by_mult = []
+    lcm_roots_by_mult = []
+    for roots in roots_list:
+        root_builder = []
+        for root in roots:
+            repeated = False
+            for i in range(len(root_builder)):
+                if abs(root_builder[i][0]-root) < 10**-3:
+                    root_builder[i][1] += 1
+                    repeated = True
+                    break
+            if not repeated:
+                root_builder.append([root, 1])
+        for i in root_builder:
+            roots_by_mult.append(i)
+    for i in range(len(roots_by_mult)):
+        in_lcm = False
+        for j in range(len(lcm_roots_by_mult)):
+            if abs(roots_by_mult[i][0] - lcm_roots_by_mult[j][0]) < 10**-3:
+                in_lcm = True
+                if lcm_roots_by_mult[j][1] < roots_by_mult[i][1]:
+                    lcm_roots_by_mult[j][1] = roots_by_mult[i][1]
+                break
+        if not in_lcm:
+            lcm_roots_by_mult.append(roots_by_mult[i])
+    lcm_roots = []
+    for i in lcm_roots_by_mult:
+        for j in range(i[1]):
+            lcm_roots.append(i[0])
+    return numpy.poly1d(lcm_roots, True)
 
 def arrayfun(f, A):
     """
@@ -2144,13 +2177,13 @@ def lcm_of_all_minors(G):
     Returns the lowest common multiple of all minors of G
     '''
     Nrows, Ncols = G.shape
-    lcm = 1
+    denoms = []
     for i in range(1, min(Nrows, Ncols) + 1, 1):
         allminors = minors(G, i)
-        for m in allminors:
-            numer, denom = num_denom(m, symbolic_expr=True)
-            lcm = sympy.lcm(lcm, denom)
-    return lcm
+        for j in allminors:
+            if j.denominator.order > 0:
+                denoms.append(j.denominator)
+    return multi_polylcm(denoms)
 
 
 def poles(G):
@@ -2174,18 +2207,15 @@ def poles(G):
     >>> G = mimotf([[(s - 1) / (s + 2), 4 / (s + 2)],
     ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
-    [-2.0]
+    array([-2.])
 
     '''
     if not (type(G) == tf or type(G) == mimotf):
         G = sym2mimotf(G)
 
     lcm = lcm_of_all_minors(G)
-    lcm_poly = sympy.Poly(lcm)
-    lcm_coeff = [float(k) for k in lcm_poly.all_coeffs()]
-    pole = numpy.roots(lcm_coeff)
-
-    return list(set(pole))
+    
+    return lcm.r
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
@@ -2241,8 +2271,12 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
                     gcd = polygcd(gcd, numpy.poly1d(num_coeff))
             else:
                 gcd = poly1d(numer)
-        zero = numpy.roots(gcd)
-        return list(set(zero))
+        zero = list(set(numpy.roots(gcd)))
+        pole = poles(G)
+        for i in pole:
+            if i in zero:
+                zero.remove(i)
+        return zero
 
     elif A is not None:
         M = numpy.bmat([[A, B],
