@@ -1281,7 +1281,7 @@ def maxpeak(G, w_start=-2, w_end=2, points=1000):
 ###############################################################################
 
 
-def sym2mimotf(Gmat):
+def sym2mimotf(Gmat, deadtime=None):
     """Converts a MIMO transfer function system in sympy.Matrix form to a
     mimotf object making use of individual tf objects.
 
@@ -1289,6 +1289,8 @@ def sym2mimotf(Gmat):
     ----------
     Gmat : sympy matrix
            The system transfer function matrix.
+    deadtime: numpy matrix of same dimensions as Gmat
+              The dead times of Gmat with corresponding indexes.
 
     Returns
     -------
@@ -1302,18 +1304,29 @@ def sym2mimotf(Gmat):
     >>> G = sympy.Matrix([[1/(s + 1), 1/(s + 2)],
     ...                   [1/(s + 3), 1/(s + 4)]])
 
-    >>> sym2mimotf(G)
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  2.])]
-     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.])]])
+    >>> deadtime = numpy.matrix([[1,5], [0,3]])
+    
+    >>> sym2mimotf(G, deadtime)
+    mimotf([[tf([ 1.], [ 1.  1.], deadtime=1) tf([ 1.], [ 1.  2.], deadtime=5)]
+     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.], deadtime=3)]])
 
     """
     rows, cols = Gmat.shape
     # Create empty list of lists. Appended to form mimotf input list
     Gtf = [[] for y in range(rows)]
 
+    if Gmat.shape != deadtime.shape:
+        return  Exception("Matrix dimensions incompatible")
+        
     for i in range(rows):
         for j in range(cols):
             G = Gmat[i, j]
+
+            if deadtime is None:
+                DT = 0
+            else:
+                DT = deadtime[i, j]
+                
             # Select function denominator and convert to list of coefficients
             Gnum, Gden = G.as_numer_denom()
 
@@ -1327,7 +1340,7 @@ def sym2mimotf(Gmat):
 
             Gtf_num = poly_coeffs(Gnum)
             Gtf_den = poly_coeffs(Gden)
-            Gtf[i].append(tf(Gtf_num, Gtf_den))
+            Gtf[i].append(tf(Gtf_num, Gtf_den, DT))
 
     Gmimotf = mimotf(Gtf)
     return Gmimotf
