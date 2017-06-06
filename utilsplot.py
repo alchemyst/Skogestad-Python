@@ -425,13 +425,18 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
 
     dim = numpy.shape(vec)[1]
     for i in range(dim):
-        plt.subplot(dim, 1, i + 1)
-        plt.semilogx(w, vec[:, 0, i], label='$%s_{max}$' % d, lw=4)
-        plt.semilogx(w, vec[:, -1, i], label='$%s_{min}$' % d, lw=4)
+        plt.subplot(dim*2, 1, 2*i + 1)
+        plt.semilogx(w, abs(vec[:, i, 0]), label='$%s_{max}$' % d, lw=2)
+        plt.semilogx(w, abs(vec[:, i, -1]), label='$%s_{min}$' % d, lw=2)
         plt.axhline(0, color='red', ls=':')
         plt.axis(axlim)
-        plt.ylabel('${0}_{1}$'.format(d, i + 1))
-        plt.legend()
+        plt.ylabel('$|{0}_{1}|$'.format(d, i + 1))
+        plt.subplot(dim*2, 1, 2*i + 2)
+        plt.semilogx(w, utils.phase(vec[:, i, 0], deg=True), label='$%s_{max}$' % d, lw=2)
+        plt.semilogx(w, utils.phase(vec[:, i, -1], deg=True), label='$%s_{min}$' % d, lw=2)
+        plt.axhline(0, color='red', ls=':')
+        plt.axis(axlim)
+        plt.ylabel(r'$\angle {0}_{1}$'.format(d, i + 1))
 
     plt.xlabel('Frequency [rad/unit time]')
 
