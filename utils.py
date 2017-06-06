@@ -1304,7 +1304,7 @@ def sym2mimotf(Gmat, deadtime=None):
     >>> G = sympy.Matrix([[1/(s + 1), 1/(s + 2)],
     ...                   [1/(s + 3), 1/(s + 4)]])
 
-    >>> deadtime = numpy.matrix([[1,5], [0,3]])
+    >>> deadtime = numpy.matrix([[1, 5], [0, 3]])
     
     >>> sym2mimotf(G, deadtime)
     mimotf([[tf([ 1.], [ 1.  1.], deadtime=1) tf([ 1.], [ 1.  2.], deadtime=5)]
@@ -1314,19 +1314,18 @@ def sym2mimotf(Gmat, deadtime=None):
     rows, cols = Gmat.shape
     # Create empty list of lists. Appended to form mimotf input list
     Gtf = [[] for y in range(rows)]
-
-    if Gmat.shape != deadtime.shape:
+    # Checks matrix dimensions, create dummy zero matrix if not added
+    if deadtime is None:
+        DT = numpy.zeros(Gmat.shape)
+    elif Gmat.shape != deadtime.shape:
         return  Exception("Matrix dimensions incompatible")
-        
+    else:
+        DT = deadtime
+                
     for i in range(rows):
         for j in range(cols):
             G = Gmat[i, j]
 
-            if deadtime is None:
-                DT = 0
-            else:
-                DT = deadtime[i, j]
-                
             # Select function denominator and convert to list of coefficients
             Gnum, Gden = G.as_numer_denom()
 
@@ -1340,7 +1339,7 @@ def sym2mimotf(Gmat, deadtime=None):
 
             Gtf_num = poly_coeffs(Gnum)
             Gtf_den = poly_coeffs(Gden)
-            Gtf[i].append(tf(Gtf_num, Gtf_den, DT))
+            Gtf[i].append(tf(Gtf_num, Gtf_den, DT[i, j]))
 
     Gmimotf = mimotf(Gtf)
     return Gmimotf
