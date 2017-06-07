@@ -98,7 +98,7 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.semilogx(w, direction[i, :], color)
 
         
-def complexplane(*args, color=True, marker='o', msize=5):
+def complexplane(args, color=True, marker='o', msize=5):
     """
     Plot up to 8 arguments on a complex plane (limited by the colors)
     Useful when you wish to compare sets of complex numbers graphically or
@@ -106,12 +106,17 @@ def complexplane(*args, color=True, marker='o', msize=5):
     
     Parameters
     ----------
-    *args : Any numer of tuples containing complex numbers
+    args : A list of the list of numbers to plot
     color : True if every tuple of info must be a different color
             False if all must be the same color
     marker : Type of amrker to use
              https://matplotlib.org/api/markers_api.html
     msize : Size of the marker
+    
+    Example:
+        A = [(1+2j, 1-2j), (1+j, 2-j)]
+        B = [(1+2j, 3+2j), (1, 1+2j)]
+        complexplane([A, B, [1+3j, 2+5j]], marker='+', msize=8)
     """
     
     fig = plt.figure()
