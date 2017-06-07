@@ -114,8 +114,8 @@ def complexplane(args, color=True, marker='o', msize=5):
     msize : Size of the marker
     
     Example:
-        A = [(1+2j, 1-2j), (1+j, 2-j)]
-        B = [(1+2j, 3+2j), (1, 1+2j)]
+        A = [1+2j, 1-2j, 1+1j, 2-1j]
+        B = [1+2j, 3+2j, 1, 1+2j]
         complexplane([A, B, [1+3j, 2+5j]], marker='+', msize=8)
     """
     
