@@ -2198,15 +2198,18 @@ def lcm_of_all_minors(G):
     return multi_polylcm(denoms)
 
 
-def poles(G):
+def poles(G=None, A=None):
     '''
-    Return the poles of a multivariable transfer function system. Applies
-    Theorem 4.4 (p135).
+    If G is passed then return the poles of a multivariable transfer 
+    function system. Applies Theorem 4.4 (p135).
+    If G is NOT specified but A is, returns the poles from
+    the state space description as per section 4.4.2.
 
     Parameters
     ----------
     G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
+    A : State Space A matrix
 
     Returns
     -------
@@ -2221,15 +2224,19 @@ def poles(G):
     >>> poles(G)
     array([-2.])
 
+    >>> Poles = poles(None, A)
     '''
-    if not (type(G) == tf or type(G) == mimotf):
-        G = sym2mimotf(G)
-
-    lcm = lcm_of_all_minors(G)
     
-    return lcm.r
-
-
+    if G:
+        if not (type(G) == tf or type(G) == mimotf):
+            G = sym2mimotf(G)
+        lcm = lcm_of_all_minors(G)
+        return lcm.r
+    else:    
+        pole, _ = numpy.linalg.eig(A)
+        return pole
+        
+        
 def zeros(G=None, A=None, B=None, C=None, D=None):
     '''
     Return the zeros of a multivariable transfer function system for with
