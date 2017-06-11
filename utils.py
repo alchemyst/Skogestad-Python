@@ -2223,7 +2223,7 @@ def poles(G=None, A=None):
     ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
     array([-2.])
-
+    >>> A = numpy.matrix([[1,0,0],[0,8,0],[0,0,5]])
     >>> Poles = poles(None, A)
     '''
     
