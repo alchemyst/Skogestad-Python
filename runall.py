@@ -41,12 +41,12 @@ if __name__ == "__main__":
 
             if chapter_c.isdigit():
                 chapter = int(chapter_c)
-                mask = '{}_{:02d}_{:02d}.py'
+                mask = 'reproductions/{}/{}_{:02d}_{:02d}.py'
             else:
                 chapter = chapter_c
-                mask = '{}_{}_{}.py'
+                mask = 'reproductions/{}/{}_{}_{}.py'
 
-            filename = mask.format(kind, chapter, number)
+            filename = mask.format(kind, kind, chapter, number)
             starttime = time.time()
             try:
                 execfile(filename)
