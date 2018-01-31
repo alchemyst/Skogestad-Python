@@ -2,7 +2,7 @@ name: skogestad
 dependencies:
  - future
  - matplotlib
- - scipy
+ - scipy<1.0.0
  - sympy
  - mock
  - numpydoc
