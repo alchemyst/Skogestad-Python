@@ -3,6 +3,7 @@ dependencies:
  - future
  - matplotlib
  - scipy<1.0.0
+ - numpy<=1.12.0
  - sympy
  - mock
  - numpydoc
