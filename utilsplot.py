@@ -573,6 +573,18 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
     freqresp = [G(si) for si in s]
 
     plot_No = 1
+    
+    plotting_order =   { 'outputs' : {'i':dim[0],
+                                      'j':dim[1],
+                                      'title':'Output %s vs. Input j',
+                                      'legend':'$\lambda$$_{{{0}, {1}}}$'
+                                     },
+                         'inputs'  : {'i':dim[1],
+                                      'j':dim[0],
+                                      'title':'Output i vs. Input %s',
+                                      'legend':'$\lambda$$_{{{1}, {0}}}$'
+                                     }
+                       }
 
     if (input_label is None) and (output_label is None):
         labels = False
@@ -601,19 +613,22 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
                 box = ax.get_position()
                 ax.set_position([box.x0, box.y0,
                                  box.width * 0.8, box.height * 0.9])
-
-    elif plot_type == 'outputs':  # i
+    
+    elif plot_type in plotting_order.keys():
         fig = adjust_spine('Frequency [rad/unit time]',
-                           'RGA magnitude', -0.05, -0.03, 1, 0.9)
-        for i in range(dim[0]):
-            ax = fig.add_subplot(dim[1], 1, plot_No)
-            ax.set_title('Output %s vs. input j' % (i + 1))
+                           'RGA magnitude',
+                           -0.05, -0.03, 1, 0.9)
+        for i in range( plotting_order[plot_type]['i'] ):
+            ax = fig.add_subplot( plotting_order[plot_type]['j'], 1, plot_No)
+            ax.set_title(plotting_order[plot_type]['title'] % (i + 1))
             rgamax = []
-            for j in range(dim[1]):
+            for j in range( plotting_order[plot_type]['j'] ):
                 rgas = numpy.array(
                     numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                ax.semilogx(w, rgas,
-                            label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
+                ax.semilogx( w,
+                             rgas,
+                             label=plotting_order[plot_type]['legend'].format(i + 1, j + 1)
+                           )
                 rgamax.append(max(rgas))
 
                 if j == dim[1] - 1:  # self-scaling algorithm
@@ -623,33 +638,6 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
                         ax.axis([None, None, None, max(rgamax)])
 
             ax.set_ylabel('$|\lambda$$_{%s, j}|$' % (i + 1))
-            box = ax.get_position()
-            ax.set_position([box.x0, box.y0,
-                             box.width, box.height * 0.9])
-            ax.legend()
-            plot_No += 1
-
-    elif plot_type == 'inputs':  # j
-        fig = adjust_spine('Frequency [rad/unit time]',
-                           'RGA magnitude', -0.05, -0.03, 1, 0.9)
-        for j in range(dim[1]):
-            ax = fig.add_subplot(dim[0], 1, plot_No)
-            ax.set_title('Output i vs. input %s' % (j + 1))
-            rgamax = []
-            for i in range(dim[0]):
-                rgas = numpy.array(
-                    numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp])))
-                ax.semilogx(w, rgas,
-                            label='$\lambda$$_{%s, %s}$' % (i + 1, j + 1))
-                rgamax.append(max(rgas))
-
-                if i == dim[1] - 1:  # self-scaling algorithm
-                    if axlim is not None:
-                        ax.axis(axlim)
-                    else:
-                        ax.axis([None, None, None, max(rgamax)])
-
-            ax.set_ylabel('$|\lambda$$_{i, %s}|$' % (j + 1))
             box = ax.get_position()
             ax.set_position([box.x0, box.y0,
                              box.width, box.height * 0.9])
