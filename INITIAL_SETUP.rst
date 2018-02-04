@@ -6,7 +6,7 @@ When attemtping to run the reproductions you will need to set up a path director
 that will allow Python to use the libraries contained in the Skogestad-Python folder.
 
 For example, if you run the code for reproductions/Figure/Figure_02_02.py you might get
-the follwing error: ImportError: cannot import name 'tf'
+the follwing error: ImportError: cannot import name `tf`
 This happens because the utils and utilsplot libraries that contain the functions
 needed to execute this code are located in the main Skogestad-Python folder but
 Python does not "know" that the functions are stored there.
