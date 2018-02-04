@@ -18,7 +18,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     """
     This is rule one of chapter five
 
-    Calculates the speed of response to reject distrurbances. Condition require
+    Calculates the speed of response to reject disturbances. Condition require
     |S(jw)| <= |1/Gd(jw)|
 
     Parameters
