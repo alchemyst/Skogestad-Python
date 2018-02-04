@@ -76,7 +76,7 @@ def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     bigax.spines['right'].set_color('none')
     bigax.tick_params(labelcolor='grey', top='off', bottom='off',
                       left='off', right='off')  # remove dashes on major axis
-    plt.setp(bigax.get_xticklabels(), visible=False)  # remove major axis vals
+    plt.setp(bigax.get_xticklabels(), visible=False)  # remove major axis values
     plt.setp(bigax.get_yticklabels(), visible=False)
 
     box = bigax.get_position()
@@ -91,7 +91,7 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
     plt.figure(figure_num)
     N = direction.shape[0]
     for i in range(N):
-        # Label = '%s Input Dir %i' % (name, i+1)
+        # Label = '%s Input Direction %i' % (name, i+1)
 
         plt.subplot(N, 1, i + 1)
         plt.title(name)
@@ -109,7 +109,7 @@ def complexplane(args, color=True, marker='o', msize=5):
     args : A list of the list of numbers to plot
     color : True if every tuple of info must be a different color
             False if all must be the same color
-    marker : Type of amrker to use
+    marker : Type of marker to use
              https://matplotlib.org/api/markers_api.html
     msize : Size of the marker
     
