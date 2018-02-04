@@ -2675,9 +2675,9 @@ def ssr_solve(A, B, C, D):
 
     For information on the meanings of A, B, C, and D consult Skogestad 4.1.1
 
-    :return: tuple, with elements:
-        0 - system's zeros
-        1 - system's poles
+    Returns:
+        zeros: The system's zeros
+        poles: the system's poles
 
     TODO: Add any other relevant values to solve for, for example, if coprime
     factorisations are useful somewhere add them to this function's return
@@ -2707,7 +2707,7 @@ def ssr_solve(A, B, C, D):
 
     ss_poles = list(eig for eig, order in A.eigenvals().items())
 
-    return (ss_zeros, ss_poles)
+    return ss_zeros, ss_poles
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
