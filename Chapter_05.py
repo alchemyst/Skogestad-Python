@@ -66,7 +66,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         if valid1:
             print('First condition met, wc > wd')
         else:
-            print('First condition no met, wc < wd')
+            print('First condition not met, wc < wd')
         print('Second condition requires |S(jw)| <= |1/Gd(jw)|')
 
     if plot:
@@ -372,7 +372,7 @@ def rule6(G, Gm, message=False):
 
 def rule7(G, Gm, message=False):
     """
-    This is rule one of chapter five
+    This is rule seven of chapter five
 
     Calculates the phase lag constraints
 
@@ -419,7 +419,7 @@ def rule7(G, Gm, message=False):
 
 def rule8(G, message=False):
     """
-    This is rule one of chapter five
+    This is rule eight of chapter five
 
     This function determines if the plant is open-loop stable at its poles
 
