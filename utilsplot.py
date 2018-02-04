@@ -561,10 +561,15 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
     -------
     Adapted from example 3.11 pg 86 S. Skogestad
 
-    >>> def G(s):
-    ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
-    ...     return G
-    >>> rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
+    def G(s):
+        G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1)) \
+            * numpy.matrix(
+                [[-34.54*(s + 0.0572), 1.913],
+                [-30.22*s, -9.188*(s + 6.95e-4)]]
+            )
+        return G
+
+    rga_plot(G, w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
     """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
@@ -573,19 +578,19 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
     freqresp = [G(si) for si in s]
 
     plot_No = 1
-    
+
     plotting_order = {
-        'outputs' : {
-            'i':dim[0],
-            'j':dim[1],
-            'title':'Output {0} vs. Input j',
-            'legend':'$\lambda$$_{{{0}, {1}}}$'
+        'outputs': {
+            'i': dim[0],
+            'j': dim[1],
+            'title': 'Output {0} vs. Input j',
+            'legend': '$\lambda$$_{{{0}, {1}}}$'
         },
-        'inputs' : {
-            'i':dim[1],
-            'j':dim[0],
-            'title':'Output i vs. Input {0}',
-            'legend':'$\lambda$$_{{{1}, {0}}}$'
+        'inputs': {
+            'i': dim[1],
+            'j': dim[0],
+            'title': 'Output i vs. Input {0}',
+            'legend': '$\lambda$$_{{{1}, {0}}}$'
         }
     }
 
@@ -601,12 +606,12 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
             'Frequency [rad/unit time]',
             'RGA magnitude', -0.05, -0.03, 0.8, 0.9
         )
-        
+
         for i in range(dim[0]):
             for j in range(dim[1]):
-            
+
                 ax = fig.add_subplot(dim[0], dim[1], plot_No)
-                
+
                 if labels:
                     ax.set_title(
                         'Output {0} vs. Input {1}'.format(
@@ -617,38 +622,44 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
                     ax.set_title(
                            'Output {0} vs. Input {1}'.format(i + 1, j + 1)
                     )
-                
+
                 mag = numpy.array(
-                          numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))
+                          numpy.abs(
+                              ([utils.RGA(Gfr)[i, j] for Gfr in freqresp])
+                          )
                       )
                 ax.semilogx(w, mag)
                 plot_No += 1
 
                 ax.axis(axlim)
-                ax.set_ylabel('$|\lambda$$_{{{0}, {1}}}|$'.format(i + 1, j + 1))
+                ax.set_ylabel(
+                    '$|\lambda$$_{{{0}, {1}}}|$'.format(i + 1, j + 1)
+                )
                 box = ax.get_position()
                 ax.set_position([box.x0, box.y0,
                                  box.width * 0.8, box.height * 0.9])
-    
+
     elif plot_type in plotting_order:
-        
+
         fig = adjust_spine(
             'Frequency [rad/unit time]',
             'RGA magnitude',
             -0.05, -0.03, 1, 0.9
         )
-        
+
         for i in range(plotting_order[plot_type]['i']):
-            
+
             ax = fig.add_subplot(plotting_order[plot_type]['j'], 1, plot_No)
             ax.set_title(plotting_order[plot_type]['title'].format(i + 1))
             rgamax = []
-            
+
             for j in range(plotting_order[plot_type]['j']):
                 rgas = numpy.array(
                     numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))
                 )
-                plotlabel = plotting_order[plot_type]['legend'].format(i + 1, j + 1)
+                plotlabel = plotting_order[plot_type]['legend'].format(
+                    i + 1, j + 1
+                )
                 ax.semilogx(w, rgas, label=plotlabel)
                 rgamax.append(max(rgas))
 
@@ -680,7 +691,6 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
 
     else:
         raise ValueError("Invalid plot_type parameter.")
-
 
 def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
                 w_end=2, axlim=None, points=1000, plot_type='all'):
