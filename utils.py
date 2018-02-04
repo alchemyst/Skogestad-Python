@@ -2675,9 +2675,9 @@ def ssr_solve(A, B, C, D):
 
     For information on the meanings of A, B, C, and D consult Skogestad 4.1.1
 
-    :return: dict, with keys:
-        'zeros': system's zeros
-        'poles': system's poles
+    :return: tuple, with elements:
+        0 - system's zeros
+        1 - system's poles
 
     TODO: Add any other relevant values to solve for, for example, if coprime
     factorisations are useful somewhere add them to this function's return
@@ -2691,10 +2691,8 @@ def ssr_solve(A, B, C, D):
     Z_C = sympy.zeros(C.shape[0])
     Z_D = sympy.zeros(D.shape[0])
 
-    M = sympy.BlockMatrix(
-        [[A, B],
-         [C, D]]
-    )
+    M = sympy.BlockMatrix([[A, B],
+                           [C, D]])
 
     I_A = sympy.eye(A.shape[0])
     Ig = sympy.BlockMatrix(
@@ -2709,7 +2707,7 @@ def ssr_solve(A, B, C, D):
 
     ss_poles = list(eig for eig, order in A.eigenvals().items())
 
-    return {'zeros': ss_zeros, 'poles': ss_poles}
+    return (ss_zeros, ss_poles)
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
