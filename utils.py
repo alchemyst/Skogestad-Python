@@ -2664,6 +2664,52 @@ def distRHPZ(G, Gd, RHP_Z):
 
     return Dist_RHPZ
 
+def ssr_solve(A, B, C, D):
+    """
+    Solves the zeros and poles of a state-space representation of a system.
+
+    :param A: System state matrix
+    :param B: matrix
+    :param C: matrix
+    :param D: matrix
+
+    For information on the meanings of A, B, C, and D consult Skogestad 4.1.1
+
+    :return: dict, with keys:
+        'zeros': system's zeros
+        'poles': system's poles
+
+    TODO: Add any other relevant values to solve for, for example, if coprime
+    factorisations are useful somewhere add them to this function's return
+    dict rather than writing another function.
+    """
+
+    z = sympy.symbols('z')
+
+    I_A = sympy.eye(A.shape[0])
+    Z_B = sympy.zeros(B.shape[0])
+    Z_C = sympy.zeros(C.shape[0])
+    Z_D = sympy.zeros(D.shape[0])
+
+    M = sympy.BlockMatrix(
+        [[A, B],
+         [C, D]]
+    )
+
+    I_A = sympy.eye(A.shape[0])
+    Ig = sympy.BlockMatrix(
+        [[I_A, Z_B],
+         [Z_C, Z_D]]
+    )
+
+    zIg = z * Ig
+    P = sympy.Matrix(zIg - M)  # Equation 4.62, Section 4.5.1
+    zf = P.det()
+    ss_zeros = list(sympy.solve(zf, z))
+
+    ss_poles = list(eig for eig, order in A.eigenvals().items())
+
+    return {'zeros': ss_zeros, 'poles': ss_poles}
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
