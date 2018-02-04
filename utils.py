@@ -2198,15 +2198,18 @@ def lcm_of_all_minors(G):
     return multi_polylcm(denoms)
 
 
-def poles(G):
+def poles(G=None, A=None):
     '''
-    Return the poles of a multivariable transfer function system. Applies
-    Theorem 4.4 (p135).
+    If G is passed then return the poles of a multivariable transfer 
+    function system. Applies Theorem 4.4 (p135).
+    If G is NOT specified but A is, returns the poles from
+    the state space description as per section 4.4.2.
 
     Parameters
     ----------
     G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
+    A : State Space A matrix
 
     Returns
     -------
@@ -2220,16 +2223,20 @@ def poles(G):
     ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
     array([-2.])
-
+    >>> A = numpy.matrix([[1,0,0],[0,8,0],[0,0,5]])
+    >>> Poles = poles(None, A)
     '''
-    if not (type(G) == tf or type(G) == mimotf):
-        G = sym2mimotf(G)
-
-    lcm = lcm_of_all_minors(G)
     
-    return lcm.r
-
-
+    if G:
+        if not (type(G) == tf or type(G) == mimotf):
+            G = sym2mimotf(G)
+        lcm = lcm_of_all_minors(G)
+        return lcm.r
+    else:    
+        pole, _ = numpy.linalg.eig(A)
+        return pole
+        
+        
 def zeros(G=None, A=None, B=None, C=None, D=None):
     '''
     Return the zeros of a multivariable transfer function system for with
@@ -2657,6 +2664,50 @@ def distRHPZ(G, Gd, RHP_Z):
 
     return Dist_RHPZ
 
+def ssr_solve(A, B, C, D):
+    """
+    Solves the zeros and poles of a state-space representation of a system.
+
+    :param A: System state matrix
+    :param B: matrix
+    :param C: matrix
+    :param D: matrix
+
+    For information on the meanings of A, B, C, and D consult Skogestad 4.1.1
+
+    Returns:
+        zeros: The system's zeros
+        poles: the system's poles
+
+    TODO: Add any other relevant values to solve for, for example, if coprime
+    factorisations are useful somewhere add them to this function's return
+    dict rather than writing another function.
+    """
+
+    z = sympy.symbols('z')
+
+    I_A = sympy.eye(A.shape[0])
+    Z_B = sympy.zeros(B.shape[0])
+    Z_C = sympy.zeros(C.shape[0])
+    Z_D = sympy.zeros(D.shape[0])
+
+    M = sympy.BlockMatrix([[A, B],
+                           [C, D]])
+
+    I_A = sympy.eye(A.shape[0])
+    Ig = sympy.BlockMatrix(
+        [[I_A, Z_B],
+         [Z_C, Z_D]]
+    )
+
+    zIg = z * Ig
+    P = sympy.Matrix(zIg - M)  # Equation 4.62, Section 4.5.1
+    zf = P.det()
+    ss_zeros = list(sympy.solve(zf, z))
+
+    ss_poles = list(eig for eig, order in A.eigenvals().items())
+
+    return ss_zeros, ss_poles
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':

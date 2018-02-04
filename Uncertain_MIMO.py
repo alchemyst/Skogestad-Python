@@ -12,12 +12,12 @@ ml.rcParams['font.serif'] = ['Cambria'] + ml.rcParams['font.serif']
 # Calculates plant perturbations
 # Currently for SISO only
 
-# Give the minimum and maximum values of a spesific variable in a matrix form
+# Give the minimum and maximum values of a specific variable in a matrix form
 # For example a matrix of the minimum and maximum values of
 # a certain set of parameters
 
 # Create a matrix of all possibilities of the umin and umax vectors
-# The first entry of the matrix correspondse to the first entry
+# The first entry of the matrix corresponds to the first entry
 # in the minimum and maximum matrices
 
 
