@@ -178,8 +178,8 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     GM, PM, wc, w_180 = utils.margins(G)
 
     # plotting of Bode plot and with corresponding frequencies for PM and GM
-#    if ((w2 < numpy.log(w_180)) and margin):
-#        w2 = numpy.log(w_180)
+    #    if ((w2 < numpy.log(w_180)) and margin):
+    #        w2 = numpy.log(w_180)
 
     # Magnitude of G(jw)
     plt.subplot(2, 1, 1)
@@ -202,12 +202,11 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
 
     # Phase and Gain Margins
     if margin:
-        for subplot_num, freq, bounds, legend in zip(
-            (1, 2),
-            (wc, w_180),
-            (phaseangle, gains),
-            (r'$\angle$G(jw) = -180$\degree$', '|G(jw)| = 1')
-        ):
+        lines = (
+            (1, wc, phaseangle, r'$\angle$G(jw) = -180$\degree$'),
+            (2, w_180, gains, '|G(jw)| = 1')
+        )
+        for subplot_num, freq, bounds, legend in lines:
             plt.subplot(subplot_num, 1, 1)
             plt.axvline(freq, color='black')
             plt.text(
