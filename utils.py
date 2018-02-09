@@ -2113,7 +2113,7 @@ def minimal_realisation(a, b, c):
 
 def num_denom(A, symbolic_expr=False):
     """
-    Produces a tuple containing the numerator and denominator polynomial
+    Returns the numerator and denominator polynomial
     of a utils.tf or utils.mimotf object. Can also return a simple
     symbolic expression for the numerator and denominator.
 
@@ -2129,43 +2129,49 @@ def num_denom(A, symbolic_expr=False):
     s = sympy.Symbol('s')
 
     if type(A) == mimotf:
-        denom = 1
-        num = 1
+        # Ugly hack to get mimo size until class is rewritten...
+        rows, cols = 0, 0
 
-        denom = [numpy.poly1d(denom) *
-                 numpy.poly1d(A.matrix[0, j].denominator.coeffs)
-                 for j in range(A.matrix.shape[1])]
-        num = [numpy.poly1d(num)
-               * numpy.poly1d(A.matrix[0, j].numerator.coeffs)
-               for j in range(A.matrix.shape[1])]
+        try:
+            while 1:
+                A.mimotf_slice(*[[rows],[cols]])
+                rows += 1
+        except IndexError:
+            try:
+                while 1:
+                    A.mimotf_slice(*[[rows-1],[cols]])
+                    cols += 1
+            except IndexError:
+                pass
+
+        # Return num and den of each tf in a mimo
+
+        for element_tf in [A.mimotf_slice([i],[j])[0] for i in range(rows) for j in range(cols)]:
+            n, d = num_denom(element_tf,symbolic_expr)
+            den.append(d)
+            num.append(n)
     elif type(A) == tf:
+        den = list(A.denominator)
+        num = list(A.numerator)
+    else:
+        raise ValueError('Incorrect type for parameter A')
+        
+    if symbolic_expr:
+        s = sympy.symbols('s')
+        sym_den = []
+        sym_num = []
+        
+        den_order = len(den)
+        num_order = len(num)
+        
+        line = ((den, den_order, sym_den), (num, num_order, sym_num))        
+        for poly_type, order, symbolic in line:
+            for i, v in enumerate(poly_type):
+                symbolic.append(v*s**(order-i-1))
 
-        denom = [list(A.denominator.coeffs)[n] for n in range(
-            len(list(A.denominator.coeffs)))]
-        num = [list(A.numerator.coeffs)[n] for n in range(
-            len(list(A.numerator.coeffs)))]
-
-    if symbolic_expr is True:
-        for n in range(len(denom)):
-            sym_den = (sym_den + denom[- n - 1] * s**n).simplify()
-        for n in range(len(num)):
-            sym_num = (sym_num + num[- n - 1] * s**n).simplify()
         return sym_num, sym_den
     else:
-        return num, denom
-
-    """
-        else:
-            sym_num, sym_den = A.as_numer_denom()
-            if not symbolic_expr:
-                num_poly   = sympy.Poly(sym_num)
-                numer      = [float(k) for k in num_poly.all_coeffs()]
-                den_poly   = sympy.Poly(sym_den)
-                denom      = [float(k) for k in den_poly.all_coeffs()]
-                return numer, denom
-            else:
-                return sym_num, sym_den
-    """
+        return num, den
 
 def minors(G, order):
     '''
