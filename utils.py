@@ -2129,25 +2129,15 @@ def num_denom(A, symbolic_expr=False):
     s = sympy.Symbol('s')
 
     if type(A) == mimotf:
-        # Ugly hack to get mimo size until class is rewritten...
-        rows, cols = 0, 0
-
-        try:
-            while 1:
-                A.mimotf_slice(*[[rows],[cols]])
-                rows += 1
-        except IndexError:
-            try:
-                while 1:
-                    A.mimotf_slice(*[[rows-1],[cols]])
-                    cols += 1
-            except IndexError:
-                pass
+        rows, cols = A.matrix.shape
 
         # Return num and den of each tf in a mimo
 
-        for element_tf in [A.mimotf_slice([i],[j])[0] for i in range(rows) for j in range(cols)]:
-            n, d = num_denom(element_tf,symbolic_expr)
+        for element_tf in [
+            A.mimotf_slice([i], [j])[0]
+            for i in range(rows) for j in range(cols)
+        ]:
+            n, d = num_denom(element_tf, symbolic_expr)
             den.append(d)
             num.append(n)
     elif type(A) == tf:
@@ -2155,16 +2145,16 @@ def num_denom(A, symbolic_expr=False):
         num = list(A.numerator)
     else:
         raise ValueError('Incorrect type for parameter A')
-        
+
     if symbolic_expr:
         s = sympy.symbols('s')
         sym_den = []
         sym_num = []
-        
+
         den_order = len(den)
         num_order = len(num)
-        
-        line = ((den, den_order, sym_den), (num, num_order, sym_num))        
+
+        line = ((den, den_order, sym_den), (num, num_order, sym_num))
         for poly_type, order, symbolic in line:
             for i, v in enumerate(poly_type):
                 symbolic.append(v*s**(order-i-1))
@@ -2172,6 +2162,7 @@ def num_denom(A, symbolic_expr=False):
         return sym_num, sym_den
     else:
         return num, den
+
 
 def minors(G, order):
     '''
