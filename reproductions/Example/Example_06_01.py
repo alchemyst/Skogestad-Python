@@ -3,7 +3,7 @@ import numpy as np
 import numpy.linalg as nplinalg
 from utils import tf, BoundST, RHPonly
 from scipy.linalg import sqrtm
-from math import sqrt
+from numpy import sqrt
 
 s = tf([1, 0], [1])
 
@@ -35,16 +35,16 @@ def Q(x, x_dir, y=0, y_dir=0):
         for i in range(row):
             for j in range(col):
                 Q_return[i, j] = (x_dir[i] * y_dir[j]) / (x[i] - y[j])
-    return Q_return
+    return np.matrix(Q_return)
 
 Qz = Q(RHPzeros, zero_dir)
 Qp = Q(RHPpoles, pole_dir)
 Qzp = Q(RHPzeros, zero_dir, RHPpoles, pole_dir)
 
-A = sqrtm(nplinalg.inv(Qz)).dot(Qzp).dot(sqrtm(nplinalg.inv(Qp)))
+A = sqrtm(Qz.I)*Qzp*sqrtm(Qp.I)
 _, sv, _ = nplinalg.svd(A)
 
-M_Smin = sqrt(1+max(np.abs(sv))**2)
+M_Smin = sqrt(1 + max(np.abs(sv))**2)
 print("M_Smin using eq 6.8 = ", np.round(M_Smin, 2))
 
 # alternative because system has only one pole:
