@@ -12,12 +12,12 @@ ml.rcParams['font.serif'] = ['Cambria'] + ml.rcParams['font.serif']
 # Calculates plant perturbations
 # Currently for SISO only
 
-# Give the minimum and maximum values of a spesific variable in a matrix form
+# Give the minimum and maximum values of a specific variable in a matrix form
 # For example a matrix of the minimum and maximum values of
 # a certain set of parameters
 
 # Create a matrix of all possibilities of the umin and umax vectors
-# The first entry of the matrix correspondse to the first entry
+# The first entry of the matrix corresponds to the first entry
 # in the minimum and maximum matrices
 
 
@@ -29,6 +29,8 @@ def bound_SISO_wi(w_start, w_end, vec, G, Gp, steps):
     Gp_i_max = np.zeros((len(w)))
 
     # Plotting the multiplicative relative uncertianty as a function of w
+    # Plotting the multiplicative relative uncertainty as a function of w
+
 
     # Calculate sequences to plot all perturbations
 #    for i in range(vec.shape[0]):
@@ -60,6 +62,7 @@ def bound_MIMO_wi(w_start, w_end, vec, G, Gp, steps):
     Gp_i_max = np.zeros((len(w)))
 
     # Plotting the multiplicative output relative uncertianty
+    # Plotting the multiplicative output relative uncertainty
     # as a function of w
 
     # Calculate the vales by frequency and store the highest
@@ -175,6 +178,7 @@ def weight_calc_dec(w_start, w_end, li, weight_i, steps):
     #################
     # Use of state space descriptions
     # Easier to discribe uncertainty and is numerically easier
+    # Easier to describe uncertainty and is numerically easier
     #################
 
     ####
