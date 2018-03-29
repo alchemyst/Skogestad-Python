@@ -34,15 +34,16 @@ val, vec = LA.eig(A, None, 1, 0, 0, 0)
 
 n = lin.matrix_rank(c_matrix)
 
-P = LA.solve_lyapunov(A, -B * B.T)
+P = LA.solve_continuous_lyapunov(A, -B * B.T)
 
 
 # Display results
+G_tf = G.to_tf()
 print('\nThe transfer function realization is:')
 print('G(s) = ')
-print(np.poly1d(G.num[0], variable='s'))
+print(np.poly1d(G_tf.num[0], variable='s'))
 print("----------------")
-print(np.poly1d(G.den, variable='s'))
+print(np.poly1d(G_tf.den, variable='s'))
 
 print('\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1])
 print('   with eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1])

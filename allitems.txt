@@ -28,6 +28,10 @@ Example 4.6
 Example 4.7
 Example 4.8
 Example 4.9
+Example 4.10
+Example 4.11
+Example 4.12
+Example 4.13
 Example 5.1
 Example 5.2
 Example 5.3

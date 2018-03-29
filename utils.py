@@ -20,16 +20,16 @@ def astf(maybetf):
     :param maybetf: something which could be a tf
     :return: a transfer function object
 
-    >>> G = tf(1, [1, 1])
+    >>> G = tf( 1, [ 1, 1])
     >>> astf(G)
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
 
     >>> astf(1)
-    tf([ 1.], [ 1.])
+    tf([1.], [1.])
 
     >>> astf(numpy.matrix([[G, 1.], [0., G]]))
-    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])],
-            [tf([ 0.], [1]), tf([ 1.], [ 1.  1.])]], dtype=object)
+    matrix([[tf([1.], [1. 1.]), tf([1.], [1.])],
+            [tf([0.], [1]), tf([1.], [1. 1.])]], dtype=object)
 
     """
     if isinstance(maybetf, (tf, mimotf)):
@@ -48,7 +48,7 @@ class tf(object):
 
     >>> G = tf(1, [1, 1])
     >>> G
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
 
     >>> G2 = tf(1, [2, 1])
 
@@ -57,50 +57,50 @@ class tf(object):
     addition
 
     >>> G + G2
-    tf([ 1.5  1. ], [ 1.   1.5  0.5])
+    tf([1.5 1. ], [1.  1.5 0.5])
     >>> G + G # check for simplification
-    tf([ 2.], [ 1.  1.])
+    tf([2.], [1. 1.])
 
     multiplication
 
     >>> G * G2
-    tf([ 0.5], [ 1.   1.5  0.5])
+    tf([0.5], [1.  1.5 0.5])
 
     division
 
     >>> G / G2
-    tf([ 2.  1.], [ 1.  1.])
+    tf([2. 1.], [1. 1.])
 
     Deadtime is supported:
 
     >>> G3 = tf(1, [1, 1], deadtime=2)
     >>> G3
-    tf([ 1.], [ 1.  1.], deadtime=2)
+    tf([1.], [1. 1.], deadtime=2)
 
     Note we can't add transfer functions with different deadtime:
 
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 0.5], [ 1.   0.5]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([0.5], [1.  0.5]), other=tf([1.], [1. 1.], deadtime=2)
 
     Although we can add a zero-gain tf to anything
 
     >>> G2 + 0*G3
-    tf([ 0.5], [ 1.   0.5])
+    tf([0.5], [1.  0.5])
 
     >>> 0*G2 + G3
-    tf([ 1.], [ 1.  1.], deadtime=2)
+    tf([1.], [1. 1.], deadtime=2)
 
 
     It is sometimes useful to define
 
     >>> s = tf([1, 0])
     >>> 1 + s
-    tf([ 1.  1.], [ 1.])
+    tf([1. 1.], [1.])
 
     >>> 1/(s + 1)
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
@@ -128,10 +128,10 @@ class tf(object):
     def step(self, *args):
         """ Step response """
         return signal.lti(self.numerator, self.denominator).step(*args)
-    
+
     def lsim(self, *args):
         """ Negative step response """
-        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)  
+        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)
 
     def simplify(self, dec=3):
 
@@ -143,12 +143,12 @@ class tf(object):
 
         ps_to_canc_ind, zs_to_canc_ind = common_roots_ind(ps, zs)
         cancelled = cancel_by_ind(ps, ps_to_canc_ind)
-        
+
         places = 10
         if cancelled > 0:
             cancel_by_ind(zs, zs_to_canc_ind)
             places = dec
-        
+
         self.numerator = numpy.poly1d(
             [round(i.real, places) for i in k*numpy.poly1d(zs, True)])
         self.denominator = numpy.poly1d(
@@ -173,7 +173,7 @@ class tf(object):
 
         >>> s = tf([1, 0], 1)
         >>> numpy.exp(-2*s)
-        tf([ 1.], [ 1.], deadtime=2.0)
+        tf([1.], [1.], deadtime=2.0)
 
         """
         # Check that denominator is 1:
@@ -320,55 +320,55 @@ class mimotf(object):
     >>> G11 = G12 = G21 = G22 = tf(1, [1, 1])
     >>> G = mimotf([[G11, G12], [G21, G22]])
     >>> G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     Some coersion will take place on the elements:
     >>> mimotf([[1]])
-    mimotf([[tf([ 1.], [ 1.])]])
+    mimotf([[tf([1.], [1.])]])
 
     The object knows how to do:
 
     addition
 
     >>> G + G
-    mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
-     [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
+    mimotf([[tf([2.], [1. 1.]) tf([2.], [1. 1.])]
+     [tf([2.], [1. 1.]) tf([2.], [1. 1.])]])
 
     >>> 0 + G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G + 0
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     multiplication
     >>> G * G
-    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
-     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+    mimotf([[tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]
+     [tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]])
 
     >>> 1*G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G*1
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G*tf(1)
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> tf(1)*G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     exponentiation with positive integer constants
 
     >>> G**2
-    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
-     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+    mimotf([[tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]
+     [tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]])
 
     """
     def __init__(self, matrix):
@@ -424,11 +424,12 @@ class mimotf(object):
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
         matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
-                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]], dtype=object)
+                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]],
+               dtype=object)
 
         >>> G.inverse()*G.matrix
-        matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
-                [tf([ 0.], [1]), tf([ 1.], [ 1.])]], dtype=object)
+        matrix([[tf([1.], [1.]), tf([0.], [1])],
+                [tf([0.], [1]), tf([1.], [1.])]], dtype=object)
 
         """
         detA = det(self.matrix)
@@ -440,17 +441,17 @@ class mimotf(object):
         """
         >>> G = mimotf([[1]])
         >>> G(0)
-        matrix([[ 1.]])
+        matrix([[1.]])
 
         >>> firstorder= tf(1, [1, 1])
         >>> G = mimotf(firstorder)
         >>> G(0)
-        matrix([[ 1.]])
+        matrix([[1.]])
 
         >>> G2 = mimotf([[firstorder]*2]*2)
         >>> G2(0)
-        matrix([[ 1.,  1.],
-                [ 1.,  1.]])
+        matrix([[1., 1.],
+                [1., 1.]])
         """
         return evalfr(self.matrix, s)
 
@@ -750,8 +751,8 @@ def common_roots_ind(a, b, dec=3):
     #Returns the indices of common (approximately equal) roots
     #of two polynomials
     a_ind = []  # Contains index of common roots
-    b_ind = []  
-    
+    b_ind = []
+
     for i in range(len(a)):
         for j in range(len(b)):
             if abs(a[i]-b[j]) < 10**-dec:
@@ -778,10 +779,10 @@ def polygcd(a, b):
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
     >>> polygcd(a, b)
-    poly1d([ 1.,  1.])
+    poly1d([1., 1.])
 
     >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
-    poly1d([ 1.])
+    poly1d([1.])
     """
     a_roots = a.r.tolist()
     b_roots = b.r.tolist()
@@ -795,7 +796,7 @@ def polygcd(a, b):
 def polylcm(a, b):
     #Finds the approximate lowest common multiple of
     #two polynomials
-    
+
     a_roots = a.r.tolist()
     b_roots = b.r.tolist()
     a_common, b_common = common_roots_ind(a_roots, b_roots)
@@ -922,11 +923,11 @@ def det(A):
     >>> G11 = tf([1], [1, 2])
     >>> G = mimotf([[G11, G11], [G11, G11]])
     >>> det(G.matrix)
-    tf([ 0.], [1])
+    tf([0.], [1])
 
     >>> G = mimotf([[G11, 2*G11], [G11**2, 3*G11]])
     >>> det(G.matrix)
-    tf([  3.  16.  28.  16.], [  1.  10.  40.  80.  80.  32.])
+    tf([ 3. 16. 28. 16.], [ 1. 10. 40. 80. 80. 32.])
 
     """
 
@@ -1305,10 +1306,10 @@ def sym2mimotf(Gmat, deadtime=None):
     ...                   [1/(s + 3), 1/(s + 4)]])
 
     >>> deadtime = numpy.matrix([[1, 5], [0, 3]])
-    
+
     >>> sym2mimotf(G, deadtime)
-    mimotf([[tf([ 1.], [ 1.  1.], deadtime=1) tf([ 1.], [ 1.  2.], deadtime=5)]
-     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.], deadtime=3)]])
+    mimotf([[tf([1.], [1. 1.], deadtime=1) tf([1.], [1. 2.], deadtime=5)]
+     [tf([1.], [1. 3.]) tf([1.], [1. 4.], deadtime=3)]])
 
     """
     rows, cols = Gmat.shape
@@ -1321,7 +1322,7 @@ def sym2mimotf(Gmat, deadtime=None):
         return  Exception("Matrix dimensions incompatible")
     else:
         DT = deadtime
-                
+
     for i in range(rows):
         for j in range(cols):
             G = Gmat[i, j]
@@ -1451,7 +1452,7 @@ def sigmas(A, position=None):
     >>> A = numpy.array([[1, 2],
     ...                  [3, 4]])
     >>> sigmas(A)
-    array([ 5.4649857 ,  0.36596619])
+    array([5.4649857 , 0.36596619])
     >>> print("{:0.6}".format(sigmas(A, 'min')))
     0.365966
     """
@@ -1593,7 +1594,6 @@ def feedback_mimo(forward, backward=None, positive=False):
 
 
 def tf2ss(H):
-
     '''
     Converts a mimotf object to the controllable canonical form state space
     representation. This method and the examples were obtained from course work
@@ -1628,15 +1628,15 @@ def tf2ss(H):
             [-2., -3.,  0.],
             [ 0.,  0., -1.]])
     >>> Bc
-    matrix([[ 0.,  0.],
-            [ 1.,  0.],
-            [ 0.,  1.]])
+    matrix([[0., 0.],
+            [1., 0.],
+            [0., 1.]])
     >>> Cc
     matrix([[-1., -1.,  1.],
             [ 2.,  1.,  1.]])
     >>> Dc
-    matrix([[ 1.,  0.],
-            [ 0.,  0.]])
+    matrix([[1., 0.],
+            [0., 0.]])
 
     # This example from the source material doesn't work as shown because the
     # common zero and pole in H11 get cancelled during simplification
@@ -1873,17 +1873,17 @@ def kalman_controllable(A, B, C, P=None, RP=None):
            [ 0.   ]])
 
     >>> round(Cc)
-    array([[ 0.   ,  1.387,  0.053]])
+    array([[0.   , 1.387, 0.053]])
     """
     nstates = A.shape[1]  # Compute the number of states
-    
+
     #Calculate controllability matrix if necessary
     if P is None:
         _, _, P = state_controllability(A, B)
-        
+
     # Find rank of the controllability matrix if necessary
     if RP is None:
-        RP = numpy.linalg.matrix_rank(P) 
+        RP = numpy.linalg.matrix_rank(P)
 
     if RP == nstates:
 
@@ -1923,7 +1923,7 @@ def kalman_observable(A, B, C, Q=None, RQ=None):
          Observability matrix
     RQ : (optional) int
          Rank of observability matrxi
-         
+
     Returns
     -------
     Ao : numpy matrix
@@ -1966,10 +1966,10 @@ def kalman_observable(A, B, C, Q=None, RQ=None):
     # Compute the observability matrix if necessary
     if Q is None:
         Q = state_observability_matrix(A, C)
-        
+
     # Compute rank of observability matrix if necessary
     if RQ is None:
-        RQ = numpy.linalg.matrix_rank(Q) 
+        RQ = numpy.linalg.matrix_rank(Q)
 
     if RQ == nstates:
 
@@ -2066,7 +2066,7 @@ def minimal_realisation(a, b, c):
     """
     # number of states
     n_states = numpy.shape(a)[0]
-    
+
     # obtain the controllability matrix
     _, _, C = state_controllability(a, b)
 
@@ -2086,7 +2086,7 @@ def minimal_realisation(a, b, c):
         ObsCont = state_observability_matrix(Ac, Cc)
         rank_ObsCont = numpy.linalg.matrix_rank(ObsCont.T)
         n_statesC = numpy.shape(Ac)[0]
-        
+
         if rank_ObsCont < n_statesC:
             Aco, Bco, Cco = kalman_observable(
                 Ac, Bc, Cc, Q=ObsCont, RQ=rank_ObsCont)
@@ -2198,15 +2198,18 @@ def lcm_of_all_minors(G):
     return multi_polylcm(denoms)
 
 
-def poles(G):
+def poles(G=None, A=None):
     '''
-    Return the poles of a multivariable transfer function system. Applies
-    Theorem 4.4 (p135).
+    If G is passed then return the poles of a multivariable transfer
+    function system. Applies Theorem 4.4 (p135).
+    If G is NOT specified but A is, returns the poles from
+    the state space description as per section 4.4.2.
 
     Parameters
     ----------
     G : sympy or mimotf matrix (n x n)
         The transfer function G(s) of the system.
+    A : State Space A matrix
 
     Returns
     -------
@@ -2220,14 +2223,18 @@ def poles(G):
     ...             [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
     >>> poles(G)
     array([-2.])
-
+    >>> A = numpy.matrix([[1,0,0],[0,8,0],[0,0,5]])
+    >>> Poles = poles(None, A)
     '''
-    if not (type(G) == tf or type(G) == mimotf):
-        G = sym2mimotf(G)
 
-    lcm = lcm_of_all_minors(G)
-    
-    return lcm.r
+    if G:
+        if not (type(G) == tf or type(G) == mimotf):
+            G = sym2mimotf(G)
+        lcm = lcm_of_all_minors(G)
+        return lcm.r
+    else:
+        pole, _ = numpy.linalg.eig(A)
+        return pole
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
@@ -2407,7 +2414,7 @@ def zero_directions_ss(A, B, C, D):
     """
     This function calculates the zeros with input and output directions from
     a state space representation using the method outlined on pg. 140
-    
+
     Parameters
     ----------
     A : numpy matrix
@@ -2430,10 +2437,10 @@ def zero_directions_ss(A, B, C, D):
     Ig = numpy.zeros_like(M)
     d = numpy.arange(A.shape[0])
     Ig[d, d] = 1
-    
+
     eigvals_in, zeros_in = scipy.linalg.eig(M, b=Ig)
     eigvals_out, zeros_out = scipy.linalg.eig(M.T, b=Ig)
-    
+
     #The input vector direction is given by u_z as shown in eq. 4.66.
     #The length of the vector is the same as the number of columns
     #in the B matrix.
@@ -2441,7 +2448,7 @@ def zero_directions_ss(A, B, C, D):
     for i in range(len(eigvals_in)):
         if numpy.isfinite(eigvals_in[i]) and eigvals_in[i] != 0:
             eigvals_in_dir.append([eigvals_in[i], zeros_in[-B.shape[1]:,i]])
-    
+
     #Similar to the input vector
     #The length of the vector is the same as the number of rows
     #in the C matrix.
@@ -2449,19 +2456,19 @@ def zero_directions_ss(A, B, C, D):
     for i in range(len(eigvals_out)):
         if numpy.isfinite(eigvals_out[i]) and eigvals_out[i] != 0:
             eigvals_out_dir.append([eigvals_out[i], zeros_out[-C.shape[0]:,i]])
-            
+
     #The eigenvalues are returned in no specific order. Sorting ensures
     #that the input and output directions get matched to the correct zero
     #value
     eigvals_in_dir.sort(key = lambda x: abs(x[0]))
     eigvals_out_dir.sort(key = lambda x: abs(x[0]))
-    
+
     zeros_in_out = []
     for i in range(len(eigvals_in_dir)):
-        zeros_in_out.append([eigvals_in_dir[i][0], 
+        zeros_in_out.append([eigvals_in_dir[i][0],
                              eigvals_in_dir[i][1],
                              eigvals_out_dir[i][1]])
-    
+
     return zeros_in_out
 
 ###############################################################################
@@ -2657,6 +2664,50 @@ def distRHPZ(G, Gd, RHP_Z):
 
     return Dist_RHPZ
 
+def ssr_solve(A, B, C, D):
+    """
+    Solves the zeros and poles of a state-space representation of a system.
+
+    :param A: System state matrix
+    :param B: matrix
+    :param C: matrix
+    :param D: matrix
+
+    For information on the meanings of A, B, C, and D consult Skogestad 4.1.1
+
+    Returns:
+        zeros: The system's zeros
+        poles: the system's poles
+
+    TODO: Add any other relevant values to solve for, for example, if coprime
+    factorisations are useful somewhere add them to this function's return
+    dict rather than writing another function.
+    """
+
+    z = sympy.symbols('z')
+
+    I_A = sympy.eye(A.shape[0])
+    Z_B = sympy.zeros(B.shape[0])
+    Z_C = sympy.zeros(C.shape[0])
+    Z_D = sympy.zeros(D.shape[0])
+
+    M = sympy.BlockMatrix([[A, B],
+                           [C, D]])
+
+    I_A = sympy.eye(A.shape[0])
+    Ig = sympy.BlockMatrix(
+        [[I_A, Z_B],
+         [Z_C, Z_D]]
+    )
+
+    zIg = z * Ig
+    P = sympy.Matrix(zIg - M)  # Equation 4.62, Section 4.5.1
+    zf = P.det()
+    ss_zeros = list(sympy.solve(zf, z))
+
+    ss_poles = list(eig for eig, order in A.eigenvals().items())
+
+    return ss_zeros, ss_poles
 
 # according to convention this procedure should stay at the bottom
 if __name__ == '__main__':
