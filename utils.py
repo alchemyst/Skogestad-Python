@@ -1388,6 +1388,7 @@ def RGA(G):
            [ 3., -2.]])
 
     """
+    G = numpy.asmatrix(G).astype('float')
     G = numpy.asarray(G)
     Ginv = numpy.linalg.pinv(G)
     return G*Ginv.T
