@@ -564,12 +564,12 @@ def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
     De_inv = numpy.linalg.inv(De)
     Du = numpy.diag(u)
 
-    if Gd_hat and d is not None:
+    if Gd_hat is not None and d is not None:
         Dd = numpy.diag(d)
 
     if input_type == 'symbolic':
         G_scaled = De_inv*(G_hat)*(Du)
-        if Gd_hat and d is not None:
+        if Gd_hat is not None and d is not None:
             Dd = numpy.diag(d)
             Gd_scaled = De_inv*(Gd_hat)*(Dd)
             if G_hat.shape == (1, 1):
@@ -597,7 +597,7 @@ def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
         Du_mimo = mimotf(Du_utils)
         G_scaled = De_inv_mimo*(G_hat)*(Du_mimo)
 
-        if Gd_hat and d is not None:
+        if Gd_hat is not None and d is not None:
             Dd_utils = [[] for r in range(Dd.shape[0])]
             for r in range(Dd.shape[0]):
                 for c in range(Dd.shape[1]):
