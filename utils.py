@@ -1339,7 +1339,6 @@ def sym2mimotf(Gmat, deadtime=None):
                 return G_comp_tf
 
             Gtf_num = poly_coeffs(Gnum)
-            print(Gden)
             Gtf_den = poly_coeffs(Gden)
             Gtf[i].append(tf(Gtf_num, Gtf_den, DT[i, j]))
 
