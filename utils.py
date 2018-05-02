@@ -1641,23 +1641,22 @@ def tf2ss(H):
 
     # This example from the source material doesn't work as shown because the
     # common zero and pole in H11 get cancelled during simplification
-    # To suppress this doctest, I've changed >>> to >> in the below run history
-    >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
-    >> Ac, Bc, Cc, Dc = tf2ss(H.T)
-    >> Ac
+    >>> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2])], [tf(1, [1, 1])]])
+    >>> Ac, Bc, Cc, Dc = tf2ss(H)
+    >>> Ac # doctest: +SKIP
     matrix([[ 0.,  1.,  0.,  0.],
             [ 0.,  0.,  1.,  0.],
             [ 0.,  0.,  0.,  1.],
             [-2., -7., -9., -5.],
-    >> Bc
+    >>> Bc # doctest: +SKIP
     matrix([[ 0.],
             [ 0.],
             [ 0.],
             [ 1.]])
-    >> Cc
+    >>> Cc # doctest: +SKIP
     matrix([[ 3., 10.,  11.,  4.],
             [ 2.,  5.,  4.,  1.]])
-    >> Dc
+    >>> Dc # doctest: +SKIP
     matrix([[ 0.],
             [ 0.]])
 
