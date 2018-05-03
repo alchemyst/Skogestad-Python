@@ -2260,8 +2260,8 @@ def poles_and_zeros_of_square_tf_matrix(G):
         List of zeros.
     p : array
         List of poles.
-    cancel : boolean
-             Test whether any terms were cancelled out in determinant calculation.
+    possible_cancel : boolean
+                      Test whether terms were possibly cancelled out in determinant calculation.
 
     Example
     -------
@@ -2277,15 +2277,17 @@ def poles_and_zeros_of_square_tf_matrix(G):
     # Test cancellation
     rows, cols = G.shape
     r = Gs.rank()
-    cancel = False
+    possible_cancel = False
     for i in range(rows):
         for j in range(cols):
             minor_multiply = Gs[r*i + j]
             minors = Gs.minor_submatrix(i, j)
             for minor in minors:
-                res = minor_multiply//sympy.denom(minor)
+                numer_test = sympy.Poly(sympy.numer(minor_multiply).expand(), s)
+                denom_test = sympy.Poly(sympy.denom(minor).expand(), s)
+                _, res = sympy.div(numer_test, denom_test)
                 if res == 0 and sympy.denom(minor) != 1:
-                    cancel = True
+                    possible_cancel = True
 
     # Determine determinant
     detG = Gs.det().simplify()
@@ -2294,21 +2296,14 @@ def poles_and_zeros_of_square_tf_matrix(G):
     numer = sympy.numer(detG).expand()
     denom = sympy.denom(detG).expand()
 
-    try:
-        numer_poly = sympy.Poly(numer, s)
-        denom_poly = sympy.Poly(denom, s)
-    except:
-        print('Could not convert numerator or denominator to poly')
-        return [], [], cancel
-
     # Create numpy poly
-    zero_poly = numpy.poly1d(numer_poly.coeffs())
-    pole_poly = numpy.poly1d(denom_poly.coeffs())
+    zero_poly = numpy.poly1d(sympy.Poly(numer, s).coeffs())
+    pole_poly = numpy.poly1d(sympy.Poly(denom, s).coeffs())
 
     # Determine poly roots
     z = numpy.array(zero_poly.roots)
     p = numpy.array(pole_poly.roots)
-    return z, p, cancel
+    return z, p, possible_cancel
 
 
 def poles(G=None, A=None):
