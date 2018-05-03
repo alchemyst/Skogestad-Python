@@ -1,8 +1,8 @@
-'''
+"""
 Created on 24 Mar 2013
 
 @author: St Elmo Wilken
-'''
+"""
 import control as cn
 import matplotlib.pyplot as plt
 import numpy as np

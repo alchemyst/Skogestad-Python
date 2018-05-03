@@ -9,7 +9,7 @@ from utilsplot import plot_freq_subplot, ref_perfect_const_plot
 
 # TODO redefine this function with utils and utilsplot functions
 def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
-    '''
+    """
     This function is for multivariable system analysis of controllability.
     gives:
     minimum peak values on S and T with or without deadtime
@@ -26,7 +26,7 @@ def PEAK_MIMO(w_start, w_end, error_poles_direction, wr, deadtime_if=0):
     -------
     var : type
         Description.
-    '''
+    """
 
     # TODO use mimotf functions
     Zeros_G = zeros(G)

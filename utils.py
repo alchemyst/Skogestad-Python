@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Created on Jan 27, 2012
 
 @author: Carl Sandrock
-'''
+"""
 from __future__ import division
 from __future__ import print_function
 import numpy  # do not abbreviate this module as np in utils.py
@@ -1595,7 +1595,7 @@ def feedback_mimo(forward, backward=None, positive=False):
 
 
 def tf2ss(H):
-    '''
+    """
     Converts a mimotf object to the controllable canonical form state space
     representation. This method and the examples were obtained from course work
     notes available at
@@ -1641,27 +1641,26 @@ def tf2ss(H):
 
     # This example from the source material doesn't work as shown because the
     # common zero and pole in H11 get cancelled during simplification
-    # To suppress this doctest, I've changed >>> to >> in the below run history
-    >> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2]), tf(1, [1, 1])]])
-    >> Ac, Bc, Cc, Dc = tf2ss(H.T)
-    >> Ac
+    >>> H = mimotf([[tf([4, 7, 3], [1, 4, 5, 2])], [tf(1, [1, 1])]])
+    >>> Ac, Bc, Cc, Dc = tf2ss(H)
+    >>> Ac # doctest: +SKIP
     matrix([[ 0.,  1.,  0.,  0.],
             [ 0.,  0.,  1.,  0.],
             [ 0.,  0.,  0.,  1.],
             [-2., -7., -9., -5.],
-    >> Bc
+    >>> Bc # doctest: +SKIP
     matrix([[ 0.],
             [ 0.],
             [ 0.],
             [ 1.]])
-    >> Cc
+    >>> Cc # doctest: +SKIP
     matrix([[ 3., 10.,  11.,  4.],
             [ 2.,  5.,  4.,  1.]])
-    >> Dc
+    >>> Dc # doctest: +SKIP
     matrix([[ 0.],
             [ 0.]])
 
-    '''
+    """
 
     p, m = H.shape
     d = [[] for k in range(m)]  # Construct some empty lists for use later
@@ -1738,7 +1737,7 @@ def tf2ss(H):
 
 
 def state_controllability(A, B):
-    '''
+    """
     This method checks if the state space description of the system is state
     controllable according to Definition 4.1 (p127).
 
@@ -1762,7 +1761,7 @@ def state_controllability(A, B):
     ----
     This does not check for state controllability for systems with repeated
     poles.
-    '''
+    """
 
     state_control = True
 
@@ -2169,9 +2168,9 @@ def num_denom(A, symbolic_expr=False):
 
 
 def minors(G, order):
-    '''
+    """
     Returns the order minors of a MIMO tf G.
-    '''
+    """
     minor = []
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
@@ -2186,9 +2185,9 @@ def minors(G, order):
 
 
 def lcm_of_all_minors(G):
-    '''
+    """
     Returns the lowest common multiple of all minors of G
-    '''
+    """
     Nrows, Ncols = G.shape
     denoms = []
     for i in range(1, min(Nrows, Ncols) + 1, 1):
@@ -2200,7 +2199,7 @@ def lcm_of_all_minors(G):
 
 
 def poles(G=None, A=None):
-    '''
+    """
     If G is passed then return the poles of a multivariable transfer
     function system. Applies Theorem 4.4 (p135).
     If G is NOT specified but A is, returns the poles from
@@ -2226,7 +2225,7 @@ def poles(G=None, A=None):
     array([-2.])
     >>> A = numpy.matrix([[1,0,0],[0,8,0],[0,0,5]])
     >>> Poles = poles(None, A)
-    '''
+    """
 
     if G:
         if not (type(G) == tf or type(G) == mimotf):
@@ -2239,7 +2238,7 @@ def poles(G=None, A=None):
 
 
 def zeros(G=None, A=None, B=None, C=None, D=None):
-    '''
+    """
     Return the zeros of a multivariable transfer function system for with
     transfer functions or state-space. For transfer functions, Theorem 4.5
     (p139) is used. For state-space, the method from Equations 4.66 and 4.67
@@ -2269,7 +2268,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     ----
     Not applicable for a non-squared plant, yet. It is assumed that B,C,D will
     have values if A is defined.
-    '''
+    """
     # TODO create a beter function to accept parameters and
     # switch between tf and ss
 
@@ -2591,7 +2590,7 @@ def BoundST(G, poles, zeros, deadtime=None):
 
 
 def BoundKS(G, poles, up, e=0.00001):
-    '''
+    """
     The functions uses equaption 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
 
@@ -2610,7 +2609,7 @@ def BoundKS(G, poles, up, e=0.00001):
     -------
     KS_max : float
         Minimum peak value.
-    '''
+    """
 
     KS_PEAK = [numpy.linalg.norm(up.H * numpy.linalg.pinv(G(RHP_p + e)), 2)
                for RHP_p in poles]
@@ -2653,7 +2652,7 @@ def distRej(G, gd):
 
 
 def distRHPZ(G, Gd, RHP_Z):
-    '''
+    """
     Applies equation 6.48 (p239) For performance requirements imposed by
     disturbances. Calculate the system's zeros alignment with the disturbacne
     matrix.
@@ -2675,7 +2674,7 @@ def distRHPZ(G, Gd, RHP_Z):
     Note
     ----
     The return value should be less than 1.
-    '''
+    """
     if numpy.real(RHP_Z) < 0:  # RHP-z
         raise ValueError('Function only applicable to RHP-zeros')
     Yz, _ = pole_zero_directions(G, [RHP_Z], 'z', 'y')

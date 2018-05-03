@@ -1,8 +1,8 @@
-'''
+"""
 Created on 22 Mar 2013
 
 @author: St Elmo Wilken
-'''
+"""
 from __future__ import print_function
 import control as cn
 import numpy as np

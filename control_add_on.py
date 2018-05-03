@@ -1,8 +1,8 @@
-'''
+"""
 Created on 21 Mar 2013
 
 @author: St Elmo Wilken
-'''
+"""
 
 import control as cn
 import numpy as np
