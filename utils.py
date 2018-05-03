@@ -2198,6 +2198,71 @@ def lcm_of_all_minors(G):
     return multi_polylcm(denoms)
 
 
+def poles_and_zeros_of_square_tf_matrix(G):
+    """
+    Determine poles and zeros of a square transfer function matrix, making use of the determinant.
+    This method may fail in special cases. If terms cancel out during calculation of the determinant,
+    not all poles and zeros will be determined.
+
+    Parameters
+    ----------
+    G : sympy matrix (n x n)
+        The transfer function G(s) of the system.
+
+    Returns
+    -------
+    z : array
+        List of zeros.
+    p : array
+        List of poles.
+    cancel : boolean
+             Test whether any terms were cancelled out in determinant calculation.
+
+    Example
+    -------
+    >>> G = sympy.Matrix([[(s - 1) / (s + 2), 4 / (s + 2)],
+    ...                   [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
+    >>> poles_and_zeros_of_square_tf_matrix(G)
+    array([ 4.]), array([-2.]), False
+    """
+
+    # Test cancellation
+    rows, cols = G.shape
+    r = G.rank()
+    cancel = False
+    for i in range(rows):
+        for j in range(cols):
+            minor_multiply = G[r*i + j]
+            minors = G.minor_submatrix(i, j)
+            for minor in minors:
+                res = minor_multiply//sympy.denom(minor)
+                if res == 0 and sympy.denom(minor) != 1:
+                    cancel = True
+
+    # Determine determinant
+    detG = G.det().simplify()
+
+    # Determine numerator and denominator
+    numer = sympy.numer(detG).expand()
+    denom = sympy.denom(detG).expand()
+
+    try:
+        numer_poly = sympy.Poly(numer)
+        denom_poly = sympy.Poly(denom)
+    except:
+        print('Could not convert numerator or denominator to poly')
+        return [], [], cancel
+
+    # Create numpy poly
+    zero_poly = numpy.poly1d(numer_poly.coeffs())
+    pole_poly = numpy.poly1d(denom_poly.coeffs())
+
+    # Determine poly roots
+    z = numpy.array(zero_poly.roots)
+    p = numpy.array(pole_poly.roots)
+    return z, p, cancel
+
+
 def poles(G=None, A=None):
     """
     If G is passed then return the poles of a multivariable transfer
