@@ -425,7 +425,7 @@ class mimotf(object):
         >>> G.inverse()
         matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
                 [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]],
-                dtype=object)
+               dtype=object)
 
         >>> G.inverse()*G.matrix
         matrix([[tf([1.], [1.]), tf([0.], [1])],
@@ -1679,11 +1679,11 @@ def tf2ss(H):
             [1., 0.],
             [0., 1.]])
     >>> Cc
+    matrix([[-1., -1.,  1.],
+            [ 2.,  1.,  1.]])
+    >>> Dc
     matrix([[1., 0.],
             [0., 0.]])
-    >>> Dc
-    matrix([[ 1.,  0.],
-            [ 0.,  0.]])
 
     # This example from the source material doesn't work as shown because the
     # common zero and pole in H11 get cancelled during simplification
