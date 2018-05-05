@@ -22,14 +22,14 @@ def astf(maybetf):
 
     >>> G = tf( 1, [ 1, 1])
     >>> astf(G)
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
 
     >>> astf(1)
-    tf([ 1.], [ 1.])
+    tf([1.], [1.])
 
     >>> astf(numpy.matrix([[G, 1.], [0., G]]))
-    matrix([[tf([ 1.], [ 1.  1.]), tf([ 1.], [ 1.])],
-            [tf([ 0.], [1]), tf([ 1.], [ 1.  1.])]], dtype=object)
+    matrix([[tf([1.], [1. 1.]), tf([1.], [1.])],
+            [tf([0.], [1]), tf([1.], [1. 1.])]], dtype=object)
 
     """
     if isinstance(maybetf, (tf, mimotf)):
@@ -48,7 +48,7 @@ class tf(object):
 
     >>> G = tf(1, [1, 1])
     >>> G
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
 
     >>> G2 = tf(1, [2, 1])
 
@@ -57,50 +57,50 @@ class tf(object):
     addition
 
     >>> G + G2
-    tf([ 1.5  1. ], [ 1.   1.5  0.5])
+    tf([1.5 1. ], [1.  1.5 0.5])
     >>> G + G # check for simplification
-    tf([ 2.], [ 1.  1.])
+    tf([2.], [1. 1.])
 
     multiplication
 
     >>> G * G2
-    tf([ 0.5], [ 1.   1.5  0.5])
+    tf([0.5], [1.  1.5 0.5])
 
     division
 
     >>> G / G2
-    tf([ 2.  1.], [ 1.  1.])
+    tf([2. 1.], [1. 1.])
 
     Deadtime is supported:
 
     >>> G3 = tf(1, [1, 1], deadtime=2)
     >>> G3
-    tf([ 1.], [ 1.  1.], deadtime=2)
+    tf([1.], [1. 1.], deadtime=2)
 
     Note we can't add transfer functions with different deadtime:
 
     >>> G2 + G3
     Traceback (most recent call last):
         ...
-    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([ 0.5], [ 1.   0.5]), other=tf([ 1.], [ 1.  1.], deadtime=2)
+    ValueError: Transfer functions can only be added if their deadtimes are the same. self=tf([0.5], [1.  0.5]), other=tf([1.], [1. 1.], deadtime=2)
 
     Although we can add a zero-gain tf to anything
 
     >>> G2 + 0*G3
-    tf([ 0.5], [ 1.   0.5])
+    tf([0.5], [1.  0.5])
 
     >>> 0*G2 + G3
-    tf([ 1.], [ 1.  1.], deadtime=2)
+    tf([1.], [1. 1.], deadtime=2)
 
 
     It is sometimes useful to define
 
     >>> s = tf([1, 0])
     >>> 1 + s
-    tf([ 1.  1.], [ 1.])
+    tf([1. 1.], [1.])
 
     >>> 1/(s + 1)
-    tf([ 1.], [ 1.  1.])
+    tf([1.], [1. 1.])
     """
 
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
@@ -173,7 +173,7 @@ class tf(object):
 
         >>> s = tf([1, 0], 1)
         >>> numpy.exp(-2*s)
-        tf([ 1.], [ 1.], deadtime=2.0)
+        tf([1.], [1.], deadtime=2.0)
 
         """
         # Check that denominator is 1:
@@ -320,55 +320,55 @@ class mimotf(object):
     >>> G11 = G12 = G21 = G22 = tf(1, [1, 1])
     >>> G = mimotf([[G11, G12], [G21, G22]])
     >>> G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     Some coersion will take place on the elements:
     >>> mimotf([[1]])
-    mimotf([[tf([ 1.], [ 1.])]])
+    mimotf([[tf([1.], [1.])]])
 
     The object knows how to do:
 
     addition
 
     >>> G + G
-    mimotf([[tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]
-     [tf([ 2.], [ 1.  1.]) tf([ 2.], [ 1.  1.])]])
+    mimotf([[tf([2.], [1. 1.]) tf([2.], [1. 1.])]
+     [tf([2.], [1. 1.]) tf([2.], [1. 1.])]])
 
     >>> 0 + G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G + 0
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     multiplication
     >>> G * G
-    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
-     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+    mimotf([[tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]
+     [tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]])
 
     >>> 1*G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G*1
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> G*tf(1)
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     >>> tf(1)*G
-    mimotf([[tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]
-     [tf([ 1.], [ 1.  1.]) tf([ 1.], [ 1.  1.])]])
+    mimotf([[tf([1.], [1. 1.]) tf([1.], [1. 1.])]
+     [tf([1.], [1. 1.]) tf([1.], [1. 1.])]])
 
     exponentiation with positive integer constants
 
     >>> G**2
-    mimotf([[tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]
-     [tf([ 2.], [ 1.  2.  1.]) tf([ 2.], [ 1.  2.  1.])]])
+    mimotf([[tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]
+     [tf([2.], [1. 2. 1.]) tf([2.], [1. 2. 1.])]])
 
     """
     def __init__(self, matrix):
@@ -424,11 +424,12 @@ class mimotf(object):
         ...              [4.5 / (s + 2), 2 * (s - 1) / (s + 2)]])
         >>> G.inverse()
         matrix([[tf([ 1. -1.], [ 1. -4.]), tf([-2.], [ 1. -4.])],
-                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]], dtype=object)
+                [tf([-2.25], [ 1. -4.]), tf([ 0.5 -0.5], [ 1. -4.])]],
+                dtype=object)
 
         >>> G.inverse()*G.matrix
-        matrix([[tf([ 1.], [ 1.]), tf([ 0.], [1])],
-                [tf([ 0.], [1]), tf([ 1.], [ 1.])]], dtype=object)
+        matrix([[tf([1.], [1.]), tf([0.], [1])],
+                [tf([0.], [1]), tf([1.], [1.])]], dtype=object)
 
         """
         detA = det(self.matrix)
@@ -440,17 +441,17 @@ class mimotf(object):
         """
         >>> G = mimotf([[1]])
         >>> G(0)
-        matrix([[ 1.]])
+        matrix([[1.]])
 
         >>> firstorder= tf(1, [1, 1])
         >>> G = mimotf(firstorder)
         >>> G(0)
-        matrix([[ 1.]])
+        matrix([[1.]])
 
         >>> G2 = mimotf([[firstorder]*2]*2)
         >>> G2(0)
-        matrix([[ 1.,  1.],
-                [ 1.,  1.]])
+        matrix([[1., 1.],
+                [1., 1.]])
         """
         return evalfr(self.matrix, s)
 
@@ -778,10 +779,10 @@ def polygcd(a, b):
     >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
     >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
     >>> polygcd(a, b)
-    poly1d([ 1.,  1.])
+    poly1d([1., 1.])
 
     >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
-    poly1d([ 1.])
+    poly1d([1.])
     """
     a_roots = a.r.tolist()
     b_roots = b.r.tolist()
@@ -922,11 +923,11 @@ def det(A):
     >>> G11 = tf([1], [1, 2])
     >>> G = mimotf([[G11, G11], [G11, G11]])
     >>> det(G.matrix)
-    tf([ 0.], [1])
+    tf([0.], [1])
 
     >>> G = mimotf([[G11, 2*G11], [G11**2, 3*G11]])
     >>> det(G.matrix)
-    tf([  3.  16.  28.  16.], [  1.  10.  40.  80.  80.  32.])
+    tf([ 3. 16. 28. 16.], [ 1. 10. 40. 80. 80. 32.])
 
     """
 
@@ -1307,8 +1308,8 @@ def sym2mimotf(Gmat, deadtime=None):
     >>> deadtime = numpy.matrix([[1, 5], [0, 3]])
 
     >>> sym2mimotf(G, deadtime)
-    mimotf([[tf([ 1.], [ 1.  1.], deadtime=1) tf([ 1.], [ 1.  2.], deadtime=5)]
-     [tf([ 1.], [ 1.  3.]) tf([ 1.], [ 1.  4.], deadtime=3)]])
+    mimotf([[tf([1.], [1. 1.], deadtime=1) tf([1.], [1. 2.], deadtime=5)]
+     [tf([1.], [1. 3.]) tf([1.], [1. 4.], deadtime=3)]])
 
     """
     rows, cols = Gmat.shape
@@ -1498,7 +1499,7 @@ def sigmas(A, position=None):
     >>> A = numpy.array([[1, 2],
     ...                  [3, 4]])
     >>> sigmas(A)
-    array([ 5.4649857 ,  0.36596619])
+    array([5.4649857 , 0.36596619])
     >>> print("{:0.6}".format(sigmas(A, 'min')))
     0.365966
     """
@@ -1674,12 +1675,12 @@ def tf2ss(H):
             [-2., -3.,  0.],
             [ 0.,  0., -1.]])
     >>> Bc
-    matrix([[ 0.,  0.],
-            [ 1.,  0.],
-            [ 0.,  1.]])
+    matrix([[0., 0.],
+            [1., 0.],
+            [0., 1.]])
     >>> Cc
-    matrix([[-1., -1.,  1.],
-            [ 2.,  1.,  1.]])
+    matrix([[1., 0.],
+            [0., 0.]])
     >>> Dc
     matrix([[ 1.,  0.],
             [ 0.,  0.]])
@@ -1918,7 +1919,7 @@ def kalman_controllable(A, B, C, P=None, RP=None):
            [ 0.   ]])
 
     >>> round(Cc)
-    array([[ 0.   ,  1.387,  0.053]])
+    array([[0.   , 1.387, 0.053]])
     """
     nstates = A.shape[1]  # Compute the number of states
 
@@ -2268,7 +2269,7 @@ def poles_and_zeros_of_square_tf_matrix(G):
     >>> G = mimotf([[tf([1, -1], [1, 2]), tf([4], [1, 2])],
     ...             [tf([4.5], [1, 2]), tf([2, -2], [1, 2])]])
     >>> poles_and_zeros_of_square_tf_matrix(G)
-    (array([ 4.]), array([-2.]), False)
+    (array([4.]), array([-2.]), False)
     """
 
     # Convert mimotf 2 sympy matrix
