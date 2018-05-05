@@ -1346,6 +1346,52 @@ def sym2mimotf(Gmat, deadtime=None):
     return Gmimotf
 
 
+def mimotf2sym(G, deadtime=False):
+    """Converts a mimotf object making use of individual tf objects to a transfer function system in sympy.Matrix form.
+
+    Parameters
+    ----------
+    G : mimotf matrix
+        The mimotf system matrix.
+    deadtime: boolean
+              Should deadtime be added to sympy matrix or not.
+
+    Returns
+    -------
+    Gs : sympy matrix
+         The sympy system matrix
+    s : sympy symbol
+         Sympy symbol generated
+
+    Example
+    -------
+    >>> G = mimotf([[tf([1.], [1., 1.], deadtime=1), tf([1.], [1., 2.], deadtime=5)],
+    ...             [tf([1.], [1., 3.]), tf([1.], [1., 4.], deadtime=3)]])
+
+    >>> mimotf2sym(G, deadtime=True)
+    (Matrix([
+    [1.0*exp(-s)/Poly(1.0*s + 1.0, s, domain='RR'), 1.0*exp(-5*s)/Poly(1.0*s + 2.0, s, domain='RR')],
+    [                            1.0/(1.0*s + 3.0), 1.0*exp(-3*s)/Poly(1.0*s + 4.0, s, domain='RR')]]), s)
+    >>> mimotf2sym(G, deadtime=False)
+    (Matrix([
+    [1.0/(1.0*s + 1.0), 1.0/(1.0*s + 2.0)],
+    [1.0/(1.0*s + 3.0), 1.0/(1.0*s + 4.0)]]), s)
+    """
+
+    s = sympy.Symbol("s")
+    rows, cols = G.shape
+    terms = []
+    for tf in G.matrix.A1:
+        num_poly = sympy.Poly(tf.numerator.coeffs, s)
+        den_poly = sympy.Poly(tf.denominator.coeffs, s)
+        if deadtime:
+            terms.append(num_poly * sympy.exp(-tf.deadtime * s) / den_poly)
+        else:
+            terms.append(num_poly / den_poly)
+    Gs = sympy.Matrix([terms]).reshape(rows, cols)
+    return Gs, s
+
+
 def RGAnumber(G, I):
     """
     Computes the RGA (Relative Gain Array) number of a matrix.
@@ -2196,6 +2242,69 @@ def lcm_of_all_minors(G):
             if j.denominator.order > 0:
                 denoms.append(j.denominator)
     return multi_polylcm(denoms)
+
+
+def poles_and_zeros_of_square_tf_matrix(G):
+    """
+    Determine poles and zeros of a square mimotf matrix, making use of the determinant.
+    This method may fail in special cases. If terms cancel out during calculation of the determinant,
+    not all poles and zeros will be determined.
+
+    Parameters
+    ----------
+    G : mimotf matrix (n x n)
+        The transfer function of the system.
+
+    Returns
+    -------
+    z : array
+        List of zeros.
+    p : array
+        List of poles.
+    possible_cancel : boolean
+                      Test whether terms were possibly cancelled out in determinant calculation.
+
+    Example
+    -------
+    >>> G = mimotf([[tf([1, -1], [1, 2]), tf([4], [1, 2])],
+    ...             [tf([4.5], [1, 2]), tf([2, -2], [1, 2])]])
+    >>> poles_and_zeros_of_square_tf_matrix(G)
+    (array([4.]), array([-2.]), False)
+    """
+
+    # Convert mimotf 2 sympy matrix
+    Gs, s = mimotf2sym(G, deadtime=False)
+
+    # Test cancellation
+    rows, cols = G.shape
+    r = Gs.rank()
+    possible_cancel = False
+    for i in range(rows):
+        for j in range(cols):
+            minor_multiply = Gs[r*i + j]
+            minors = Gs.minor_submatrix(i, j)
+            for minor in minors:
+                numer_test = sympy.Poly(sympy.numer(minor_multiply).expand(), s)
+                denom_test = sympy.Poly(sympy.denom(minor).expand(), s)
+                _, res = sympy.div(numer_test, denom_test)
+                if res == 0 and sympy.denom(minor) != 1:
+                    possible_cancel = True
+
+    # Determine determinant
+    detG = Gs.det().simplify()
+
+    # Determine numerator and denominator
+    numer = sympy.numer(detG).expand()
+    denom = sympy.denom(detG).expand()
+
+    # Create numpy poly
+    zero_poly = numpy.poly1d(sympy.Poly(numer, s).coeffs())
+    pole_poly = numpy.poly1d(sympy.Poly(denom, s).coeffs())
+
+    # Determine poly roots
+    z = numpy.array(zero_poly.roots)
+    p = numpy.array(pole_poly.roots)
+    return z, p, possible_cancel
 
 
 def poles(G=None, A=None):
