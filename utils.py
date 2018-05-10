@@ -2675,7 +2675,7 @@ def BoundST(G, poles, zeros, deadtime=None):
                 dead_time_vec_max_row, s)))
             return dead_time_matrix
 
-        Q_dead = numpy.zeros((Np, Np))
+        Q_dead = numpy.zeros((Np, Np), dtype=numpy.complex_) # need to define the datatype as a complex matrix to allow for placing complex elements into matrix
 
         for i in range(Np):
             for j in range(Np):
@@ -2685,7 +2685,8 @@ def BoundST(G, poles, zeros, deadtime=None):
                             poles[j], dead_time_vec_max_row) * Yp[:, j])
 
                 denominator_mat = poles[i] + poles[j]
-                Q_dead[i, j] = numerator_mat / denominator_mat
+                Q_element = numerator_mat / denominator_mat 
+                Q_dead[i, j] = Q_element.item(0) #this is done to extract the element out of the array Q_element so that it can be placed into the array Q_dead 
 
         lambda_mat = sc_linalg.sqrtm(numpy.linalg.pinv(Q_dead)).dot(
             Qp + Qzp.dot(numpy.linalg.pinv(Qz)).dot(numpy.transpose(
