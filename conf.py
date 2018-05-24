@@ -18,7 +18,7 @@ import os
 # see http://blog.rtwilson.com/how-to-make-your-sphinx-documentation-compile-with-readthedocs-when-youre-using-numpy-and-scipy/
 
 import mock
- 
+
 MOCK_MODULES = ['numpy',
                 'numpy.linalg',
                 'numpy.matlib',
@@ -26,9 +26,9 @@ MOCK_MODULES = ['numpy',
                 'scipy.linalg',
                 'scipy.optimize',
                 'scipy.optimize.fmin',
-                'scipy.signal', 
-                'matplotlib', 
-                'matplotlib.pyplot', 
+                'scipy.signal',
+                'matplotlib',
+                'matplotlib.pyplot',
                 'scipy.interpolate']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
@@ -46,7 +46,13 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.mathjax', 'sphinx.ext.viewcode', 'numpydoc']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.mathjax',
+    'numpydoc',
+    'nbsphinx',
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -62,7 +68,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Skogestad Python'
-copyright = u'2014, University of Pretoria CBT students'
+copyright = u'2018, University of Pretoria CBT students'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -85,7 +91,12 @@ release = '1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = [
+    '_build',
+    '**.ipynb_checkpoints',
+    'Thumbs.db',
+    '.DS_Store'
+]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

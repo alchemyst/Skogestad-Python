@@ -6,11 +6,26 @@
 Welcome to Skogestad Python's documentation!
 ============================================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
+   notebooks/Python introduction.ipynb
+   notebooks/Objects.ipynb
+   notebooks/Block diagram algebra.ipynb
+   notebooks/Laplace transform.ipynb
+   notebooks/State space time domain response.ipynb
+   notebooks/Frequency response.ipynb
+   notebooks/Infinity norm.ipynb
+   notebooks/Eigenvalues and Eigenvectors.ipynb
+   notebooks/Example 7.9.ipynb
+   notebooks/Example 8.4.ipynb
+   notebooks/Example 8.9.ipynb
+   notebooks/Multivariable frequency response.ipynb
+   notebooks/Optimisation.ipynb
+   notebooks/Robust stability.ipynb
+   notebooks/Uncertain frequency response with random parameters.ipynb
+   notebooks/Uncertainty.ipynb
 
 
 Indices and tables
