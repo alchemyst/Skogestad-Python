@@ -919,17 +919,18 @@ def det(A):
     -12.0
 
     # Can handle matrices of tf objects
-    # TODO: make this a little more natural (without the .matrix)
     >>> G11 = tf([1], [1, 2])
     >>> G = mimotf([[G11, G11], [G11, G11]])
-    >>> det(G.matrix)
+    >>> det(G)
     tf([0.], [1])
 
     >>> G = mimotf([[G11, 2*G11], [G11**2, 3*G11]])
-    >>> det(G.matrix)
+    >>> det(G)
     tf([ 3. 16. 28. 16.], [ 1. 10. 40. 80. 80. 32.])
 
     """
+    if type(A) is tf or type(A) is mimotf:
+        A = A.matrix
 
     A = numpy.asmatrix(A)
 
@@ -2282,8 +2283,8 @@ def poles_and_zeros_of_square_tf_matrix(G):
     for i in range(rows):
         for j in range(cols):
             minor_multiply = Gs[r*i + j]
-            minors = Gs.minor_submatrix(i, j)
-            for minor in minors:
+            g_minors = Gs.minor_submatrix(i, j)
+            for minor in g_minors:
                 numer_test = sympy.Poly(sympy.numer(minor_multiply).expand(), s)
                 denom_test = sympy.Poly(sympy.denom(minor).expand(), s)
                 _, res = sympy.div(numer_test, denom_test)
