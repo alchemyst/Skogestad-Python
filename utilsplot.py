@@ -97,13 +97,13 @@ def plot_freq_subplot(plt, w, direction, name, color, figure_num):
         plt.title(name)
         plt.semilogx(w, direction[i, :], color)
 
-        
+
 def complexplane(args, color=True, marker='o', msize=5):
     """
     Plot up to 8 arguments on a complex plane (limited by the colors)
     Useful when you wish to compare sets of complex numbers graphically or
     plot your poles and zeros
-    
+
     Parameters
     ----------
     args : A list of the list of numbers to plot
@@ -112,13 +112,13 @@ def complexplane(args, color=True, marker='o', msize=5):
     marker : Type of marker to use
              https://matplotlib.org/api/markers_api.html
     msize : Size of the marker
-    
+
     Example:
         A = [1+2j, 1-2j, 1+1j, 2-1j]
         B = [1+2j, 3+2j, 1, 1+2j]
         complexplane([A, B, [1+3j, 2+5j]], marker='+', msize=8)
     """
-    
+
     fig = plt.figure()
     axes = fig.add_subplot(111)
     #define color index
@@ -131,9 +131,9 @@ def complexplane(args, color=True, marker='o', msize=5):
     count = 0
     for a in args:
         for items in a:
-            plt.plot(items.real, items.imag, colors[count]+marker, markersize=msize)           
+            plt.plot(items.real, items.imag, colors[count]+marker, markersize=msize)
         count += 1
-        
+
     plt.ylabel('Im')
     plt.xlabel('Re')
     plt.grid(True)
@@ -145,8 +145,8 @@ def complexplane(args, color=True, marker='o', msize=5):
     rangeY = Yaxes[1] - Yaxes[0]
     axes.set_xlim(Xaxes[0]-0.1*rangeX, Xaxes[1]+0.1*rangeX)
     axes.set_ylim(Yaxes[0]-0.1*rangeY, Yaxes[1]+0.1*rangeY)
-    
-    
+
+
 ###############################################################################
 #                                Chapter 2                                    #
 ###############################################################################
@@ -263,7 +263,7 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2,
 
 def mimo_bode(G, w_start=-2, w_end=2,
               axlim=None, points=1000,
-              Kin=None, text=False, sv_all=False):
+              Kin=None, text=False, sv_all=False, legend_loc='best'):
     """
     Plots the max and min singular values of G and computes the crossover
     frequency.
@@ -282,6 +282,8 @@ def mimo_bode(G, w_start=-2, w_end=2,
         plotted (optional).
     sv_all : boolean
         If true, plot all the singular values of the plant (optional).
+    legend_loc : string
+        String that sets the legend location. See matplotlib documentation for options.
 
     Returns
     -------
@@ -306,14 +308,16 @@ def mimo_bode(G, w_start=-2, w_end=2,
     ...     return K*numpy.exp(-t1*s)/(t2*s + 1.)
     >>>
     >>> def Kc(s):
-    ...     return numpy.array([[0.1, 0.],
-    ...                         [0., 0.1]])*10.
+    ...     return numpy.array([[1., 0.],
+    ...                         [0., 1.]])*10.
     >>> mimo_bode(G, -3, 3, Kc)
-    Bandwidth is a tuple of wC, wB
-    (0.55557762223988783, 1.3650078065460138)
+    0.5555776222398878
 
     """
-
+    # TODO: The previous example returned (at some point) the following: (0.55557762223988783, 1.3650078065460138)
+    # however, Kc is not assigned to anything inside of this function currently.
+    # from the current expected result, it is obvious that wC is correct, however wB should be
+    # determined properly.
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     if Kin is not None:
@@ -345,11 +349,13 @@ def mimo_bode(G, w_start=-2, w_end=2,
         if text:
             plt.axvline(wA, ls=':', lw=2, color='r')
             plt.text(wA*1.1, ymin*1.1, labB, color='r')
-        plt.axis(axlim)
+        # This function does not seem to do anything, since axlim is a list of
+        # none values. See doc_func.py.frequency_spot_setup
+        # plt.axis(axlim)
         plt.grid()
         plt.xlabel('Frequency [rad/unit time]')
         plt.ylabel('$\sigma$')
-        plt.legend()
+        plt.legend(loc=legend_loc)
         return wA
 
     wC = subbode(G, text, 1, 'wC', 'G')
@@ -722,7 +728,8 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
     -------
     # Adapted from example 3.11 pg 86 S. Skogestad
     >>> def G(s):
-    ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913], [-30.22*s, -9.188*(s + 6.95e-4)]])
+    ...     G = 0.01**(-5*s)/((s + 1.72e-4)*(4.32*s + 1))*numpy.matrix([[-34.54*(s + 0.0572), 1.913],
+    ...                                                             [-30.22*s, -9.188*(s + 6.95e-4)]])
     ...     return G
     >>> pairing = numpy.matrix([[1., 0.], [0., 1.]])
     >>> rga_nm_plot(G, [pairing], w_start=-5, w_end=2, axlim=[None, None, 0., 1.])
@@ -740,7 +747,9 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
         pairing_list = numpy.identity(dim[0])
         pairing_names = 'Diagonal pairing'
     else:
+        pairing_names = []
         for pairing in pairing_list:
+            pairing_names.append(str(pairing))
             if pairing.shape != dim:
                 raise ValueError('Make sure input matrix is square')
 
@@ -1243,7 +1252,7 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec',
 def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
                  axlim=None, points=1000):
     """
-    MIMO sensitivity S and performance weight Wp plotting funtion.
+    MIMO sensitivity S and performance weight Wp plotting function.
 
     Parameters
     ----------
@@ -1254,10 +1263,10 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
         1/time eg: wB_req = 1/20sec = 0.05rad/s
     maxSSerror : float
         The maximum stead state tracking error required of the plant.
-    wStart : float
+    w_start : float
         Minimum power of w for the frequency range in rad/time.
         eg: for w starting at 10e-3, wStart = -3.
-    wEnd : float
+    w_end : float
         Maximum value of w for the frequency range in rad/time.
         eg: for w ending at 10e3, wStart = 3.
 
@@ -1288,7 +1297,8 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
     >>> def S(s):
     ... # SVD of S = 1/(I + L)
     ...     return numpy.linalg.inv((numpy.eye(2) + L(s)))
-    >>> perf_Wp(S, 0.05, 0.2, -3, 1)
+    >>> perf_Wp_plot(S, 0.05, 0.2, -3, 1)
+    0.14661086840469845
     """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
@@ -1305,7 +1315,8 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
             wB = w[i]
             f = 1
     for i in range(len(w)):
-        Wpi[i] = utils.Wp(wB_req, maxSSerror, s[i])
+        # 2j is max frequency, as required by utils.Wp
+        Wpi[i] = utils.Wp(wB_req, w_end, maxSSerror, s[i])
 
     plt.subplot(2, 1, 1)
     plt.loglog(w, magPlotS1, 'r-', label='Max $\sigma$(S)')
