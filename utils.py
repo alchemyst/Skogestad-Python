@@ -2052,6 +2052,12 @@ def minimal_realisation(a, b, c):
     :param c: numpy matrix
               the C matrix in the state space model
 
+
+    Reference
+    ---------
+    The method (as well as the examples) are from
+    https://ece.gmu.edu/~gbeale/ece_521/xmpl-521-kalman-min-real-01.pdf
+
     Examples
     --------
 
