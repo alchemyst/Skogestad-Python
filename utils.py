@@ -2457,11 +2457,11 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=1E-8, z_tol=1E-4,
     e : float
         Avoid division by zero. Let epsilon be very small (optional).
 
-    min_tol : float
-        Acceptable tolerance for zero validation. Let min_tol be very small (optional).
+    z_tol : float
+        Acceptable tolerance for zero validation. Let z_tol be small (optional).
 
-    max_tol : float
-        Acceptable tolerance for pole validation. Let max_tol be very small (optional).
+    p_tol : float
+        Acceptable tolerance for pole validation. Let p_tol be small (optional).
 
     Returns
     -------
