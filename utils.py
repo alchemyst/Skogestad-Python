@@ -2421,7 +2421,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         # return sympy.solve((M - z*Ig).det(), z)
 
 
-def pole_zero_directions(G, vec, dir_type, display_type='a', e=1E-8, min_tol=1E-5, max_tol=1E4):
+def pole_zero_directions(G, vec, dir_type, display_type='a', e=1E-8, z_tol=1E-4, p_tol=1E-4):
     """
     Crude method to calculate the input and output direction of a pole or zero,
     from the SVD.
@@ -2510,14 +2510,14 @@ def pole_zero_directions(G, vec, dir_type, display_type='a', e=1E-8, min_tol=1E-
 
         # zero validation test
         if dir_type == 'z':
-            z_test = min(abs(g*u).A1)
-            if z_test <= min_tol:
+            z_test = max(abs((g*u*y.I).A1))
+            if z_test <= z_tol:
                 v = True
 
         # pole validation test
         if dir_type == 'p':
-            p_test = max(abs(g*u).A1)
-            if p_test >= max_tol:
+            p_test = max(abs((y*u.I*g.I).A1))
+            if p_test <= p_tol:
                 v = True
 
         if display_type == 'u':
