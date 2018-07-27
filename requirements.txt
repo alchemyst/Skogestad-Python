@@ -1,9 +1,10 @@
 control
 future
 matplotlib
-numpy
-scipy
-sympy<1.2
+scipy>=1.0.0
+numpy>=1.14.0
+sympy>=1.2
+sympy>=1.2
 mock
 numpydoc
 nbsphinx

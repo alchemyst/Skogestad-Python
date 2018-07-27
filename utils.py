@@ -1371,8 +1371,8 @@ def mimotf2sym(G, deadtime=False):
 
     >>> mimotf2sym(G, deadtime=True)
     (Matrix([
-    [1.0*exp(-s)/Poly(1.0*s + 1.0, s, domain='RR'), 1.0*exp(-5*s)/Poly(1.0*s + 2.0, s, domain='RR')],
-    [                            1.0/(1.0*s + 3.0), 1.0*exp(-3*s)/Poly(1.0*s + 4.0, s, domain='RR')]]), s)
+    [1.0*exp(-s)/(1.0*s + 1.0), 1.0*exp(-5*s)/(1.0*s + 2.0)],
+    [        1.0/(1.0*s + 3.0), 1.0*exp(-3*s)/(1.0*s + 4.0)]]), s)
     >>> mimotf2sym(G, deadtime=False)
     (Matrix([
     [1.0/(1.0*s + 1.0), 1.0/(1.0*s + 2.0)],

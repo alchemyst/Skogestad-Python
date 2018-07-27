@@ -4,7 +4,7 @@ dependencies:
  - matplotlib
  - scipy>=1.0.0
  - numpy>=1.14.0
- - sympy
+ - sympy>=1.2
  - mock
  - numpydoc
  - nose
