@@ -1,4 +1,7 @@
 name: skogestad
+channels:
+ - conda-forge
+ - defaults
 dependencies:
  - future
  - matplotlib<=2.2.2
@@ -8,7 +11,7 @@ dependencies:
  - mock
  - numpydoc
  - nose
- - pip:
-   - control
-   - python-coveralls
-   - nose-cov
+ - slycot
+ - control
+ - python-coveralls
+ - nose-cov
