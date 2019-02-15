@@ -78,5 +78,5 @@ u_min = u[:, 1]
 
 # c) Decentralized control
 
-# As mentioned in a), the off-diagonal pairing exchibits the lowest RGA number
+# As mentioned in a), the off-diagonal pairing exhibits the lowest RGA number
 # over the bandwidth frequency (see figure 1)
