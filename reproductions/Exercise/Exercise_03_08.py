@@ -17,4 +17,4 @@ I6 = np.matrix([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
 for I in I1, I2, I3, I4, I5, I6:
     print('Pairing', '\n', I, 'RGA Number =', np.sum(np.abs(RGA(G) - I)))
 # Pairing of diagonal matrix I1 provides the smallest RGA number and is
-# is therefor preferred
+# is therefore preferred
