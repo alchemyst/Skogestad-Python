@@ -39,7 +39,7 @@ zIg = z * Ig
 f = zIg - M
 zf = f.det()
 zero = sp.solve(zf, z)
-print("Zero calcualted by manual method = ",zero)
+print("Zero calculated by manual method = ",zero)
 
 # or using utils function which I only discovered after doing all this
 zeros = zeros(None,A,B,C,D)
