@@ -1042,39 +1042,6 @@ def feedback(forward, backward=None, positive=False):
     return forward * 1/(1 + backward * forward)
 
 
-def Closed_loop(Kz, Kp, Gz, Gp):
-    """
-    Return zero and pole polynomial for a closed loop function.
-
-    Parameters
-    ----------
-    Kz & Gz : list
-        Polynomial constants in the numerator.
-    Kz & Gz : list
-        Polynomial constants in the denominator.
-
-    Returns
-    -------
-    Zeros_poly : list
-        List of zero polynomial for closed loop function.
-
-    Poles_poly : list
-        List of pole polynomial for closed loop function.
-
-   """
-
-    # calculating the product of the two polynomials in the numerator
-    # and denominator of transfer function GK
-    Z_GK = numpy.polymul(Kz, Gz)
-    P_GK = numpy.polymul(Kp, Gp)
-
-    # calculating the polynomial of closed loop
-    # sensitivity function s = 1/(1+GK)
-    Zeros_poly = Z_GK
-    Poles_poly = numpy.polyadd(Z_GK, P_GK)
-    return Zeros_poly, Poles_poly
-
-
 def omega(w_start, w_end):
     """
     Convenience wrapper
