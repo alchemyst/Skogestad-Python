@@ -40,6 +40,30 @@ def astf(maybetf):
         return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
 
 
+def polylatex(coefficients, variable='s'):
+    """Return latex representation of a polynomial
+
+    :param coefficients: iterable of coefficients in descending order
+    :param variable: string containing variable to use
+
+    """
+    terms = []
+    N = len(coefficients)
+    for i, coefficient in enumerate(coefficients):
+        if coefficient == 0:
+            continue
+
+        order = N - i - 1
+        term = '{0:+}'.format(coefficient)
+        if order >= 1:
+            term += variable
+        if order >= 2:
+            term += '^{}'.format(order)
+
+        terms.append(term)
+    return "".join(terms).lstrip('+')
+
+
 class tf(object):
     """
     Very basic transfer function object
@@ -206,6 +230,19 @@ class tf(object):
             r += ", y=': " + self.y + "'"
         r += ")"
         return r
+
+    def _repr_latex_(self):
+        num = polylatex(self.numerator.coefficients)
+        den = polylatex(self.denominator.coefficients)
+
+        if self.deadtime > 0:
+            dt = "e^{{-{}s}}".format(self.deadtime)
+            if len(self.numerator.coefficients.nonzero()[0]) > 1:
+                num = "({})".format(num)
+        else:
+            dt = ""
+
+        return r"$$\frac{{{}{}}}{{{}}}$$".format(num, dt, den)
 
     def __call__(self, s):
         """
