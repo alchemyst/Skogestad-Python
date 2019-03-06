@@ -141,7 +141,7 @@ class tf(object):
         self.name = name
         self.u = u
         self.y = y
-        self.simplify(dec=prec)
+        self.simplify_euclid()
 
     def inverse(self):
         """
@@ -200,7 +200,7 @@ class tf(object):
             if a.order < b.order:
                 return gcd_euclid(b, a)
 
-            if b.order == 0:
+            if b == numpy.poly1d(0):
                 return a
 
             _, r = numpy.polydiv(a, b)
