@@ -160,8 +160,7 @@ class tf(object):
     def simplify(self, dec=3):
 
         # Polynomial simplification
-        k = self.numerator[self.numerator.order] / \
-            self.denominator[self.denominator.order]
+        k = self.numerator[self.numerator.order] / self.denominator[self.denominator.order]
         ps = self.poles().tolist()
         zs = self.zeros().tolist()
 
@@ -184,6 +183,34 @@ class tf(object):
             self.zerogain = True
             self.deadtime = 0
             self.denominator = numpy.poly1d([1])
+
+    def simplify_euclid(self):
+        """
+        Cancels GCD from both the numerator and denominator.
+        Uses the Euclidean algorithm for polynomial gcd
+        """
+        def gcd_euclid(a, b):
+            """
+            Euclidean algorithm for calculating the polynomial gcd:
+            https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
+            :param a: numpy.poly1d object
+            :param b: numpy.poly1d object
+            :return: numpy.poly1d object that is the GCD of a and b
+            """
+            if a.order < b.order:
+                return gcd_euclid(b, a)
+
+            if b.order == 0:
+                return a
+
+            _, r = numpy.polydiv(a, b)
+            return gcd_euclid(b, r)
+
+        gcd = gcd_euclid(self.denominator, self.numerator)
+        if gcd.order == 0:
+            return
+        self.numerator, _ = numpy.polydiv(self.numerator, gcd)
+        self.denominator, _ = numpy.polydiv(self.denominator, gcd)
 
     def poles(self):
         return self.denominator.r
