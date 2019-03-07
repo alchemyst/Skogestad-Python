@@ -141,7 +141,7 @@ class tf(object):
         self.name = name
         self.u = u
         self.y = y
-        self.simplify_euclid()
+        self.simplify(dec=prec)
 
     def inverse(self):
         """
