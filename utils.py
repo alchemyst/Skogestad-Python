@@ -188,6 +188,17 @@ class tf(object):
         """
         Cancels GCD from both the numerator and denominator.
         Uses the Euclidean algorithm for polynomial gcd
+
+        Doctest:
+        >>> G1 = tf([1], [1, 1])
+        >>> G2 = tf([1], [2, 1])
+        >>> G3 = G1 * G2
+        >>> G4 = G3 * G1
+        >>> G5 = G4 / G1
+        >>> G3
+        tf([0.5], [1.  1.5 0.5])
+        >>> G5
+        tf([0.5], [1.  1.5 0.5])
         """
         def gcd_euclid(a, b):
             """
