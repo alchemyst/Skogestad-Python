@@ -5,7 +5,6 @@ language: python
 python:
   - "3.5"
   - "3.6"
-  - "3.7"
 
 cache:
   apt: true
@@ -36,7 +35,7 @@ before_install:
 # Install packages
 install:
   - conda env create --file environment.yml python=$TRAVIS_PYTHON_VERSION
-  - conda activate skogestad
+  - source activate skogestad
   - pip install codeclimate-test-reporter
   - conda env export  # debugging
 # TODO: Package

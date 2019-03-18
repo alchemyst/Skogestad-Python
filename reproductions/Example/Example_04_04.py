@@ -49,7 +49,7 @@ print('\n1) Eigenvalues are: p1 = ', val[0], 'and p2 = ', val[1])
 print('   with eigenvectors: q1 = ', vec[:, 0], 'and q2 = ', vec[:, 1])
 print('   Input pole vectors are: up1 = ', in_vecs[0], 'and up2 = ', in_vecs[1])
 
-print('\n2) The controlabillity matrix has rank', n, 'and is given as:')
+print('\n2) The controllability matrix has rank', n, 'and is given as:')
 print(c_matrix)
 
 print('\n3) The controllability Gramian =')

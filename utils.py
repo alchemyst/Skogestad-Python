@@ -41,6 +41,30 @@ def astf(maybetf):
         return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
 
 
+def polylatex(coefficients, variable='s'):
+    """Return latex representation of a polynomial
+
+    :param coefficients: iterable of coefficients in descending order
+    :param variable: string containing variable to use
+
+    """
+    terms = []
+    N = len(coefficients)
+    for i, coefficient in enumerate(coefficients):
+        if coefficient == 0:
+            continue
+
+        order = N - i - 1
+        term = '{0:+}'.format(coefficient)
+        if order >= 1:
+            term += variable
+        if order >= 2:
+            term += '^{}'.format(order)
+
+        terms.append(term)
+    return "".join(terms).lstrip('+')
+
+
 class tf(object):
     """
     Very basic transfer function object
@@ -261,6 +285,19 @@ class tf(object):
             r += ", y=': " + self.y + "'"
         r += ")"
         return r
+
+    def _repr_latex_(self):
+        num = polylatex(self.numerator.coefficients)
+        den = polylatex(self.denominator.coefficients)
+
+        if self.deadtime > 0:
+            dt = "e^{{-{}s}}".format(self.deadtime)
+            if len(self.numerator.coefficients.nonzero()[0]) > 1:
+                num = "({})".format(num)
+        else:
+            dt = ""
+
+        return r"$$\frac{{{}{}}}{{{}}}$$".format(num, dt, den)
 
     def __call__(self, s):
         """
@@ -1095,39 +1132,6 @@ def feedback(forward, backward=None, positive=False):
     if positive:
         backward = -backward
     return forward * 1/(1 + backward * forward)
-
-
-def Closed_loop(Kz, Kp, Gz, Gp):
-    """
-    Return zero and pole polynomial for a closed loop function.
-
-    Parameters
-    ----------
-    Kz & Gz : list
-        Polynomial constants in the numerator.
-    Kz & Gz : list
-        Polynomial constants in the denominator.
-
-    Returns
-    -------
-    Zeros_poly : list
-        List of zero polynomial for closed loop function.
-
-    Poles_poly : list
-        List of pole polynomial for closed loop function.
-
-   """
-
-    # calculating the product of the two polynomials in the numerator
-    # and denominator of transfer function GK
-    Z_GK = numpy.polymul(Kz, Gz)
-    P_GK = numpy.polymul(Kp, Gp)
-
-    # calculating the polynomial of closed loop
-    # sensitivity function s = 1/(1+GK)
-    Zeros_poly = Z_GK
-    Poles_poly = numpy.polyadd(Z_GK, P_GK)
-    return Zeros_poly, Poles_poly
 
 
 def omega(w_start, w_end):

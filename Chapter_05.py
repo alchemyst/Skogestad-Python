@@ -27,7 +27,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         plant model
 
     Gd : tf
-        plant distrubance model
+        plant disturbance model
 
     K : tf
         control model
@@ -47,7 +47,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     Returns
     -------
     valid1 : boolean
-        value if rule conditions was met
+        value if rule conditions were met
 
     wc : real
         crossover frequency where | G(jwc) | = 1
@@ -62,7 +62,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
     valid1 = wc > wd
 
     if message:
-        print('Rule 1: Speed of response to reject distrubances')
+        print('Rule 1: Speed of response to reject disturbances')
         if valid1:
             print('First condition met, wc > wd')
         else:
@@ -132,7 +132,7 @@ def rule2(G, R, K, wr, message=False, plot=False, w1=-4, w2=2):
 
     if message:
         print('Rule 2:')
-        print('Conditions requires |S(jw)| <= ', np.round(invref, 2))
+        print('Conditions require |S(jw)| <= ', np.round(invref, 2))
 
     if plot:
         w = np.logspace(w1, w2, 1000)
@@ -168,7 +168,7 @@ def rule3(G, Gd, message=False, w1=-4, w2=2):
         plant model
 
     Gd : tf
-        plant distrubance model
+        plant disturbance model
 
     message : boolean
         show the rule message (optional)
@@ -389,7 +389,7 @@ def rule7(G, Gm, message=False):
 
     Returns
     -------
-    valid1 : boolean
+    valid7 : boolean
         value if rule conditions was met
 
     wc : real
@@ -433,8 +433,8 @@ def rule8(G, message=False):
 
     Returns
     -------
-    valid1 : boolean
-        value if rule conditions was met
+    valid8 : boolean
+        value if rule conditions were met
 
     wc : real
         crossover frequency where | G(jwc) | = 1
