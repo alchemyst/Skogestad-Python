@@ -235,10 +235,6 @@ class tf(object):
             G_mag:  The magnitudes of G at the relevent frequencies.
             G_angle: The angles of G at the relevant frequencies.
             
-        >>> G = tf([1], [1, 1], deadtime = 1)
-        >>> G.bode(omega = numpy.array([0,1]))
-        (array([0, 1]), array([1.        , 0.70710678]), array([   0.        \
-        , -102.29577951]))
         """
         
         # Convert tf object to a function.
