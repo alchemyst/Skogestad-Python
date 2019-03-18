@@ -216,7 +216,7 @@ class tf(object):
 
         return tf(1, 1, deadtime=D)
     
-        def bode(self, omega = numpy.logspace(-2, 2, 1000), plot = False, \
+    def bode(self, omega = numpy.logspace(-2, 2, 1000), plot = False, \
              radians = False):
         """
         This function returns the bode response of the transfer function.
