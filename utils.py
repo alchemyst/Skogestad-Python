@@ -12,6 +12,7 @@ import sympy  # do not abbreviate this module as sp in utils.py
 from scipy import optimize, signal
 import scipy.linalg as sc_linalg
 from functools import reduce
+import matplotlib.pyplot as plt
 import itertools
 
 
@@ -190,6 +191,60 @@ class tf(object):
         D = ratio.numerator.coeffs[0]
 
         return tf(1, 1, deadtime=D)
+    
+        def bode(self, omega = numpy.logspace(-2, 2, 1000), plot = False, \
+             radians = False):
+        """
+        This function returns the bode response of the transfer function.
+        
+        Inputs:
+            omega:  A numpy array of frequencies over which to evaluate the
+                    transfer function.
+            plot:   State whether the magnitude and angle plots should be
+                    displayed.
+            radians: State whether the angle returned and angle plot should be
+                    in radians instead of degrees (default).
+        
+        Returns three arrays:
+            Omega:  The frequency range over which the transfer function was 
+                    evaluated.
+            G_mag:  The magnitudes of G at the relevent frequencies.
+            G_angle: The angles of G at the relevant frequencies.
+            
+        >>> G = tf([1], [1, 1], deadtime = 1)
+        >>> G.bode(omega = numpy.array([0,1]))
+        (array([0, 1]),
+         array([1.        , 0.70710678]),
+         array([   0.        , -102.29577951]))
+        """
+        
+        # Convert tf object to a function.
+        def G(s):
+            Numerator = [num_val*s**(len(self.numerator) - index) for index,\
+                         num_val in enumerate(self.numerator)]
+            Denominator = [dem_val*s**(len(self.denominator) - index) for \
+                           index, dem_val in enumerate(self.denominator)]
+            return sum(Numerator)/sum(Denominator)*numpy.exp(-s*self.deadtime)
+        
+        # Calculating the frequency response
+        s = omega*1j
+        G_mag = numpy.abs(G(s))
+        G_angle = numpy.unwrap(numpy.angle(G(s)))*180/numpy.pi
+        
+        # Convert angle to the correct unit
+        if radians:
+            G_angle = G_angle*numpy.pi/180
+        
+        # Plot the graphs if requested.
+        if plot:
+            plt.subplot(2, 1, 1)
+            plt.loglog(omega, G_mag)
+            plt.grid()
+            plt.subplot(2, 1, 2)
+            plt.plot(omega, G_angle)
+            plt.grid()
+        
+        return omega, G_mag, G_angle
 
     def __repr__(self):
         if self.name:
@@ -2811,7 +2866,7 @@ def ssr_solve(A, B, C, D):
 
     Returns:
         zeros: The system's zeros
-        poles: the system's poles
+        poles: The system's poles
 
     TODO: Add any other relevant values to solve for, for example, if coprime
     factorisations are useful somewhere add them to this function's return
