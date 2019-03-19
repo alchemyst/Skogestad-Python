@@ -261,9 +261,20 @@ class tf(object):
             plt.grid()
             plt.subplot(2, 1, 2)
             plt.plot(omega, G_angle)
+            plt.xscale('log')
             plt.grid()
         
         return omega, G_mag, G_angle
+    
+    def bandwidth(self):
+        """
+        Returns the bandwidth of the transfer function.
+        """
+        
+        omega, Magnitude, Angle = self.bode(omega = numpy.logspace(-6, 6, \
+                                                                   1000))
+        omega_b = numpy.interp(1, Magnitude[::-1], omega[::-1])
+        return omega_b
 
     def __repr__(self):
         if self.name:
