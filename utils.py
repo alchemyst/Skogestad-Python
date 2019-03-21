@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+pro# -*- coding: utf-8 -*-
 """
 Created on Jan 27, 2012
 
@@ -451,17 +451,6 @@ class mimotf(object):
         self.matrix = astf(numpy.asmatrix(matrix))
         # We only support matrices of transfer functions
         self.shape = self.matrix.shape
-
-    def mimotf_slice(self, rows, cols):
-        nRows = len(rows)
-        nCols = len(cols)
-        result = [[] for r in range(nRows)]
-        for r in range(nRows):
-            for c in range(nCols):
-                result[r].append(tf(list(self[rows[r], cols[c]].numerator.coeffs),
-                                    list(self[rows[r], cols[c]].denominator.coeffs)))
-
-        return mimotf(result)
 
     def det(self):
         return det(self.matrix)
@@ -1103,7 +1092,7 @@ def feedback(forward, backward=None, positive=False):
     """
     Defined for use in connect function
     Calculates a feedback loop
-    This version is for trasnfer function objects
+    This version is for transfer function objects
     Negative feedback is assumed, use positive=True for positive feedback
     Forward refers to the function that goes out of the comparator
     Backward refers to the function that goes into the comparator
@@ -1517,7 +1506,7 @@ def sigmas(A, position=None):
     Parameters
     ----------
     A : array
-        Transfer function matrix.
+        State space system matrix A.
     position : string
         Type of sigmas to return (optional).
 
@@ -2266,17 +2255,18 @@ def minors(G, order):
     """
     Returns the order minors of a MIMO tf G.
     """
-    minor = []
+    retlist = []
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            G_slice = G.mimotf_slice(rowstokeep, colstokeep)
+            rowstokeep = numpy.array(rowstokeep)
+            colstokeep = numpy.array(colstokeep)
+            G_slice = G[rowstokeep[:, None], colstokeep]
             if type(G_slice) == tf:
-                minor.append(G_slice)
-            elif (type(G_slice) == mimotf) \
-                    and (G_slice.shape[0] == G_slice.shape[1]):
-                minor.append(G_slice.det())
-    return minor
+                retlist.append(G_slice)
+            elif (type(G_slice) == mimotf) and (G_slice.shape[0] == G_slice.shape[1]):
+                retlist.append(G_slice.det())
+    return retlist
 
 
 def lcm_of_all_minors(G):
@@ -2853,7 +2843,7 @@ def ssr_solve(A, B, C, D):
 
     Returns:
         zeros: The system's zeros
-        poles: the system's poles
+        poles: The system's poles
 
     TODO: Add any other relevant values to solve for, for example, if coprime
     factorisations are useful somewhere add them to this function's return
