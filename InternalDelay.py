@@ -284,3 +284,54 @@ class InternalDelay:
 
         return numpy.array(ys)
 
+    def __add__(self, other):
+        return self.parallel(other)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return other + (-self)
+
+    def __mul__(self, other):
+        return self.cascade(other)
+
+    def __rmul__(self, other):
+        return other.cascade(self)
+
+    def __truediv__(self, other):
+        return self * other.inverse()
+
+    def __rtruediv__(self, other):
+        return other * self.inverse()
+
+    def __div__(self, other):
+        return self * other.inverse()
+
+    def __rdiv__(self, other):
+        return other * self.inverse()
+
+    def __neg__(self):
+        matrices = self.A, self.B1, self.B2, self.C1, self.C2, self.D11, self.D12, self.D21, self.D22, self.delays
+        A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+        return InternalDelay(A, -B1, B2, C1, C2, -D11, D12, -D21, D22, delays)
+
+    def __pow__(self, power):
+        if not isinstance(power, int):
+            raise ValueError("Cannot raise object to non-integer power")
+
+        if power == 0:
+            return InternalDelay([1], [1], [0])
+
+        r = self
+        if power < 0:
+            r = self.inverse()
+
+        for k in range(power-1):
+            r = r * self
+
+        return r
