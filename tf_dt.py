@@ -150,15 +150,23 @@ class InternalDelay:
 
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
-    def ss_rk_delay_int(self, uf, ts, x0=None):
+    def simulate(self, uf, ts, x0=None):
         """
-        Implements a Runge-Kutta delay integration routine for a delay
+        Simulates the response of the system to the input.
+        Uses a Runge-Kutta delay integration routine.
         Parameters:
-            fun:    a callable object with the calling signature f(t, y), where t is a scalar and y is a list-like object.
-                    Defines the set of differential equations.
-            ts:     a list-like objects of times overwhich the integration should be done.
+            uf:     a callable object with the calling signature uf(t), where t is a scalar.
+                    Defines the input to the system.
+                    Should return a list-like object with an element for each input.
+            ts:     a list-like objects of times over which the integration should be done.
                     Number of point should be at least 10 times more than the span
-            y0:     Initial conditions for the set of differential equations.
+            x0:     Initial conditions for state of the system. Defaults to zero
+
+        Returns:
+            ys:     A list-like object containing the response of the system.
+                    The shape of the object is (T, O), where T is the number of time
+                    steps and O is the number of outputs.
+
         """
         if x0 is None:
             x0 = numpy.zeros(self.A.shape[0])
@@ -175,9 +183,8 @@ class InternalDelay:
                 elif dts == 0:
                     ws.append(zs[-1][i])
                 else:
-                    #                     print(zs[-dts], i)
                     ws.append(zs[-dts][i])
-            #             ws = [0 if len(zs) < dts else zs[-dts][i] for i, dts in enumerate(dtss)]
+
             return numpy.array(ws)
 
         f = lambda t, x: self.A @ x + self.B1 @ uf(t) + self.B2 @ wf(t)
