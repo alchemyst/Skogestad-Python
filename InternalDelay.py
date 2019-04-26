@@ -120,9 +120,7 @@ class InternalDelay:
 
     def feedback(self, g2=None):
         if g2 is None:
-            I_ss = scipy.signal.lti([1], [1]).to_ss()
-            I_dt = [0]
-            g2 = lti_SS_to_InternalDelay(I_ss, I_dt)
+            g2 = InternalDelay([1], [1], [0])
 
         X_inv = numpy.linalg.inv(numpy.eye(g2.D11.shape[0]) + g2.D11 @ self.D11)
 
