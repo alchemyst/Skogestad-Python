@@ -12,6 +12,30 @@ import scipy.signal
 
 
 class InternalDelay:
+    """
+    A class for systems that have internal delays that can be represented as
+    .. math::
+        \dot{x} = A x + B_{1} u + B_{2}  w
+        y = C_{1} x + D_{11} u + D_{12} w
+        z = C_{2} x + D_{21} u + D_{22} w
+        w_i = z_i(t - delay_i)
+
+    Parameters
+    ----------
+    *system: arguments
+        The `InternalDelay` class can be instantiated with 1, 2, 3 or 10
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+
+            * 1:    `utils.tf` system
+            * 2:    `scipy.signal.lti`: system
+                    array-like:  delays
+            * 3:    array-like: (numerator, denominator, delays)
+            * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
+                    array-like: delays
+
+    """
+
     def __init__(self, *system):
         N = len(system)
         if N == 1:  # is a utils.tf object
