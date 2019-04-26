@@ -3,6 +3,209 @@ import collections
 import utils
 
 
+class InternalDelay:
+    def __init__(self, A, B1, B2, C1, C2, D11, D12, D21, D22, delays):
+        self.A = A
+        self.B1 = B1
+        self.B2 = B2
+        self.C1 = C1
+        self.C2 = C2
+        self.D11 = D11
+        self.D12 = D12
+        self.D21 = D21
+        self.D22 = D22
+        self.delays = numpy.array(delays)
+
+    def cascade(self, g2):
+        A = numpy.block([[self.A, numpy.zeros((self.A.shape[0], g2.A.shape[1]))],
+                         [g2.B1 @ self.C1, g2.A]])
+
+        B1 = numpy.block([[self.B1],
+                          [g2.B1 @ self.D11]])
+
+        B2 = numpy.block([[self.B2, numpy.zeros((self.B2.shape[0], g2.B2.shape[1]))],
+                          [g2.B1 @ self.D12, g2.B2]])
+
+        C1 = numpy.block([g2.D11 @ self.C1, g2.C1])
+
+        C2 = numpy.block([[self.C2, numpy.zeros((self.C2.shape[0], g2.C2.shape[1]))],
+                          [g2.D21 @ self.C1, g2.C2]])
+
+        D11 = g2.D11 @ self.D11
+
+        D12 = numpy.block([g2.D11 @ self.D12, g2.D12])
+
+        D21 = numpy.block([[self.D21],
+                           [g2.D21 @ self.D11]])
+
+        D22 = numpy.block([[self.D22, numpy.zeros((self.D22.shape[0], g2.D22.shape[1]))],
+                           [g2.D21 @ self.D12, g2.D22]])
+
+        delays = numpy.block([self.delays, g2.delays])
+
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
+
+    def feedback(self, g2=None):
+        if g2 is None:
+            I_ss = scipy.signal.lti([1], [1]).to_ss()
+            I_dt = [0]
+            g2 = lti_SS_to_InternalDelay(I_ss, I_dt)
+
+        X_inv = numpy.linalg.inv(numpy.eye(g2.D11.shape[0]) + g2.D11 @ self.D11)
+
+        A = numpy.block([
+            [self.A - self.B1 @ X_inv @ g2.D11 @ self.C1,
+             -self.B1 @ X_inv @ g2.C1],
+            [g2.B1 @ self.C1 - g2.B1 @ self.D11 @ X_inv @ g2.D11 @ self.C1,
+             g2.A - g2.B1 @ self.D11 @ X_inv @ g2.C1]])
+
+        B1 = numpy.block([[self.B1 - self.B1 @ X_inv @ g2.D11 @ self.D11],
+                          [g2.B1 @ self.D11 - g2.B1 @ self.D11 @ X_inv @ g2.D11 @ self.D11]])
+
+        B2 = numpy.block([
+            [self.B2 - self.B1 @ X_inv @ g2.D11 @ self.D12,
+             -self.B1 @ X_inv @ g2.D12],
+            [g2.B1 @ self.D12 - g2.B1 @ self.D11 @ X_inv @ g2.D11 @ self.D12,
+             g2.B2 - g2.B1 @ self.D11 @ X_inv @ g2.D12]])
+
+        C1 = numpy.block([self.C1 - self.D11 @ X_inv @ g2.D11 @ self.C1,
+                          -self.D11 @ X_inv @ g2.C1])
+
+        C2 = numpy.block([
+            [self.C2 - self.D21 @ X_inv @ g2.D11 @ self.C1,
+             -self.D21 @ X_inv @ g2.C1],
+            [g2.D21 @ self.C1 - g2.D21 @ self.D11 @ X_inv @ g2.D11 @ self.C1,
+             g2.C2 - g2.D21 @ self.D11 @ X_inv @ g2.C1]])
+
+        D11 = self.D11 - self.D11 @ X_inv @ g2.D11 @ self.D11
+
+        D12 = numpy.block([self.D12 - self.D11 @ X_inv @ g2.D11 @ self.D12,
+                           - self.D11 @ X_inv @ g2.D12])
+
+        D21 = numpy.block([[self.D21 - self.D21 @ X_inv @ g2.D11 @ self.D11],
+                           [g2.D21 @ self.D11 - g2.D21 @ self.D11 @ X_inv @ g2.D11 @ self.D11]])
+
+        D22 = numpy.block([
+            [self.D22 - self.D21 @ X_inv @ g2.D11 @ self.D12,
+             -self.D21 @ X_inv @ g2.D12],
+            [g2.D21 @ self.D12 - g2.D21 @ self.D11 @ X_inv @ g2.D11 @ self.D12,
+             g2.D22 - g2.D21 @ self.D11 @ X_inv @ g2.D12]])
+
+        delays = numpy.block([self.delays, g2.delays])
+
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
+
+    def parallel(self, g2):
+
+        A = numpy.block([[self.A, numpy.zeros((self.A.shape[0], g2.A.shape[1]))],
+                         [numpy.zeros((g2.A.shape[0], self.A.shape[1])), g2.A]])
+
+        B1 = numpy.block([[self.B1],
+                          [g2.B1]])
+
+        B2 = numpy.block([[self.B2, numpy.zeros((self.B2.shape[0], g2.B2.shape[1]))],
+                          [numpy.zeros((g2.B2.shape[0], self.B2.shape[1])), g2.B2]])
+
+        C1 = numpy.block([self.C1, g2.C1])
+
+        C2 = numpy.block([[self.C2, numpy.zeros((self.C2.shape[0], g2.C2.shape[1]))],
+                          [numpy.zeros((g2.C2.shape[0], self.C2.shape[1])), g2.C2]])
+
+        D11 = self.D11 + g2.D11
+
+        D12 = numpy.block([self.D12, g2.D12])
+
+        D21 = numpy.block([[self.D21],
+                           [g2.D21]])
+
+        D22 = numpy.block([[self.D22, numpy.zeros((self.D22.shape[0], g2.D22.shape[1]))],
+                           [numpy.zeros((g2.D22.shape[0], self.D22.shape[1])), g2.D22]])
+
+        delays = numpy.block([self.delays, g2.delays])
+
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
+
+    def inverse(self):
+        D11_inv = numpy.linalg.inv(self.D11)
+
+        A = self.A - self.B1 @ D11_inv @ self.C1
+
+        B1 = self.B1 @ D11_inv
+
+        B2 = self.B2 - self.B1 @ D11_inv @ self.D12
+
+        C1 = -D11_inv @ self.C1
+
+        C2 = self.C2 - self.D21 @ D11_inv @ self.C1
+
+        D11 = D11_inv
+
+        D12 = - D11_inv @ self.D12
+
+        D21 = self.D21 @ D11_inv
+
+        D22 = self.D22 - self.D21 @ D11_inv @ self.D12
+
+        delays = self.delays
+
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
+
+    def ss_rk_delay_int(self, uf, ts, x0=None):
+        """
+        Implements a Runge-Kutta delay integration routine for a delay
+        Parameters:
+            fun:    a callable object with the calling signature f(t, y), where t is a scalar and y is a list-like object.
+                    Defines the set of differential equations.
+            ts:     a list-like objects of times overwhich the integration should be done.
+                    Number of point should be at least 10 times more than the span
+            y0:     Initial conditions for the set of differential equations.
+        """
+        if x0 is None:
+            x0 = numpy.zeros(self.A.shape[0])
+
+        dt = ts[1]
+        dtss = [int(numpy.round(delay / dt)) for delay in self.delays]
+        zs = []
+
+        def wf(t):
+            ws = []
+            for i, dts in enumerate(dtss):
+                if len(zs) <= dts:
+                    ws.append(0)
+                elif dts == 0:
+                    ws.append(zs[-1][i])
+                else:
+                    #                     print(zs[-dts], i)
+                    ws.append(zs[-dts][i])
+            #             ws = [0 if len(zs) < dts else zs[-dts][i] for i, dts in enumerate(dtss)]
+            return numpy.array(ws)
+
+        f = lambda t, x: self.A @ x + self.B1 @ uf(t) + self.B2 @ wf(t)
+
+        xs = [x0]
+        ys = []
+        for t in ts:
+            x = xs[-1]
+
+            # y
+            y = self.C1 @ numpy.array(x) + self.D11 @ uf(t) + self.D12 @ wf(t)
+            ys.append(list(y))
+
+            # z
+            z = self.C2 @ numpy.array(x) + self.D21 @ uf(t) + self.D22 @ wf(t)
+            zs.append(list(z))
+
+            # x integration
+            k1 = f(t, x) * dt
+            k2 = f(t + 0.5 * dt, x + 0.5 * k1) * dt
+            k3 = f(t + 0.5 * dt, x + 0.5 * k2) * dt
+            k4 = f(t + dt, x + k3) * dt
+            dx = (k1 + k2 + k2 + k3 + k3 + k4) / 6
+            x = [xi + dxi for xi, dxi in zip(x, dx)]
+            xs.append(list(x))
+
+        return numpy.array(ys)
+
 
 class TFDT:
     """
