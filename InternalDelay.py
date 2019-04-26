@@ -1,10 +1,45 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Apr 19, 2019
+
+@author: Darren Roos (http://github.com/darren-roos/)
+"""
+
 import numpy
 import collections
 import utils
+import scipy.signal
 
 
 class InternalDelay:
-    def __init__(self, A, B1, B2, C1, C2, D11, D12, D21, D22, delays):
+    def __init__(self, *system):
+        N = len(system)
+        if N == 1:  # is a utils.tf object
+            if system[0] is not utils.tf:
+                raise ValueError(f"InternalDelay expected an instance of utils.tf and got {type(system[0])}")
+
+            lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
+            delay = [system[0].deadtime]
+
+            matrices = __lti_SS_to_InternalDelay_matrices(lti, delay)
+            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+        elif N == 2:  # is lti object with a delay term
+            if system[0] is not scipy.signal.lti:
+                raise ValueError(f"InternalDelay expected an instance of scipy.signal.lti and got {type(system[0])}")
+
+            lti = system[0].to_ss()
+            delay = system[1]
+
+            matrices = __lti_SS_to_InternalDelay_matrices(lti, delay)
+            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+        elif N == 10:
+            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = system
+
+        else:
+            raise ValueError("InternalDelay cannot be constructed out of input given")
+
         self.A = A
         self.B1 = B1
         self.B2 = B2
@@ -15,6 +50,34 @@ class InternalDelay:
         self.D21 = D21
         self.D22 = D22
         self.delays = numpy.array(delays)
+
+    def __lti_SS_to_InternalDelay_matrices(P_ss, P_dt):
+        A = P_ss.A
+        C1 = P_ss.C
+        C2 = numpy.zeros_like(P_ss.C)
+
+        D22 = numpy.zeros_like(P_ss.D)
+
+        if P_dt == [0]:
+            B1 = P_ss.B
+            B2 = numpy.zeros_like(P_ss.B)
+
+            D11 = P_ss.D
+            D12 = numpy.zeros_like(P_ss.D)
+            D21 = numpy.zeros((P_ss.D.shape[0], P_ss.D.shape[0]))
+
+
+        else:
+            B1 = numpy.zeros_like(P_ss.B)
+            B2 = P_ss.B
+
+            D11 = numpy.zeros_like(P_ss.D)
+            D12 = P_ss.D
+            D21 = numpy.eye(P_ss.D.shape[0])
+
+        delays = P_dt
+
+        return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
 
     def cascade(self, g2):
         A = numpy.block([[self.A, numpy.zeros((self.A.shape[0], g2.A.shape[1]))],
