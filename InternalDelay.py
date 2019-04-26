@@ -21,7 +21,7 @@ class InternalDelay:
             lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
             delay = [system[0].deadtime]
 
-            matrices = __lti_SS_to_InternalDelay_matrices(lti, delay)
+            matrices = self.__lti_SS_to_InternalDelay_matrices(lti, delay)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 2:  # is lti object with a delay term
@@ -31,7 +31,17 @@ class InternalDelay:
             lti = system[0].to_ss()
             delay = system[1]
 
-            matrices = __lti_SS_to_InternalDelay_matrices(lti, delay)
+            matrices = self.__lti_SS_to_InternalDelay_matrices(lti, delay)
+            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+        elif N == 3: # assume that it is a num, den, delay
+            if not numpy.all([sys is collections.Sequence for sys in system]):
+                raise ValueError(f"InternalDelay expected numerator, denominator, delay arguments")
+
+            lti = scipy.signal.lti(system[0], system[1]).to_ss()
+            delay = system[2]
+
+            matrices = self.__lti_SS_to_InternalDelay_matrices(lti, delay)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 10:
