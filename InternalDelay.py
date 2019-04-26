@@ -12,7 +12,7 @@ import scipy.signal
 
 
 class InternalDelay:
-    """
+    r"""
     A class for systems that have internal delays that can be represented as
     .. math::
         \dot{x} = A x + B_{1} u + B_{2}  w
@@ -34,6 +34,25 @@ class InternalDelay:
             * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
                     array-like: delays
 
+    Examples
+    --------
+    Construct the example with feedforward control found here:
+    https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
+    >>> P_id = InternalDelay([5], [1, 1], [3.4])
+    >>> C_id = utils.InternalDelay([0.1*5, 0.1], [5, 0], [0])
+    >>> cas_id = C_id * P_id
+    >>> fed_id = cas_id.feedback()
+    >>> F_id = utils.InternalDelay([0.3], [1, 4], [0])
+    >>> I_id = utils.InternalDelay([1], [1], [0])
+    >>> GKI_id = (P_id * C_id + I_id)**(-1)
+    >>> PF_id = P_id * F_id
+    >>> PFGKI_id = PF_id * GKI_id
+    >>> TF_id = PFGKI_id + fed_id
+
+    Simulate the example
+    >>> uf = lambda t: numpy.array([1])
+    >>> ts = numpy.linspace(0, 100, 1000)
+    >>> ys = par_id.simulate(uf, ts)
     """
 
     def __init__(self, *system):
