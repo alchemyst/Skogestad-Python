@@ -105,6 +105,10 @@ class InternalDelay:
         self.delays = numpy.array(delays)
 
     def __lti_SS_to_InternalDelay_matrices(P_ss, P_dt):
+        """
+        Converts a SISO `scipy.signal.lti` object into the correct matrices
+        for an internal delay calculations
+        """
         A = P_ss.A
         C1 = P_ss.C
         C2 = numpy.zeros_like(P_ss.C)
@@ -133,6 +137,14 @@ class InternalDelay:
         return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
 
     def cascade(self, g2):
+        """
+        Calculates the `InternalDelay` object formed when combining two
+        `InternalDelay` objects in series in the following order:
+
+        -----> G2 -----> G1 ------->
+
+        where G1 is `self`.
+        """
         A = numpy.block([[self.A, numpy.zeros((self.A.shape[0], g2.A.shape[1]))],
                          [g2.B1 @ self.C1, g2.A]])
 
@@ -162,6 +174,19 @@ class InternalDelay:
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     def feedback(self, g2=None):
+        """
+        Calculates the `InternalDelay` object formed when combining two
+        `InternalDelay` objects in a feedback loop in the following manner:
+
+        ------>+ o -----> G1 ------->
+                 ^-             |
+                 |              |
+                 |              |
+                 |<---- G2 <----|
+
+        where G1 is `self`, and if G2 is not given, it is assumed that
+        G2 is an identity matrix.
+        """
         if g2 is None:
             g2 = InternalDelay([1], [1], [0])
 
@@ -210,6 +235,20 @@ class InternalDelay:
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     def parallel(self, g2):
+        """
+        Calculates the `InternalDelay` object formed when combining two
+        `InternalDelay` objects in parallel in the following manner:
+
+        -----> G1 ------->|
+                          |
+                          v+
+                          o ---->
+                          ^+
+                          |
+        -----> G2 ------->|
+
+        where G1 is `self`.
+        """
 
         A = numpy.block([[self.A, numpy.zeros((self.A.shape[0], g2.A.shape[1]))],
                          [numpy.zeros((g2.A.shape[0], self.A.shape[1])), g2.A]])
@@ -240,7 +279,14 @@ class InternalDelay:
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     def inverse(self):
-        D11_inv = numpy.linalg.inv(self.D11)
+        """
+        Calculates the `InternalDelay` object formed when inverting an
+        `InternalDelay` object.
+        """
+        try:
+            D11_inv = numpy.linalg.inv(self.D11)
+        except numpy.linalg.LinAlgError:
+            raise numpy.linalg.LinAlgError("Cannot invert InternalDelay object: inverse is not physically realisable")
 
         A = self.A - self.B1 @ D11_inv @ self.C1
 
