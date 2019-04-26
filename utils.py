@@ -14,6 +14,8 @@ import scipy.linalg as sc_linalg
 from functools import reduce
 import itertools
 
+from InternalDelay import InternalDelay
+
 
 def astf(maybetf):
     """
