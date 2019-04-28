@@ -15,4 +15,4 @@ dependencies:
  - control
  - python-coveralls
  - nose-cov
- - harold==1.0.1
+ - harold>=1.0.1
