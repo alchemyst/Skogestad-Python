@@ -37,6 +37,7 @@ install:
   - conda env create --file environment.yml python=$TRAVIS_PYTHON_VERSION
   - source activate skogestad
   - pip install codeclimate-test-reporter
+  - pip install harold
   - conda env export  # debugging
 # TODO: Package
 #  - python setup.py install
