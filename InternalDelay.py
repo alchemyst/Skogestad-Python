@@ -6,9 +6,10 @@ Created on Apr 19, 2019
 """
 
 import numpy
-import collections
+import numbers
 import utils
 import scipy.signal
+import harold
 
 
 class InternalDelay:
@@ -78,13 +79,14 @@ class InternalDelay:
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 3: # assume that it is a num, den, delay
-            if not numpy.all([isinstance(sys, collections.Sequence) for sys in system]):
-                raise ValueError(f"InternalDelay expected numerator, denominator, delay arguments")
-
-            lti = scipy.signal.lti(system[0], system[1]).to_ss()
-            delay = system[2]
-
-            matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
+            # if not numpy.all([isinstance(sys, collections.Sequence) for sys in system]):
+            #     raise ValueError(f"InternalDelay expected numerator, denominator, delay arguments")
+            #
+            # lti = scipy.signal.lti(system[0], system[1]).to_ss()
+            # delay = system[2]
+            #
+            # matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
+            matrices = InternalDelay.__lists_to_InternalDelay_matrices(*system)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 10:
@@ -135,6 +137,69 @@ class InternalDelay:
         delays = P_dt
 
         return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
+
+    def __lists_to_InternalDelay_matrices(num, den, delays):
+        num, den, delays = [numpy.array(i) for i in [num, den, delays]]
+
+        are_siso = [isinstance(l[0], numbers.Number) for l in [num, den, delays]]
+        if numpy.any(are_siso) and not numpy.all(are_siso):
+            raise ValueError("Some of num, den and delays are SISO and some are MIMO")
+        elif numpy.all(are_siso):
+            num, den, delays = [numpy.array([[i]]) for i in [num, den, delays]]
+
+        num_dim = (len(num), len(num[0]))
+        den_dim = (len(den), len(den[0]))
+        delay_dim = (len(delays), len(delays[0]))
+
+        # Check dimensions
+        if num_dim != den_dim or den_dim != delay_dim:
+            raise ValueError("num, den and delays are not the same dimension")
+
+        As, Bs, Cs, Ds = [], [], [], []
+        B1, D11 = None, None
+        delay_list = list(set(delays.flatten()))
+        for delay in delay_list:
+            if delay < 0:
+                raise ValueError("delay cannot be negative")
+            num_i = numpy.zeros(num_dim).tolist()
+            den_i = numpy.zeros(den_dim).tolist()
+            for r in range(num_dim[0]):
+                for c in range(num_dim[1]):
+                    num_i[r][c] = num[r][c] if delays[r][c] == delay else [0]
+                    den_i[r][c] = den[r][c] if delays[r][c] == delay else [1]
+
+            Gss_i = harold.transfer_to_state(harold.Transfer(num_i, den_i))
+            Ai, Bi, Ci, Di = Gss_i.a, Gss_i.b, Gss_i.c, Gss_i.d
+            Ai, Bi, Ci, Di = [numpy.array([0]) if i.size == 0 else i for i in [Ai, Bi, Ci, Di]]
+
+            if delay == 0:
+                B1, D11 = Bi, Di
+                [ls.append(m) for ls, m in zip([As, Cs], [Ai, Ci])]
+            else:
+                [ls.append(m) for ls, m in zip([As, Bs, Cs, Ds], [Ai, Bi, Ci, Di])]
+
+        if 0 in delay_list and len(delay_list) != 1:
+            delay_list.remove(0)
+
+        A = scipy.linalg.block_diag(*As) if As != [] else numpy.array([[0]])
+
+        No, Ni = num_dim
+        Nx = A.shape[0]
+        Nd = len(delay_list)
+        Nw = Nd * Ni
+        B1 = B1 if B1 is not None else numpy.zeros((Nx, Ni))
+        B2 = scipy.linalg.block_diag(*Bs) if Bs != [] else numpy.zeros((Nx, Nw))
+        C1 = numpy.hstack(Cs) if Cs != [] else numpy.zeros((Nx, No))
+        C2 = numpy.zeros((Nw, Nx))
+        D11 = D11 if D11 is not None else numpy.zeros((No, Ni))
+        D12 = numpy.hstack(Ds) if Ds != [] else numpy.zeros((No, Nw))
+        D21 = numpy.tile(numpy.eye(Ni), (Nd, 1))
+        D22 = numpy.zeros((Nw, Nw))
+
+        matrices = A, B1, B2, C1, C2, D11, D12, D21, D22
+        reshaped = [mi.reshape((mi.shape[0], 1)) if len(mi.shape) == 1 else mi for mi in matrices]
+        A, B1, B2, C1, C2, D11, D12, D21, D22 = reshaped
+        return A, B1, B2, C1, C2, D11, D12, D21, D22, numpy.repeat(delay_list, Ni)
 
     def cascade(self, g2):
         """
