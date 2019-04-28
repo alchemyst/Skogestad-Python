@@ -58,15 +58,29 @@ class InternalDelay:
 
     def __init__(self, *system):
         N = len(system)
-        if N == 1:  # is a utils.tf object
-            if not isinstance(system[0], utils.tf):
-                raise ValueError(f"InternalDelay expected an instance of utils.tf and got {type(system[0])}")
+        if N == 1:  # is a utils.tf object or a utils.mimoft object
+            if isinstance(system[0], utils.tf) :
+                lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
+                delay = [system[0].deadtime]
+                matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
+                A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
-            lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
-            delay = [system[0].deadtime]
+            if isinstance(system[0], utils.mimotf):
+                G = system[0]
+                num = numpy.zeros(G.shape).tolist()
+                den = numpy.zeros(G.shape).tolist()
+                delays = numpy.zeros(G.shape).tolist()
 
-            matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
-            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+                for r in range(G.shape[0]):
+                    for c in range(G.shape[1]):
+                        num[r][c] = list(G[r, c].numerator)
+                        den[r][c] = list(G[r, c].denominator)
+                        delays[r][c] = G[r, c].deadtime
+                matrices = InternalDelay.__lists_to_InternalDelay_matrices(num, den, delays)
+                A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+            else:
+                raise ValueError(f"InternalDelay expected utils.tf or utils.mimoft and got {type(system[0])}")
 
         elif N == 2:  # is lti object with a delay term
             if not isinstance(system[0], scipy.signal.lti):
@@ -79,13 +93,6 @@ class InternalDelay:
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 3:  # assume that it is a num, den, delay
-            # if not numpy.all([isinstance(sys, collections.Sequence) for sys in system]):
-            #     raise ValueError(f"InternalDelay expected numerator, denominator, delay arguments")
-            #
-            # lti = scipy.signal.lti(system[0], system[1]).to_ss()
-            # delay = system[2]
-            #
-            # matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
             matrices = InternalDelay.__lists_to_InternalDelay_matrices(*system)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
@@ -156,8 +163,8 @@ class InternalDelay:
         if num_dim != den_dim or den_dim != delay_dim:
             raise ValueError("num, den and delays are not the same dimension")
 
-        As, Bs, Cs, Ds = [], [], [], []
-        B1, D11 = None, None
+        As, B1s, B2s, Cs, Ds = [], [], [], [], []
+        D11 = None
         delay_list = list(set(delays.flatten()))
         for delay in delay_list:
             if delay < 0:
@@ -174,10 +181,12 @@ class InternalDelay:
             Ai, Bi, Ci, Di = [numpy.array([0]) if i.size == 0 else i for i in [Ai, Bi, Ci, Di]]
 
             if delay == 0:
-                B1, D11 = Bi, Di
-                [ls.append(m) for ls, m in zip([As, Cs], [Ai, Ci])]
+                D11 = Di
+                B2i = numpy.zeros_like(Bi)
+                [ls.append(m) for ls, m in zip([As, B1s, B2s, Cs], [Ai, Bi, B2i, Ci])]
             else:
-                [ls.append(m) for ls, m in zip([As, Bs, Cs, Ds], [Ai, Bi, Ci, Di])]
+                B1i = numpy.zeros_like(Bi)
+                [ls.append(m) for ls, m in zip([As, B1s, B2s, Cs, Ds], [Ai, B1i, Bi, Ci, Di])]
 
         if 0 in delay_list and len(delay_list) != 1:
             delay_list.remove(0)
@@ -188,8 +197,8 @@ class InternalDelay:
         Nx = A.shape[0]
         Nd = len(delay_list)
         Nw = Nd * Ni
-        B1 = B1 if B1 is not None else numpy.zeros((Nx, Ni))
-        B2 = scipy.linalg.block_diag(*Bs) if Bs != [] else numpy.zeros((Nx, Nw))
+        B1 = numpy.vstack(B1s) if B1s != [] else numpy.zeros((Nx, Ni))
+        B2 = numpy.vstack(B2s) if B2s != [] else numpy.zeros((Nx, Nw))
         C1 = numpy.hstack(Cs) if Cs != [] else numpy.zeros((Nx, No))
         C2 = numpy.zeros((Nw, Nx))
         D11 = D11 if D11 is not None else numpy.zeros((No, Ni))
