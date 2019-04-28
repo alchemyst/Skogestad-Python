@@ -53,7 +53,7 @@ class InternalDelay:
     Simulate the example
     >>> uf = lambda t: numpy.array([1])
     >>> ts = numpy.linspace(0, 100, 1000)
-    >>> ys = par_id.simulate(uf, ts)
+    >>> ys = TF_id.simulate(uf, ts)
     """
 
     def __init__(self, *system):
@@ -78,7 +78,7 @@ class InternalDelay:
             matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
-        elif N == 3: # assume that it is a num, den, delay
+        elif N == 3:  # assume that it is a num, den, delay
             # if not numpy.all([isinstance(sys, collections.Sequence) for sys in system]):
             #     raise ValueError(f"InternalDelay expected numerator, denominator, delay arguments")
             #
@@ -106,6 +106,7 @@ class InternalDelay:
         self.D22 = D22
         self.delays = numpy.array(delays)
 
+    @staticmethod
     def __lti_SS_to_InternalDelay_matrices(P_ss, P_dt):
         """
         Converts a SISO `scipy.signal.lti` object into the correct matrices
@@ -125,7 +126,6 @@ class InternalDelay:
             D12 = numpy.zeros_like(P_ss.D)
             D21 = numpy.zeros((P_ss.D.shape[0], P_ss.D.shape[0]))
 
-
         else:
             B1 = numpy.zeros_like(P_ss.B)
             B2 = P_ss.B
@@ -138,6 +138,7 @@ class InternalDelay:
 
         return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
 
+    @staticmethod
     def __lists_to_InternalDelay_matrices(num, den, delays):
         num, den, delays = [numpy.array(i) for i in [num, den, delays]]
 
@@ -412,7 +413,8 @@ class InternalDelay:
 
             return numpy.array(ws)
 
-        f = lambda t, x: self.A @ x + self.B1 @ uf(t) + self.B2 @ wf(t)
+        def f(t, x):
+            return self.A @ x + self.B1 @ uf(t) + self.B2 @ wf(t)
 
         xs = [x0]
         ys = []
