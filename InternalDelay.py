@@ -28,10 +28,15 @@ class InternalDelay:
         arguments. The following gives the number of input arguments and their
         interpretation:
 
-            * 1:    `utils.tf` system
+            * 1:    `utils.tf` system or `utils.mimotf` system
             * 2:    `scipy.signal.lti`: system
                     array-like:  delays
             * 3:    array-like: (numerator, denominator, delays)
+                    numerator, denominator, delays can either be in SISO form or MIMO form
+                    MIMO form e.g.:
+                        num = [[num12, num12], [num21, num22]]
+                        den = [[den12, den12], [den21, den22]]
+                        delay = [[delay12, delay12], [delay21, delay22]]
             * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
                     array-like: delays
 
@@ -39,7 +44,7 @@ class InternalDelay:
     ------------
     Construct the example with feedforward control found here:
     https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
-    >>> P_id = InternalDelay([5], [1, 1], [3.4])
+    >>> P_id = utils.InternalDelay([5], [1, 1], [3.4])
     >>> C_id = utils.InternalDelay([0.1*5, 0.1], [5, 0], [0])
     >>> cas_id = C_id * P_id
     >>> fed_id = cas_id.feedback()
