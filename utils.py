@@ -1644,29 +1644,37 @@ def SVD(G):
     return U, Sv, V
 
 
-def feedback_mimo(forward, backward=None, positive=False):
+def feedback_mimo(G, K=None, positive=False):
     """
-    Calculates a feedback loop
-    This version is for matrices
-    Negative feedback is assumed, use positive=True for positive feedback
-    Forward refers to the function that goes out of the comparator
-    Backward refers to the function that goes into the comparator
+    Calculates a feedback loop transfer function, and returns it as a mimotf
+    object.
+    Currently functionality allows for a controller with proportional 
+    gain. 
+    
+    Parameters:
+    ------------
+    
+    G : The main process transfer function as a mimotf class object.
+    
+    K : The controller transfer function as a numpy.matrix object.
+    
+    Returns:
+    --------
+    
+    G_fb : The transfer function representing the feedback loop as a mimotf
+    object.
+    
     """
-
-    # Create identity matrix if no backward matrix is specified
-    if backward is None:
-        backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
-                                  numpy.shape(forward)[1]))
-    # Check the dimensions of the input matrices
-    if backward.shape[1] != forward.shape[0]:
-        raise ValueError("Backward matrix col must equal forward matrix row")
-    forward = numpy.asmatrix(forward)
-    backward = numpy.asmatrix(backward)
-    I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
-                                 numpy.shape(forward)[1]))
-    if positive:
-        backward = -backward
-    return forward * (I + backward * forward).I
+    
+    if K is None:
+        K = numpy.eye(G.matrix.shape[0])
+        
+    L = mimotf(K*G.matrix)
+    IG = numpy.eye(2) + L.matrix
+    IG = mimotf(IG)
+    Gi = L*IG.inverse()
+    
+    return Gi
 
 
 ###############################################################################
@@ -2884,3 +2892,4 @@ if __name__ == '__main__':
 
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
+
