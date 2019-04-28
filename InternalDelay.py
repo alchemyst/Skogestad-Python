@@ -35,8 +35,8 @@ class InternalDelay:
             * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
                     array-like: delays
 
-    Examples
-    --------
+    SISO Example
+    ------------
     Construct the example with feedforward control found here:
     https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
     >>> P_id = InternalDelay([5], [1, 1], [3.4])
@@ -54,18 +54,29 @@ class InternalDelay:
     >>> uf = lambda t: numpy.array([1])
     >>> ts = numpy.linspace(0, 100, 1000)
     >>> ys = TF_id.simulate(uf, ts)
+
+    MIMO Example
+    ------------
+    >>> s = utils.tf([1, 0], 1)
+    >>> G = 1/(1.25*(s + 1)*(s + 2)) * utils.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
+
+    >>> G_id = utils.InternalDelay(G)
+    >>> uf = lambda t: [1, 1]
+    >>> ts = numpy.linspace(0, 20, 1000)
+
+    >>> ys = G_id.simulate(uf, ts)
     """
 
     def __init__(self, *system):
         N = len(system)
         if N == 1:  # is a utils.tf object or a utils.mimoft object
-            if isinstance(system[0], utils.tf) :
+            if isinstance(system[0], utils.tf):
                 lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
                 delay = [system[0].deadtime]
                 matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
                 A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
-            if isinstance(system[0], utils.mimotf):
+            elif isinstance(system[0], utils.mimotf):
                 G = system[0]
                 num = numpy.zeros(G.shape).tolist()
                 den = numpy.zeros(G.shape).tolist()
