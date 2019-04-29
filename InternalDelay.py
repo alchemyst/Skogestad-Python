@@ -428,7 +428,7 @@ class InternalDelay:
         dtss = [int(numpy.round(delay / dt)) for delay in self.delays]
         zs = []
 
-        def wf(t):
+        def wf():
             ws = []
             for i, dts in enumerate(dtss):
                 if len(zs) <= dts:
@@ -441,7 +441,7 @@ class InternalDelay:
             return numpy.array(ws)
 
         def f(t, x):
-            return self.A @ x + self.B1 @ uf(t) + self.B2 @ wf(t)
+            return self.A @ x + self.B1 @ uf(t) + self.B2 @ wf()
 
         xs = [x0]
         ys = []
@@ -449,11 +449,11 @@ class InternalDelay:
             x = xs[-1]
 
             # y
-            y = self.C1 @ numpy.array(x) + self.D11 @ uf(t) + self.D12 @ wf(t)
+            y = self.C1 @ numpy.array(x) + self.D11 @ uf(t) + self.D12 @ wf()
             ys.append(list(y))
 
             # z
-            z = self.C2 @ numpy.array(x) + self.D21 @ uf(t) + self.D22 @ wf(t)
+            z = self.C2 @ numpy.array(x) + self.D21 @ uf(t) + self.D22 @ wf()
             zs.append(list(z))
 
             # x integration
