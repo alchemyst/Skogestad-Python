@@ -37,12 +37,12 @@ class InternalDelay:
     ------------
     Construct the example with feedforward control found here:
     https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
-    >>> P_id = utils.InternalDelay.from_tf_lists([5], [1, 1], [3.4])
-    >>> C_id = utils.InternalDelay.from_tf_lists([0.1*5, 0.1], [5, 0], [0])
+    >>> P_id = utils.InternalDelay.from_tf_coefficients([5], [1, 1], [3.4])
+    >>> C_id = utils.InternalDelay.from_tf_coefficients([0.1*5, 0.1], [5, 0], [0])
     >>> cas_id = C_id * P_id
     >>> fed_id = cas_id.feedback()
-    >>> F_id = utils.InternalDelay.from_tf_lists([0.3], [1, 4], [0])
-    >>> I_id = utils.InternalDelay.from_tf_lists([1], [1], [0])
+    >>> F_id = utils.InternalDelay.from_tf_coefficients([0.3], [1, 4], [0])
+    >>> I_id = utils.InternalDelay.from_tf_coefficients([1], [1], [0])
     >>> GKI_id = (P_id * C_id + I_id)**(-1)
     >>> PF_id = P_id * F_id
     >>> PFGKI_id = PF_id * GKI_id
@@ -58,7 +58,7 @@ class InternalDelay:
     >>> s = utils.tf([1, 0], 1)
     >>> G = 1/(1.25*(s + 1)*(s + 2)) * utils.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
 
-    >>> G_id = utils.InternalDelay.from_utils_mimotf(G)
+    >>> G_id = utils.InternalDelay.from_mimotf(G)
     >>> uf = lambda t: [1, 1]
     >>> ts = numpy.linspace(0, 20, 1000)
 
@@ -78,7 +78,7 @@ class InternalDelay:
         self.delays = numpy.array(delays)
 
     @staticmethod
-    def from_utils_tf(tf):
+    def from_tf(tf):
         """
         Constructs `InternalDelay` object from `utils.tf` object
         """
@@ -93,7 +93,7 @@ class InternalDelay:
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     @staticmethod
-    def from_utils_mimotf(mimotf):
+    def from_mimotf(mimotf):
         """
         Constructs `InternalDelay` object from `utils.mimotf` object
         """
@@ -110,7 +110,7 @@ class InternalDelay:
                 num[r][c] = list(G[r, c].numerator)
                 den[r][c] = list(G[r, c].denominator)
                 delays[r][c] = G[r, c].deadtime
-        return InternalDelay.from_tf_lists(num, den, delays)
+        return InternalDelay.from_tf_coefficients(num, den, delays)
 
     @staticmethod
     def from_lti(P_ss, P_dt):
@@ -150,7 +150,7 @@ class InternalDelay:
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     @staticmethod
-    def from_tf_lists(num, den, delays):
+    def from_tf_coefficients(num, den, delays):
         """
         array-like: (numerator, denominator, delays)
         numerator, denominator, delays can either be in SISO form or MIMO form
@@ -277,7 +277,7 @@ class InternalDelay:
         G2 is an identity matrix.
         """
         if g2 is None:
-            g2 = InternalDelay.from_tf_lists([1], [1], [0])
+            g2 = InternalDelay.from_tf_coefficients([1], [1], [0])
 
         X_inv = numpy.linalg.inv(numpy.eye(g2.D11.shape[0]) + g2.D11 @ self.D11)
 
@@ -504,7 +504,7 @@ class InternalDelay:
             raise ValueError("Cannot raise object to non-integer power")
 
         if power == 0:
-            return InternalDelay.from_tf_lists([1], [1], [0])
+            return InternalDelay.from_tf_coefficients([1], [1], [0])
 
         r = self
         if power < 0:
