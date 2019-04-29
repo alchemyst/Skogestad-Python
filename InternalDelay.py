@@ -78,7 +78,7 @@ class InternalDelay:
             if isinstance(system[0], utils.tf):
                 lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
                 delay = [system[0].deadtime]
-                matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
+                matrices = InternalDelay._from_SS_lti(lti, delay)
                 A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
             elif isinstance(system[0], utils.mimotf):
@@ -92,7 +92,7 @@ class InternalDelay:
                         num[r][c] = list(G[r, c].numerator)
                         den[r][c] = list(G[r, c].denominator)
                         delays[r][c] = G[r, c].deadtime
-                matrices = InternalDelay.__lists_to_InternalDelay_matrices(num, den, delays)
+                matrices = InternalDelay._from_tf_lists(num, den, delays)
                 A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
             else:
@@ -105,11 +105,11 @@ class InternalDelay:
             lti = system[0].to_ss()
             delay = system[1]
 
-            matrices = InternalDelay.__lti_SS_to_InternalDelay_matrices(lti, delay)
+            matrices = InternalDelay._from_SS_lti(lti, delay)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 3:  # assume that it is a num, den, delay
-            matrices = InternalDelay.__lists_to_InternalDelay_matrices(*system)
+            matrices = InternalDelay._from_tf_lists(*system)
             A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         elif N == 10:
@@ -130,7 +130,7 @@ class InternalDelay:
         self.delays = numpy.array(delays)
 
     @staticmethod
-    def __lti_SS_to_InternalDelay_matrices(P_ss, P_dt):
+    def _from_SS_lti(P_ss, P_dt):
         """
         Converts a SISO `scipy.signal.lti` object into the correct matrices
         for an internal delay calculations
@@ -162,7 +162,7 @@ class InternalDelay:
         return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
 
     @staticmethod
-    def __lists_to_InternalDelay_matrices(num, den, delays):
+    def _from_tf_lists(num, den, delays):
         num, den, delays = [numpy.array(i) for i in [num, den, delays]]
 
         are_siso = [isinstance(l[0], numbers.Number) for l in [num, den, delays]]
