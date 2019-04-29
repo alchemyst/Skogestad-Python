@@ -26,6 +26,13 @@ class InternalDelay:
         2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
         array-like: delays
 
+    Can also be constructed using the following static methods:
+        InternalDelay.from_utils_tf
+        InternalDelay.from_utils_mimotf
+        InternalDelay.from_lti
+        InternalDelay.from_tf_lists
+    See their documentation for more details.
+
     SISO Example
     ------------
     Construct the example with feedforward control found here:
