@@ -16,8 +16,6 @@ import itertools
 
 from InternalDelay import *
 
-# import InternalDelay
-
 def astf(maybetf):
     """
     :param maybetf: something which could be a tf
