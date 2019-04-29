@@ -23,33 +23,19 @@ class InternalDelay:
 
     Parameters
     ----------
-    *system: arguments
-        The `InternalDelay` class can be instantiated with 1, 2, 3 or 10
-        arguments. The following gives the number of input arguments and their
-        interpretation:
-
-            * 1:    `utils.tf` system or `utils.mimotf` system
-            * 2:    `scipy.signal.lti`: system
-                    array-like:  delays
-            * 3:    array-like: (numerator, denominator, delays)
-                    numerator, denominator, delays can either be in SISO form or MIMO form
-                    MIMO form e.g.:
-                        num = [[num12, num12], [num21, num22]]
-                        den = [[den12, den12], [den21, den22]]
-                        delay = [[delay12, delay12], [delay21, delay22]]
-            * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
-                    array-like: delays
+        2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
+        array-like: delays
 
     SISO Example
     ------------
     Construct the example with feedforward control found here:
     https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
-    >>> P_id = utils.InternalDelay([5], [1, 1], [3.4])
-    >>> C_id = utils.InternalDelay([0.1*5, 0.1], [5, 0], [0])
+    >>> P_id = utils.InternalDelay.from_tf_lists([5], [1, 1], [3.4])
+    >>> C_id = utils.InternalDelay.from_tf_lists([0.1*5, 0.1], [5, 0], [0])
     >>> cas_id = C_id * P_id
     >>> fed_id = cas_id.feedback()
-    >>> F_id = utils.InternalDelay([0.3], [1, 4], [0])
-    >>> I_id = utils.InternalDelay([1], [1], [0])
+    >>> F_id = utils.InternalDelay.from_tf_lists([0.3], [1, 4], [0])
+    >>> I_id = utils.InternalDelay.from_tf_lists([1], [1], [0])
     >>> GKI_id = (P_id * C_id + I_id)**(-1)
     >>> PF_id = P_id * F_id
     >>> PFGKI_id = PF_id * GKI_id
@@ -65,59 +51,14 @@ class InternalDelay:
     >>> s = utils.tf([1, 0], 1)
     >>> G = 1/(1.25*(s + 1)*(s + 2)) * utils.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
 
-    >>> G_id = utils.InternalDelay(G)
+    >>> G_id = utils.InternalDelay.from_utils_mimotf(G)
     >>> uf = lambda t: [1, 1]
     >>> ts = numpy.linspace(0, 20, 1000)
 
     >>> ys = G_id.simulate(uf, ts)
     """
 
-    def __init__(self, *system):
-        N = len(system)
-        if N == 1:  # is a utils.tf object or a utils.mimoft object
-            if isinstance(system[0], utils.tf):
-                lti = scipy.signal.lti(system[0].numerator, system[0].denominator).to_ss()
-                delay = [system[0].deadtime]
-                matrices = InternalDelay._from_SS_lti(lti, delay)
-                A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
-
-            elif isinstance(system[0], utils.mimotf):
-                G = system[0]
-                num = numpy.zeros(G.shape).tolist()
-                den = numpy.zeros(G.shape).tolist()
-                delays = numpy.zeros(G.shape).tolist()
-
-                for r in range(G.shape[0]):
-                    for c in range(G.shape[1]):
-                        num[r][c] = list(G[r, c].numerator)
-                        den[r][c] = list(G[r, c].denominator)
-                        delays[r][c] = G[r, c].deadtime
-                matrices = InternalDelay._from_tf_lists(num, den, delays)
-                A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
-
-            else:
-                raise ValueError(f"InternalDelay expected utils.tf or utils.mimoft and got {type(system[0])}")
-
-        elif N == 2:  # is lti object with a delay term
-            if not isinstance(system[0], scipy.signal.lti):
-                raise ValueError(f"InternalDelay expected an instance of scipy.signal.lti and got {type(system[0])}")
-
-            lti = system[0].to_ss()
-            delay = system[1]
-
-            matrices = InternalDelay._from_SS_lti(lti, delay)
-            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
-
-        elif N == 3:  # assume that it is a num, den, delay
-            matrices = InternalDelay._from_tf_lists(*system)
-            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
-
-        elif N == 10:
-            A, B1, B2, C1, C2, D11, D12, D21, D22, delays = system
-
-        else:
-            raise ValueError("InternalDelay cannot be constructed out of input given")
-
+    def __init__(self, A, B1, B2, C1, C2, D11, D12, D21, D22, delays):
         self.A = A
         self.B1 = B1
         self.B2 = B2
@@ -130,11 +71,51 @@ class InternalDelay:
         self.delays = numpy.array(delays)
 
     @staticmethod
-    def _from_SS_lti(P_ss, P_dt):
+    def from_utils_tf(tf):
+        """
+        Constructs `InternalDelay` object from `utils.tf` object
+        """
+        if not isinstance(tf, utils.tf):
+            raise ValueError(f"Expected utils.tf and got {type(tf)}")
+
+        lti = scipy.signal.lti(tf.numerator, tf.denominator).to_ss()
+        delay = [tf.deadtime]
+        matrices = InternalDelay.from_lti(lti, delay)
+        A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
+
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
+
+    @staticmethod
+    def from_utils_mimotf(mimotf):
+        """
+        Constructs `InternalDelay` object from `utils.mimotf` object
+        """
+        if not isinstance(mimotf, utils.mimotf):
+            raise ValueError(f"Expected utils.mimoft and got {type(mimotf)}")
+
+        G = mimotf
+        num = numpy.zeros(G.shape).tolist()
+        den = numpy.zeros(G.shape).tolist()
+        delays = numpy.zeros(G.shape).tolist()
+
+        for r in range(G.shape[0]):
+            for c in range(G.shape[1]):
+                num[r][c] = list(G[r, c].numerator)
+                den[r][c] = list(G[r, c].denominator)
+                delays[r][c] = G[r, c].deadtime
+        return InternalDelay.from_tf_lists(num, den, delays)
+
+    @staticmethod
+    def from_lti(P_ss, P_dt):
         """
         Converts a SISO `scipy.signal.lti` object into the correct matrices
         for an internal delay calculations
         """
+        if not isinstance(P_ss, scipy.signal.lti):
+            raise ValueError(f"Expected instance of scipy.signal.lti and got {type(P_ss)}")
+
+        P_ss = P_ss.to_ss()
+
         A = P_ss.A
         C1 = P_ss.C
         C2 = numpy.zeros_like(P_ss.C)
@@ -159,10 +140,18 @@ class InternalDelay:
 
         delays = P_dt
 
-        return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
 
     @staticmethod
-    def _from_tf_lists(num, den, delays):
+    def from_tf_lists(num, den, delays):
+        """
+        array-like: (numerator, denominator, delays)
+        numerator, denominator, delays can either be in SISO form or MIMO form
+        MIMO form e.g.:
+            num = [[num12, num12], [num21, num22]]
+            den = [[den12, den12], [den21, den22]]
+            delay = [[delay12, delay12], [delay21, delay22]]
+        """
         num, den, delays = [numpy.array(i) for i in [num, den, delays]]
 
         are_siso = [isinstance(l[0], numbers.Number) for l in [num, den, delays]]
@@ -227,7 +216,7 @@ class InternalDelay:
         matrices = A, B1, B2, C1, C2, D11, D12, D21, D22
         reshaped = [mi.reshape((mi.shape[0], 1)) if len(mi.shape) == 1 else mi for mi in matrices]
         A, B1, B2, C1, C2, D11, D12, D21, D22 = reshaped
-        return A, B1, B2, C1, C2, D11, D12, D21, D22, numpy.repeat(delay_list, Ni)
+        return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, numpy.repeat(delay_list, Ni))
 
     def cascade(self, g2):
         """
@@ -281,7 +270,7 @@ class InternalDelay:
         G2 is an identity matrix.
         """
         if g2 is None:
-            g2 = InternalDelay([1], [1], [0])
+            g2 = InternalDelay.from_tf_lists([1], [1], [0])
 
         X_inv = numpy.linalg.inv(numpy.eye(g2.D11.shape[0]) + g2.D11 @ self.D11)
 
@@ -508,7 +497,7 @@ class InternalDelay:
             raise ValueError("Cannot raise object to non-integer power")
 
         if power == 0:
-            return InternalDelay([1], [1], [0])
+            return InternalDelay.from_tf_lists([1], [1], [0])
 
         r = self
         if power < 0:
