@@ -199,10 +199,12 @@ class InternalDelay:
             if delay == 0:
                 D11 = Di
                 B2i = numpy.zeros_like(Bi)
-                [ls.append(m) for ls, m in zip([As, B1s, B2s, Cs], [Ai, Bi, B2i, Ci])]
+                for ls, m in zip([As, B1s, B2s, Cs], [Ai, Bi, B2i, Ci]):
+                    ls.append(m)
             else:
                 B1i = numpy.zeros_like(Bi)
-                [ls.append(m) for ls, m in zip([As, B1s, B2s, Cs, Ds], [Ai, B1i, Bi, Ci, Di])]
+                for ls, m in zip([As, B1s, B2s, Cs, Ds], [Ai, B1i, Bi, Ci, Di]):
+                    ls.append(m)
 
         if 0 in delay_list and len(delay_list) != 1:
             delay_list.remove(0)
