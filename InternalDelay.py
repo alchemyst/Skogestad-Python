@@ -23,8 +23,13 @@ class InternalDelay:
 
     Parameters
     ----------
-        2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
-        array-like: delays
+    *system : arguments
+        The `InternalDelay` class can be instantiated with either 1, 10 arguments.
+        The following gives the number of arguments and their types:
+
+            * 1:    `utils.tf` or `utils.mimotf`
+            * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
+                    array-like: delays
 
     Can also be constructed using the following static methods:
         InternalDelay.from_utils_tf
@@ -58,14 +63,32 @@ class InternalDelay:
     >>> s = utils.tf([1, 0], 1)
     >>> G = 1/(1.25*(s + 1)*(s + 2)) * utils.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
 
-    >>> G_id = utils.InternalDelay.from_mimotf(G)
+    >>> G_id = utils.InternalDelay(G)
     >>> uf = lambda t: [1, 1]
     >>> ts = numpy.linspace(0, 20, 1000)
 
     >>> ys = G_id.simulate(uf, ts)
     """
 
-    def __init__(self, A, B1, B2, C1, C2, D11, D12, D21, D22, delays):
+    def __init__(self, *system):
+        N = len(system)
+
+        if N == 1:  # could be either a utils.tf or utils.mimotf object
+            sys = system[0]
+            if isinstance(sys, utils.tf):
+                matrices = InternalDelay.from_tf(sys).get_matrices()
+            elif isinstance(sys, utils.mimotf):
+                matrices = InternalDelay.from_mimotf(sys).get_matrices()
+            else:
+                raise ValueError(f"Expected utils.tf or utils.mimotf object. Received {type(sys)} object")
+
+        elif N == 10:
+            matrices = system
+
+        else:
+            raise ValueError("Expected single argument or 10 arguments")
+
+        A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
         self.A = A
         self.B1 = B1
         self.B2 = B2
@@ -224,6 +247,20 @@ class InternalDelay:
         reshaped = [mi.reshape((mi.shape[0], 1)) if len(mi.shape) == 1 else mi for mi in matrices]
         A, B1, B2, C1, C2, D11, D12, D21, D22 = reshaped
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, numpy.repeat(delay_list, Ni))
+
+    def get_matrices(self):
+        A = self.A
+        B1 = self.B1
+        B2 = self.B2
+        C1 = self.C1
+        C2 = self.C2
+        D11 = self.D11
+        D12 = self.D12
+        D21 = self.D21
+        D22 = self.D22
+        delays = self.delays
+
+        return A, B1, B2, C1, C2, D11, D12, D21, D22, delays
 
     def cascade(self, g2):
         """
