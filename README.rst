@@ -2,7 +2,7 @@
 Python code for Multivariable Feedback Control
 ==============================================
 
-.. image:: https://landscape.io/github/alchemyst/Skogestad-Python/master/landscape.svg
+.. image:: https://landscape.io/github/alchemyst/Skogestad-Python/master/landscape.svg?style=flat
    :target: https://landscape.io/github/alchemyst/Skogestad-Python/master
    :alt: Code Health
 
@@ -15,10 +15,6 @@ Python code for Multivariable Feedback Control
    :alt: Code Climate
 
 .. image:: https://coveralls.io/repos/github/alchemyst/Skogestad-Python/badge.svg?branch=master :target: https://coveralls.io/github/alchemyst/Skogestad-Python?branch=master
-
-.. image:: https://graphs.waffle.io/alchemyst/Skogestad-Python/throughput.svg 
- :target: https://waffle.io/alchemyst/Skogestad-Python/metrics 
- :alt: 'Throughput Graph'
 
 This project is aimed at creating Python code for the various code examples in the textbook.
 
