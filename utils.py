@@ -14,6 +14,7 @@ import scipy.linalg as sc_linalg
 from functools import reduce
 import itertools
 
+from InternalDelay import *
 
 def astf(maybetf):
     """
@@ -149,13 +150,13 @@ class tf(object):
         """
         return tf(self.denominator, self.numerator, -self.deadtime)
 
-    def step(self, *args):
+    def step(self, *args, **kwargs):
         """ Step response """
-        return signal.lti(self.numerator, self.denominator).step(*args)
+        return signal.lti(self.numerator, self.denominator).step(*args, **kwargs)
 
-    def lsim(self, *args):
+    def lsim(self, *args, **kwargs):
         """ Negative step response """
-        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)
+        return signal.lsim(signal.lti(self.numerator, self.denominator), *args, **kwargs)
 
     def simplify(self, dec=3):
 

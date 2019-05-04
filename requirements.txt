@@ -8,3 +8,4 @@ sympy>=1.2
 mock
 numpydoc
 nbsphinx
+harold==1.0.1
