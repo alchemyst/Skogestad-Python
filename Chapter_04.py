@@ -33,9 +33,9 @@ def state_observability(A, C):
 
 def is_min_realisation(A, B, C):
     """
-    Parameters: A => state space matrix
-                B =>        ''
-                C =>        ''
+    Parameters: A => state space matrix A
+                B => state space matrix B
+                C => state space matrix C
 
     Returns: is_min_real => True if the system is the minimum realisation
     """

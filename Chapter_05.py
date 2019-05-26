@@ -27,7 +27,7 @@ def rule1(G, Gd, K=1, message=False, plot=False, w1=-4, w2=2):
         plant model
 
     Gd : tf
-        plant distrubance model
+        plant disturbance model
 
     K : tf
         control model
