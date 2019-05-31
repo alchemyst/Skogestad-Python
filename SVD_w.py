@@ -31,12 +31,21 @@ def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):
     for w_iter in w:
         A = G(w_iter)
         [U, S, V] = np.linalg.svd(A)
+        
+        u_max= []
+        for i in U[:, 0]: u_max.append(float(i))
+        output_direction_max[:, count] = u
+        v_max= []
+        for i in V[:, 0]: v_max.append(float(i))
+        input_direction_max[:, count] = v
 
-        output_direction_max[:, count] = U[:, 0]
-        input_direction_max[:, count] = V[:, 0]
-
-        output_direction_min[:, count] = U[:, -1]
-        input_direction_min[:, count] = V[:, -1]
+        
+        u_min= []
+        for i in U[:, -1]: u_min.append(float(i))
+        output_direction_min[:, count] = u_min
+        v_min= []
+        for i in V[:, -1]: v_min.append(float(i))
+        input_direction_min[:, count] = v_min
 
         store_max[count] = S[0]
         store_min[count] = S[1]
