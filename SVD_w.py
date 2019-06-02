@@ -34,10 +34,10 @@ def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):
         
         u_max= []
         for i in U[:, 0]: u_max.append(float(i))
-        output_direction_max[:, count] = u
+        output_direction_max[:, count] = u_max
         v_max= []
         for i in V[:, 0]: v_max.append(float(i))
-        input_direction_max[:, count] = v
+        input_direction_max[:, count] = v_max
 
         
         u_min= []
