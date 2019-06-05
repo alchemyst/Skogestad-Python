@@ -889,7 +889,7 @@ def input_perfect_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
 
     Note
     ----
-    The boundary conditions is values below 1 (p240).
+    The boundary conditions are values below 1 (p240).
     """
 
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
@@ -978,7 +978,7 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None,
 def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
                                 points=1000, modified=False):
     """
-    Subbplots for input constraints for accepatable control. Applies equation
+    Subplots for input constraints for acceptable control. Applies equation
     6.55 (p241).
 
     Parameters
@@ -988,7 +988,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
     Gd : numpy matrix
         Plant disturbance model.
     modified : boolean
-        If true, the arguments in the equation are change to :math:`\sigma_1
+        If true, the arguments in the equation are changed to :math:`\sigma_1
         (G) + 1 \geq |u_i^H g_d|`. This is to avoid a negative log scale.
 
     Returns
@@ -1209,11 +1209,11 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec',
     U : tf
         Input transfer function.
     t_end : integer
-        Time period which the step response should occur (optional).
+        Time period over which the step response should occur (optional).
     initial_val : integer
         Starting value to evaluate step response (optional).
     constraint : float
-        The upper limit the step response cannot exceed. is only calculated
+        The upper limit that the step response cannot exceed. Is only calculated
         if a value is specified (optional).
     method : ['numeric','analytic']
         The method that is used to calculate a constrained response. A
