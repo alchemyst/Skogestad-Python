@@ -128,6 +128,8 @@ class tf(object):
     tf([1.], [1. 1.])
     """
 
+
+
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
                  u='', y='', prec=3):
         """
@@ -135,14 +137,25 @@ class tf(object):
         numerator and denominator polynomial
         """
         # TODO: poly1d should be replaced by np.polynomial.Polynomial
-        self.numerator = numpy.poly1d(numerator)
-        self.denominator = numpy.poly1d(denominator)
+        self.numerator = self.polynomial(numerator)
+        self.denominator = self.polynomial(denominator)
         self.deadtime = deadtime
         self.zerogain = False
         self.name = name
         self.u = u
         self.y = y
         self.simplify(dec=prec)
+    def polynomial(self, coefficients):
+        """
+        Initialising polynomial
+        """
+        try:
+            float(coefficients)
+            coefficients = [coefficients]
+        except:
+            if type(coefficients) == numpy.polynomial.Polynomial:
+                return (coefficients)
+        return numpy.polynomial.Polynomial(coefficients[::-1])
 
     def inverse(self):
         """
@@ -158,13 +171,14 @@ class tf(object):
         """ Negative step response """
         return signal.lsim(signal.lti(self.numerator, self.denominator), *args, **kwargs)
 
+
+
     def simplify(self, dec=3):
 
         # Polynomial simplification
-        k = self.numerator[self.numerator.order] / self.denominator[self.denominator.order]
-        ps = self.poles().tolist()
-        zs = self.zeros().tolist()
-
+        k = self.numerator.coef[-1] / self.denominator.coef[-1]
+        ps = list(self.poles())
+        zs = list(self.zeros())
         ps_to_canc_ind, zs_to_canc_ind = common_roots_ind(ps, zs)
         cancelled = cancel_by_ind(ps, ps_to_canc_ind)
 
@@ -172,18 +186,14 @@ class tf(object):
         if cancelled > 0:
             cancel_by_ind(zs, zs_to_canc_ind)
             places = dec
-
-        self.numerator = numpy.poly1d(
-            [round(i.real, places) for i in k*numpy.poly1d(zs, True)])
-        self.denominator = numpy.poly1d(
-            [round(i.real, places) for i in 1*numpy.poly1d(ps, True)])
-
+        self.numerator = self.polynomial(numpy.round(k*numpy.poly(zs),places))
+        self.denominator = self.polynomial(numpy.round(1*numpy.poly(ps),places))
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
-        if self.numerator == numpy.poly1d([0]):
+        if self.numerator == numpy.polynomial.Polynomial([0]):
             self.zerogain = True
             self.deadtime = 0
-            self.denominator = numpy.poly1d([1])
+            self.denominator = numpy.polynomial.Polynomial([1])
 
     def simplify_euclid(self):
         """
@@ -205,14 +215,14 @@ class tf(object):
             """
             Euclidean algorithm for calculating the polynomial gcd:
             https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
-            :param a: numpy.poly1d object
-            :param b: numpy.poly1d object
-            :return: numpy.poly1d object that is the GCD of a and b
+            :param a: numpy.polynomial.Polynomial object
+            :param b: numpy.polynomial.Polynomial object
+            :return: numpy.polynomial.Polynomial object that is the GCD of a and b
             """
             if a.order < b.order:
                 return gcd_euclid(b, a)
 
-            if b == numpy.poly1d(0):
+            if b == numpy.numpy.polynomial.Polynomial(0):
                 return a
 
             _, r = numpy.polydiv(a, b)
@@ -225,10 +235,10 @@ class tf(object):
         self.denominator, _ = numpy.polydiv(self.denominator, gcd)
 
     def poles(self):
-        return self.denominator.r
+        return self.denominator.roots()
 
     def zeros(self):
-        return self.numerator.r
+        return self.numerator.roots()
 
     def exp(self):
         """ If this is basically "D*s" defined as tf([D, 0], 1),
@@ -240,7 +250,7 @@ class tf(object):
 
         """
         # Check that denominator is 1:
-        if self.denominator != numpy.poly1d([1]):
+        if self.denominator != numpy.numpy.polynomial.Polynomial([1]):
             raise ValueError(
                 'Can only exponentiate multiples of s, not {}'.format(self))
         s = tf([1, 0], 1)
@@ -259,8 +269,8 @@ class tf(object):
             r = str(self.name) + "\n"
         else:
             r = ''
-        r += "tf(" + str(self.numerator.coeffs) + ", " \
-            + str(self.denominator.coeffs)
+        r += "tf(" + str(self.numerator.coef[::-1]) + ", " \
+            + str(self.denominator.coef[::-1])
         if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
         if self.u:
