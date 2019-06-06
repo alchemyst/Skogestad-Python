@@ -16,7 +16,7 @@ plt.title('Rise time tr according to RHP-pole defintion')
 [t, y] = T.step(0, tspan)
 plt.plot(t, y)
 
-# exclude leading zero to elimiate div by zero
+# exclude leading zero to eliminate div by zero
 # calc rise time
 tr = np.min(t[1:-1]/y[1:-1])
 

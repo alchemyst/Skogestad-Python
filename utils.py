@@ -14,6 +14,7 @@ import scipy.linalg as sc_linalg
 from functools import reduce
 import itertools
 
+from InternalDelay import *
 
 def astf(maybetf):
     """
@@ -38,6 +39,30 @@ def astf(maybetf):
         return tf(maybetf)
     else:  # Assume we have an array-like object
         return numpy.asmatrix(arrayfun(astf, numpy.asarray(maybetf)))
+
+
+def polylatex(coefficients, variable='s'):
+    """Return latex representation of a polynomial
+
+    :param coefficients: iterable of coefficients in descending order
+    :param variable: string containing variable to use
+
+    """
+    terms = []
+    N = len(coefficients)
+    for i, coefficient in enumerate(coefficients):
+        if coefficient == 0:
+            continue
+
+        order = N - i - 1
+        term = '{0:+}'.format(coefficient)
+        if order >= 1:
+            term += variable
+        if order >= 2:
+            term += '^{}'.format(order)
+
+        terms.append(term)
+    return "".join(terms).lstrip('+')
 
 
 class tf(object):
@@ -125,19 +150,18 @@ class tf(object):
         """
         return tf(self.denominator, self.numerator, -self.deadtime)
 
-    def step(self, *args):
+    def step(self, *args, **kwargs):
         """ Step response """
-        return signal.lti(self.numerator, self.denominator).step(*args)
+        return signal.lti(self.numerator, self.denominator).step(*args, **kwargs)
 
-    def lsim(self, *args):
+    def lsim(self, *args, **kwargs):
         """ Negative step response """
-        return signal.lsim(signal.lti(self.numerator, self.denominator), *args)
+        return signal.lsim(signal.lti(self.numerator, self.denominator), *args, **kwargs)
 
     def simplify(self, dec=3):
 
         # Polynomial simplification
-        k = self.numerator[self.numerator.order] / \
-            self.denominator[self.denominator.order]
+        k = self.numerator[self.numerator.order] / self.denominator[self.denominator.order]
         ps = self.poles().tolist()
         zs = self.zeros().tolist()
 
@@ -160,6 +184,45 @@ class tf(object):
             self.zerogain = True
             self.deadtime = 0
             self.denominator = numpy.poly1d([1])
+
+    def simplify_euclid(self):
+        """
+        Cancels GCD from both the numerator and denominator.
+        Uses the Euclidean algorithm for polynomial gcd
+
+        Doctest:
+        >>> G1 = tf([1], [1, 1])
+        >>> G2 = tf([1], [2, 1])
+        >>> G3 = G1 * G2
+        >>> G4 = G3 * G1
+        >>> G5 = G4 / G1
+        >>> G3
+        tf([0.5], [1.  1.5 0.5])
+        >>> G5
+        tf([0.5], [1.  1.5 0.5])
+        """
+        def gcd_euclid(a, b):
+            """
+            Euclidean algorithm for calculating the polynomial gcd:
+            https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
+            :param a: numpy.poly1d object
+            :param b: numpy.poly1d object
+            :return: numpy.poly1d object that is the GCD of a and b
+            """
+            if a.order < b.order:
+                return gcd_euclid(b, a)
+
+            if b == numpy.poly1d(0):
+                return a
+
+            _, r = numpy.polydiv(a, b)
+            return gcd_euclid(b, r)
+
+        gcd = gcd_euclid(self.denominator, self.numerator)
+        if gcd.order == 0:
+            return
+        self.numerator, _ = numpy.polydiv(self.numerator, gcd)
+        self.denominator, _ = numpy.polydiv(self.denominator, gcd)
 
     def poles(self):
         return self.denominator.r
@@ -206,6 +269,19 @@ class tf(object):
             r += ", y=': " + self.y + "'"
         r += ")"
         return r
+
+    def _repr_latex_(self):
+        num = polylatex(self.numerator.coefficients)
+        den = polylatex(self.denominator.coefficients)
+
+        if self.deadtime > 0:
+            dt = "e^{{-{}s}}".format(self.deadtime)
+            if len(self.numerator.coefficients.nonzero()[0]) > 1:
+                num = "({})".format(num)
+        else:
+            dt = ""
+
+        return r"$$\frac{{{}{}}}{{{}}}$$".format(num, dt, den)
 
     def __call__(self, s):
         """
@@ -376,17 +452,6 @@ class mimotf(object):
         self.matrix = astf(numpy.asmatrix(matrix))
         # We only support matrices of transfer functions
         self.shape = self.matrix.shape
-
-    def mimotf_slice(self, rows, cols):
-        nRows = len(rows)
-        nCols = len(cols)
-        result = [[] for r in range(nRows)]
-        for r in range(nRows):
-            for c in range(nCols):
-                result[r].append(tf(list(self[rows[r], cols[c]].numerator.coeffs),
-                                    list(self[rows[r], cols[c]].denominator.coeffs)))
-
-        return mimotf(result)
 
     def det(self):
         return det(self.matrix)
@@ -1028,7 +1093,7 @@ def feedback(forward, backward=None, positive=False):
     """
     Defined for use in connect function
     Calculates a feedback loop
-    This version is for trasnfer function objects
+    This version is for transfer function objects
     Negative feedback is assumed, use positive=True for positive feedback
     Forward refers to the function that goes out of the comparator
     Backward refers to the function that goes into the comparator
@@ -1040,39 +1105,6 @@ def feedback(forward, backward=None, positive=False):
     if positive:
         backward = -backward
     return forward * 1/(1 + backward * forward)
-
-
-def Closed_loop(Kz, Kp, Gz, Gp):
-    """
-    Return zero and pole polynomial for a closed loop function.
-
-    Parameters
-    ----------
-    Kz & Gz : list
-        Polynomial constants in the numerator.
-    Kz & Gz : list
-        Polynomial constants in the denominator.
-
-    Returns
-    -------
-    Zeros_poly : list
-        List of zero polynomial for closed loop function.
-
-    Poles_poly : list
-        List of pole polynomial for closed loop function.
-
-   """
-
-    # calculating the product of the two polynomials in the numerator
-    # and denominator of transfer function GK
-    Z_GK = numpy.polymul(Kz, Gz)
-    P_GK = numpy.polymul(Kp, Gp)
-
-    # calculating the polynomial of closed loop
-    # sensitivity function s = 1/(1+GK)
-    Zeros_poly = Z_GK
-    Poles_poly = numpy.polyadd(Z_GK, P_GK)
-    return Zeros_poly, Poles_poly
 
 
 def omega(w_start, w_end):
@@ -1475,7 +1507,7 @@ def sigmas(A, position=None):
     Parameters
     ----------
     A : array
-        Transfer function matrix.
+        State space system matrix A.
     position : string
         Type of sigmas to return (optional).
 
@@ -1611,29 +1643,37 @@ def SVD(G):
     return U, Sv, V
 
 
-def feedback_mimo(forward, backward=None, positive=False):
+def feedback_mimo(G, K=None, positive=False):
     """
-    Calculates a feedback loop
-    This version is for matrices
-    Negative feedback is assumed, use positive=True for positive feedback
-    Forward refers to the function that goes out of the comparator
-    Backward refers to the function that goes into the comparator
+    Calculates a feedback loop transfer function, and returns it as a mimotf
+    object.
+    Currently functionality allows for a controller with proportional 
+    gain. 
+    
+    Parameters:
+    ------------
+    
+    G : The main process transfer function as a mimotf class object.
+    
+    K : The controller transfer function as a numpy.matrix object.
+    
+    Returns:
+    --------
+    
+    G_fb : The transfer function representing the feedback loop as a mimotf
+    object.
+    
     """
-
-    # Create identity matrix if no backward matrix is specified
-    if backward is None:
-        backward = numpy.asmatrix(numpy.eye(numpy.shape(forward)[0],
-                                  numpy.shape(forward)[1]))
-    # Check the dimensions of the input matrices
-    if backward.shape[1] != forward.shape[0]:
-        raise ValueError("Backward matrix col must equal forward matrix row")
-    forward = numpy.asmatrix(forward)
-    backward = numpy.asmatrix(backward)
-    I = numpy.asmatrix(numpy.eye(numpy.shape(backward)[0],
-                                 numpy.shape(forward)[1]))
-    if positive:
-        backward = -backward
-    return forward * (I + backward * forward).I
+    
+    if K is None:
+        K = numpy.eye(G.matrix.shape[0])
+        
+    L = mimotf(K*G.matrix)
+    IG = numpy.eye(2) + L.matrix
+    IG = mimotf(IG)
+    Gi = L*IG.inverse()
+    
+    return Gi
 
 
 ###############################################################################
@@ -2224,17 +2264,18 @@ def minors(G, order):
     """
     Returns the order minors of a MIMO tf G.
     """
-    minor = []
+    retlist = []
     Nrows, Ncols = G.shape
     for rowstokeep in itertools.combinations(range(Nrows), order):
         for colstokeep in itertools.combinations(range(Ncols), order):
-            G_slice = G.mimotf_slice(rowstokeep, colstokeep)
+            rowstokeep = numpy.array(rowstokeep)
+            colstokeep = numpy.array(colstokeep)
+            G_slice = G[rowstokeep[:, None], colstokeep]
             if type(G_slice) == tf:
-                minor.append(G_slice)
-            elif (type(G_slice) == mimotf) \
-                    and (G_slice.shape[0] == G_slice.shape[1]):
-                minor.append(G_slice.det())
-    return minor
+                retlist.append(G_slice)
+            elif (type(G_slice) == mimotf) and (G_slice.shape[0] == G_slice.shape[1]):
+                retlist.append(G_slice.det())
+    return retlist
 
 
 def lcm_of_all_minors(G):
@@ -2811,7 +2852,7 @@ def ssr_solve(A, B, C, D):
 
     Returns:
         zeros: The system's zeros
-        poles: the system's poles
+        poles: The system's poles
 
     TODO: Add any other relevant values to solve for, for example, if coprime
     factorisations are useful somewhere add them to this function's return
@@ -2850,3 +2891,4 @@ if __name__ == '__main__':
 
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
+
