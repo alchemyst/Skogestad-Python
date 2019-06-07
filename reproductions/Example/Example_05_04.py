@@ -3,8 +3,8 @@ import numpy as np
 
 
 def add_deadtime_SISO(G, deadtime):
-    G = (tf(list(G.numerator.coeffs),
-            list(G.denominator.coeffs), deadtime=deadtime))
+    G = (tf(list(G.numerator.coef),
+            list(G.denominator.coef), deadtime=deadtime))
     return G
 
 s = tf([1, 0], [1])

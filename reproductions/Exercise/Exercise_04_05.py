@@ -7,7 +7,7 @@ s = tf([1,0],[1])
 
 G_tf = (1 - s)/(1 + s)
 
-G_ss = signal.tf2ss(G_tf.numerator,G_tf.denominator)
+G_ss = signal.tf2ss(G_tf.numerator.coef,G_tf.denominator.coef)
 A,B,C,D = G_ss
 
 def checkdimensions(x):
