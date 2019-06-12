@@ -128,16 +128,15 @@ class tf(object):
     tf([1.], [1. 1.])
     """
 
-
-
     def __init__(self, numerator, denominator=1, deadtime=0, name='',
                  u='', y='', prec=3):
         """
         Initialize the transfer function from a
         numerator and denominator polynomial
         """
-        self.numerator = polynomial(numerator)
-        self.denominator = polynomial(denominator)
+        # TODO: poly1d should be replaced by np.polynomial.Polynomial
+        self.numerator = numpy.poly1d(numerator)
+        self.denominator = numpy.poly1d(denominator)
         self.deadtime = deadtime
         self.zerogain = False
         self.name = name
@@ -153,20 +152,19 @@ class tf(object):
 
     def step(self, *args, **kwargs):
         """ Step response """
-        return signal.lti(self.numerator.coef, self.denominator.coef).step(*args, **kwargs)
+        return signal.lti(self.numerator, self.denominator).step(*args, **kwargs)
 
     def lsim(self, *args, **kwargs):
         """ Negative step response """
-        return signal.lsim(signal.lti(self.numerator.coef, self.denominator.coef), *args, **kwargs)
-
-
+        return signal.lsim(signal.lti(self.numerator, self.denominator), *args, **kwargs)
 
     def simplify(self, dec=3):
 
         # Polynomial simplification
-        k = self.numerator.coef[-1] / self.denominator.coef[-1]
-        ps = list(self.poles())
-        zs = list(self.zeros())
+        k = self.numerator[self.numerator.order] / self.denominator[self.denominator.order]
+        ps = self.poles().tolist()
+        zs = self.zeros().tolist()
+
         ps_to_canc_ind, zs_to_canc_ind = common_roots_ind(ps, zs)
         cancelled = cancel_by_ind(ps, ps_to_canc_ind)
 
@@ -174,14 +172,18 @@ class tf(object):
         if cancelled > 0:
             cancel_by_ind(zs, zs_to_canc_ind)
             places = dec
-        self.numerator = polynomial(numpy.round(k*numpy.poly(zs),places))
-        self.denominator = polynomial(numpy.round(1*numpy.poly(ps),places))
+
+        self.numerator = numpy.poly1d(
+            [round(i.real, places) for i in k*numpy.poly1d(zs, True)])
+        self.denominator = numpy.poly1d(
+            [round(i.real, places) for i in 1*numpy.poly1d(ps, True)])
+
         # Zero-gain transfer functions are special.  They effectively have no
         # dead time and can be simplified to a unity denominator
-        if self.numerator == numpy.polynomial.Polynomial([0]):
+        if self.numerator == numpy.poly1d([0]):
             self.zerogain = True
             self.deadtime = 0
-            self.denominator = numpy.polynomial.Polynomial([1])
+            self.denominator = numpy.poly1d([1])
 
     def simplify_euclid(self):
         """
@@ -203,30 +205,30 @@ class tf(object):
             """
             Euclidean algorithm for calculating the polynomial gcd:
             https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_algorithm
-            :param a: numpy.polynomial.Polynomial object
-            :param b: numpy.polynomial.Polynomial object
-            :return: numpy.polynomial.Polynomial object that is the GCD of a and b
+            :param a: numpy.poly1d object
+            :param b: numpy.poly1d object
+            :return: numpy.poly1d object that is the GCD of a and b
             """
-            if len(a)-1 < len(b)-1:
+            if a.order < b.order:
                 return gcd_euclid(b, a)
 
-            if b == numpy.polynomial.Polynomial(0):
+            if b == numpy.poly1d(0):
                 return a
 
             _, r = numpy.polydiv(a, b)
             return gcd_euclid(b, r)
 
         gcd = gcd_euclid(self.denominator, self.numerator)
-        if len(gcd.order)-1 == 0:
+        if gcd.order == 0:
             return
         self.numerator, _ = numpy.polydiv(self.numerator, gcd)
         self.denominator, _ = numpy.polydiv(self.denominator, gcd)
 
     def poles(self):
-        return self.denominator.roots()
+        return self.denominator.r
 
     def zeros(self):
-        return self.numerator.roots()
+        return self.numerator.r
 
     def exp(self):
         """ If this is basically "D*s" defined as tf([D, 0], 1),
@@ -238,17 +240,17 @@ class tf(object):
 
         """
         # Check that denominator is 1:
-        if self.denominator != numpy.numpy.polynomial.Polynomial([1]):
+        if self.denominator != numpy.poly1d([1]):
             raise ValueError(
                 'Can only exponentiate multiples of s, not {}'.format(self))
         s = tf([1, 0], 1)
         ratio = -self/s
 
-        if len(ratio.numerator.coef) != 1:
+        if len(ratio.numerator.coeffs) != 1:
             raise ValueError(
                 'Can not determine dead time associated with {}'.format(self))
 
-        D = ratio.numerator.coef[0]
+        D = ratio.numerator.coeffs[0]
 
         return tf(1, 1, deadtime=D)
 
@@ -257,8 +259,8 @@ class tf(object):
             r = str(self.name) + "\n"
         else:
             r = ''
-        r += "tf(" + str(self.numerator.coef[::-1]) + ", " \
-            + str(self.denominator.coef[::-1])
+        r += "tf(" + str(self.numerator.coeffs) + ", " \
+            + str(self.denominator.coeffs)
         if self.deadtime:
             r += ", deadtime=" + str(self.deadtime)
         if self.u:
@@ -269,12 +271,12 @@ class tf(object):
         return r
 
     def _repr_latex_(self):
-        num = polylatex(self.numerator.coef[::-1])
-        den = polylatex(self.denominator.coef[::-1])
+        num = polylatex(self.numerator.coefficients)
+        den = polylatex(self.denominator.coefficients)
 
         if self.deadtime > 0:
             dt = "e^{{-{}s}}".format(self.deadtime)
-            if len(self.numerator.coef.nonzero()[0]) > 1:
+            if len(self.numerator.coefficients.nonzero()[0]) > 1:
                 num = "({})".format(num)
         else:
             dt = ""
@@ -291,8 +293,8 @@ class tf(object):
         >>> G(0)
         1.0
         """
-        return (numpy.polyval(self.numerator.coef, s) /
-                numpy.polyval(self.denominator.coef, s) *
+        return (numpy.polyval(self.numerator, s) /
+                numpy.polyval(self.denominator, s) *
                 numpy.exp(-s * self.deadtime))
 
     def __add__(self, other):
@@ -358,19 +360,6 @@ class tf(object):
         return r
 # TODO: Concatenate tf objects into MIMO structure
 
-def polynomial(coefficients):
-    """
-    Create Polynomial
-    """
-    try:
-        float(coefficients)
-        coefficients = [coefficients]
-    except:
-        if type(coefficients) == numpy.polynomial.Polynomial:
-            return (coefficients)
-    if coefficients == []:
-        coefficients = [0]
-    return numpy.polynomial.Polynomial(coefficients[::-1])
 
 def RHPonly(x, round_precision=2):
     return list(
@@ -852,42 +841,42 @@ def polygcd(a, b):
     """
     Find the approximate Greatest Common Divisor of two polynomials
 
-    >>> a = polynomial([1, 1]) * polynomial([1, 2])
-    >>> b = polynomial([1, 1]) * polynomial([1, 3])
+    >>> a = numpy.poly1d([1, 1]) * numpy.poly1d([1, 2])
+    >>> b = numpy.poly1d([1, 1]) * numpy.poly1d([1, 3])
     >>> polygcd(a, b)
-    Polynomial([1., 1.])
+    poly1d([1., 1.])
 
-    >>> polygcd(polynomial([1, 1]), polynomial([1]))
-    Polynomial([1.])
+    >>> polygcd(numpy.poly1d([1, 1]), numpy.poly1d([1]))
+    poly1d([1.])
     """
-    a_roots = list(a.roots())
-    b_roots = list(b.roots())
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
     a_common, b_common = common_roots_ind(a_roots, b_roots)
     gcd_roots = []
     for i in range(len(a_common)):
         gcd_roots.append((a_roots[a_common[i]]+b_roots[b_common[i]])/2)
-    return polynomial(gcd_roots)
+    return numpy.poly1d(gcd_roots, True)
 
 
 def polylcm(a, b):
     #Finds the approximate lowest common multiple of
     #two polynomials
 
-    a_roots = list(a.roots())
-    b_roots = list(b.roots())
+    a_roots = a.r.tolist()
+    b_roots = b.r.tolist()
     a_common, b_common = common_roots_ind(a_roots, b_roots)
     cancelled = cancel_by_ind(a_roots, a_common)
     if cancelled > 0:    #some roots in common
         gcd = polygcd(a, b)
         cancelled = cancel_by_ind(b_roots, b_common)
         lcm_roots = a_roots + b_roots
-        return numpy.polymul(gcd, polynomial(lcm_roots))
+        return numpy.polymul(gcd, numpy.poly1d(lcm_roots, True))
     else:    #no roots in common
         lcm_roots = a_roots + b_roots
-        return polynomial(lcm_roots)
+        return numpy.poly1d(lcm_roots, True)
 
 def multi_polylcm(P):
-    roots_list = [list(i.roots()) for i in P]
+    roots_list = [i.r.tolist() for i in P]
     roots_by_mult = []
     lcm_roots_by_mult = []
     for roots in roots_list:
@@ -917,7 +906,7 @@ def multi_polylcm(P):
     for i in lcm_roots_by_mult:
         for j in range(i[1]):
             lcm_roots.append(i[0])
-    return polynomial(lcm_roots)
+    return numpy.poly1d(lcm_roots, True)
 
 def arrayfun(f, A):
     """
@@ -1426,8 +1415,8 @@ def mimotf2sym(G, deadtime=False):
     rows, cols = G.shape
     terms = []
     for tf in G.matrix.A1:
-        num_poly = sympy.Poly(tf.numerator.coef, s)
-        den_poly = sympy.Poly(tf.denominator.coef, s)
+        num_poly = sympy.Poly(tf.numerator.coeffs, s)
+        den_poly = sympy.Poly(tf.denominator.coeffs, s)
         if deadtime:
             terms.append(num_poly * sympy.exp(-tf.deadtime * s) / den_poly)
         else:
@@ -1766,27 +1755,27 @@ def tf2ss(H):
     Lvect = [[] for k in range(m)]
     Llist = []
     D = numpy.asmatrix(numpy.zeros((m, m),
-                                   dtype=numpy.polynomial.Polynomial))
+                                   dtype=numpy.lib.polynomial.poly1d))
     Hinf = numpy.asmatrix(numpy.zeros((p, m)))
 
     for j in range(m):
-        lcm = polynomial(1)
+        lcm = numpy.poly1d(1)
         for i in range(p):
             # Find the lcm of the denominators of the elements in each column
             lcm = polylcm(lcm, H[i, j].denominator)
             # Check if the individual elements are proper
-            if len(H[i, j].numerator)-1 == len(H[i, j].denominator)-1:
+            if H[i, j].numerator.order == H[i, j].denominator.order:
                 # Approximate the limit as s->oo for the TF elements
-                Hinf[i, j] = H[i, j].numerator.coef[0] / \
-                    H[i, j].denominator.coef[0]
-            elif len(H[i, j].numerator)-1 > len(H[i, j].denominator)-1:
+                Hinf[i, j] = H[i, j].numerator.coeffs[0] / \
+                    H[i, j].denominator.coeffs[0]
+            elif H[i, j].numerator.order > H[i, j].denominator.order:
                 raise ValueError('Enter a matrix of stricly proper TFs')
 
         d[j] = tf(lcm)  # Convert lcm to a tf object
-        mu[j] = len(lcm)-1
+        mu[j] = lcm.order
         D[j, j] = d[j]  # Create a diagonal matrix of lcms
         # Create list of coeffs of lcm for column, excl highest order element
-        Lvect[j] = list((d[j].numerator.coef[1:]))
+        Lvect[j] = list((d[j].numerator.coeffs[1:]))
         Lvect[j].reverse()
         Llist.append(Lvect[j])  # Create block diag matrix from list of lists
 
@@ -1795,7 +1784,7 @@ def tf2ss(H):
     MS = N - Hinf*D
 
     def num_coeffs(x):
-        return x.numerator.coef
+        return x.numerator.coeffs
 
     def offdiag(m):
         return numpy.asmatrix(numpy.diag(numpy.ones(m-1), 1))
@@ -2226,11 +2215,11 @@ def num_denom(A, symbolic_expr=False):
         denom = 1
         num = 1
 
-        denom = [polynomial(denom) *
-                 polynomial(A.matrix[0, j].denominator.coef)
+        denom = [numpy.poly1d(denom) *
+                 numpy.poly1d(A.matrix[0, j].denominator.coeffs)
                  for j in range(A.matrix.shape[1])]
-        num = [polynomial(num) *
-               polynomial(A.matrix[0, j].numerator.coef)
+        num = [numpy.poly1d(num) *
+               numpy.poly1d(A.matrix[0, j].numerator.coeffs)
                for j in range(A.matrix.shape[1])]
         if symbolic_expr is True:
             for n in range(len(denom)):
@@ -2245,10 +2234,10 @@ def num_denom(A, symbolic_expr=False):
         denom = []
         num = []
 
-        denom = [list(A.denominator.coef)[n] for n in range(
-            len(list(A.denominator.coef)))]
-        num = [list(A.numerator.coef)[n] for n in range(
-            len(list(A.numerator.coef)))]
+        denom = [list(A.denominator.coeffs)[n] for n in range(
+            len(list(A.denominator.coeffs)))]
+        num = [list(A.numerator.coeffs)[n] for n in range(
+            len(list(A.numerator.coeffs)))]
         if symbolic_expr is True:
             for n in range(len(denom)):
                 sym_den = (sym_den + denom[- n - 1] * s**n).simplify()
@@ -2298,7 +2287,7 @@ def lcm_of_all_minors(G):
     for i in range(1, min(Nrows, Ncols) + 1, 1):
         allminors = minors(G, i)
         for j in allminors:
-            if len(j.denominator)-1 > 0:
+            if j.denominator.order > 0:
                 denoms.append(j.denominator)
     return multi_polylcm(denoms)
 
@@ -2357,8 +2346,8 @@ def poles_and_zeros_of_square_tf_matrix(G):
     denom = sympy.denom(detG).expand()
 
     # Create numpy poly
-    zero_poly = polynomial(sympy.Poly(numer, s).coeffs())
-    pole_poly = polynomial(sympy.Poly(denom, s).coeffs())
+    zero_poly = numpy.poly1d(sympy.Poly(numer, s).coeffs())
+    pole_poly = numpy.poly1d(sympy.Poly(denom, s).coeffs())
 
     # Determine poly roots
     z = numpy.array(zero_poly.roots)
@@ -2399,7 +2388,7 @@ def poles(G=None, A=None):
         if not (type(G) == tf or type(G) == mimotf):
             G = sym2mimotf(G)
         lcm = lcm_of_all_minors(G)
-        return lcm.roots()
+        return lcm.r
     else:
         pole, _ = numpy.linalg.eig(A)
         return pole
@@ -2453,12 +2442,12 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
             if numer.find('s'):
                 num_coeff = [float(k) for k in numer.as_poly().all_coeffs()]
                 if not gcd:
-                    gcd = polynomial(num_coeff)
+                    gcd = numpy.poly1d(num_coeff)
                 else:
-                    gcd = polygcd(gcd, polynomial(num_coeff))
+                    gcd = polygcd(gcd, numpy.poly1d(num_coeff))
             else:
-                gcd = polynomial(numer)
-        zero = list(set(gcd.roots()))
+                gcd = numpy.poly1d(numer)
+        zero = list(set(numpy.roots(gcd)))
         pole = poles(G)
         for i in pole:
             if i in zero:
