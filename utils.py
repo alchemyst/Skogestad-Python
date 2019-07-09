@@ -501,7 +501,7 @@ class mimotf(object):
         inv = (1./detA)*C_T
         return inv
 
-    def step(self, u_input, t_start = 0, t_end = 100, points = 1000):
+    def step(self, u_input, t_start=0, t_end=100, points=1000):
         """
         Calculate the time domian step response of a mimotf object.
         
@@ -526,7 +526,7 @@ class mimotf(object):
         
         tspan = numpy.linspace(t_start, t_end, points)
         
-        G_stepdata = [[0 for i in range(self.shape[0])], [0 for i in \
+        G_stepdata = [[0 for i in range(self.shape[0])], [0 for i in
                        range(self.shape[1])]]
         
         for i in range(self.shape[0]):
