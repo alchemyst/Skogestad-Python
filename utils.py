@@ -526,8 +526,7 @@ class mimotf(object):
         
         tspan = numpy.linspace(t_start, t_end, points)
         
-        G_stepdata = [[0 for i in range(self.shape[0])], [0 for i in
-                       range(self.shape[1])]]
+        G_stepdata = [[0 for i in range(self.shape[0])], [0 for i in range(self.shape[1])]]
         
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
