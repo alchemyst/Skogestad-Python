@@ -225,6 +225,9 @@ class InternalDelay:
                 for ls, m in zip([As, B1s, B2s, Cs, Ds], [Ai, B1i, Bi, Ci, Di]):
                     ls.append(m)
 
+        if 0 in delay_list and len(B2s) != 1:
+            B2s = [numpy.vstack(B2s[:2])] + B2s[2:]
+
         if 0 in delay_list and len(delay_list) != 1:
             delay_list.remove(0)
 
@@ -235,7 +238,7 @@ class InternalDelay:
         Nd = len(delay_list)
         Nw = Nd * Ni
         B1 = numpy.vstack(B1s) if B1s != [] else numpy.zeros((Nx, Ni))
-        B2 = numpy.vstack(B2s) if B2s != [] else numpy.zeros((Nx, Nw))
+        B2 = scipy.linalg.block_diag(*B2s) if B2s != [] else numpy.zeros((Nx, Nw))
         C1 = numpy.hstack(Cs) if Cs != [] else numpy.zeros((Nx, No))
         C2 = numpy.zeros((Nw, Nx))
         D11 = D11 if D11 is not None else numpy.zeros((No, Ni))
