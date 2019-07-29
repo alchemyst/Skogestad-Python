@@ -213,7 +213,11 @@ class InternalDelay:
 
             Gss_i = harold.transfer_to_state(harold.Transfer(num_i, den_i))
             Ai, Bi, Ci, Di = Gss_i.a, Gss_i.b, Gss_i.c, Gss_i.d
-            Ai, Bi, Ci, Di = [numpy.array([0]) if i.size == 0 else i for i in [Ai, Bi, Ci, Di]]
+
+            Ai = numpy.array([0]) if Ai.size == 0 else Ai
+            Bi = numpy.zeros((Ai.shape[0], num_dim[1])) if Bi.size == 0 else Bi
+            Ci = numpy.zeros((num_dim[0], Ai.shape[0])) if Ci.size == 0 else Ci
+            Di = numpy.zeros(num_dim) if Di.size == 0 else Di
 
             if delay == 0:
                 D11 = Di
