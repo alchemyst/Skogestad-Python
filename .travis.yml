@@ -14,7 +14,9 @@ cache:
     - $HOME/.local
 
 # Add display serivce
-service: xvfb
+dist: xenial
+services:
+  - xvfb
 
 # Setup anaconda
 before_install:
