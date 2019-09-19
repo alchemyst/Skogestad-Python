@@ -13,6 +13,9 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.local
 
+# Add display serivce
+service: xvfb
+
 # Setup anaconda
 before_install:
   # Install miniconda
