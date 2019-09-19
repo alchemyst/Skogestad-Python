@@ -213,7 +213,11 @@ class InternalDelay:
 
             Gss_i = harold.transfer_to_state(harold.Transfer(num_i, den_i))
             Ai, Bi, Ci, Di = Gss_i.a, Gss_i.b, Gss_i.c, Gss_i.d
-            Ai, Bi, Ci, Di = [numpy.array([0]) if i.size == 0 else i for i in [Ai, Bi, Ci, Di]]
+
+            Ai = numpy.array([0]) if Ai.size == 0 else Ai
+            Bi = numpy.zeros((Ai.shape[0], num_dim[1])) if Bi.size == 0 else Bi
+            Ci = numpy.zeros((num_dim[0], Ai.shape[0])) if Ci.size == 0 else Ci
+            Di = numpy.zeros(num_dim) if Di.size == 0 else Di
 
             if delay == 0:
                 D11 = Di
@@ -225,6 +229,9 @@ class InternalDelay:
                 for ls, m in zip([As, B1s, B2s, Cs, Ds], [Ai, B1i, Bi, Ci, Di]):
                     ls.append(m)
 
+        if 0 in delay_list and len(B2s) != 1:
+            B2s = [numpy.vstack(B2s[:2])] + B2s[2:]
+
         if 0 in delay_list and len(delay_list) != 1:
             delay_list.remove(0)
 
@@ -235,7 +242,7 @@ class InternalDelay:
         Nd = len(delay_list)
         Nw = Nd * Ni
         B1 = numpy.vstack(B1s) if B1s != [] else numpy.zeros((Nx, Ni))
-        B2 = numpy.vstack(B2s) if B2s != [] else numpy.zeros((Nx, Nw))
+        B2 = scipy.linalg.block_diag(*B2s) if B2s != [] else numpy.zeros((Nx, Nw))
         C1 = numpy.hstack(Cs) if Cs != [] else numpy.zeros((Nx, No))
         C2 = numpy.zeros((Nw, Nx))
         D11 = D11 if D11 is not None else numpy.zeros((No, Ni))
