@@ -1,6 +1,6 @@
 from __future__ import print_function
-from utils import tf, feedback, tf_step
-import utilsplot
+from robustcontrol import tf, feedback, tf_step
+import robustcontrolplot
 import matplotlib.pyplot as plt
 import numpy as np
 

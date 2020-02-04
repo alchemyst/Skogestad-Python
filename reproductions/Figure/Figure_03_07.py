@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-from utilsplot import mimo_bode, condtn_nm_plot
-from utils import tf, mimotf
+from robustcontrolplot import mimo_bode, condtn_nm_plot
+from robustcontrol import tf, mimotf
 
 s= tf([1, 0])
 

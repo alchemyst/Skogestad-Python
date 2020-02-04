@@ -7,7 +7,7 @@ Created on Apr 19, 2019
 
 import numpy
 import numbers
-import utils
+import robustcontrol
 import scipy.signal
 import harold
 
@@ -27,7 +27,7 @@ class InternalDelay:
         The `InternalDelay` class can be instantiated with either 1, 10 arguments.
         The following gives the number of arguments and their types:
 
-            * 1:    `utils.tf` or `utils.mimotf`
+            * 1:    `robustcontrol.tf` or `robustcontrol.mimotf`
             * 10:   2-dimensional array-like: A, B1, B2, C1, C2, D11, D12, D21, D22
                     array-like: delays
 
@@ -42,12 +42,12 @@ class InternalDelay:
     ------------
     Construct the example with feedforward control found here:
     https://www.mathworks.com/help/control/examples/specifying-time-delays.html#d120e709
-    >>> P_id = utils.InternalDelay.from_tf_coefficients([5], [1, 1], [3.4])
-    >>> C_id = utils.InternalDelay.from_tf_coefficients([0.1*5, 0.1], [5, 0], [0])
+    >>> P_id = robustcontrol.InternalDelay.from_tf_coefficients([5], [1, 1], [3.4])
+    >>> C_id = robustcontrol.InternalDelay.from_tf_coefficients([0.1*5, 0.1], [5, 0], [0])
     >>> cas_id = C_id * P_id
     >>> fed_id = cas_id.feedback()
-    >>> F_id = utils.InternalDelay.from_tf_coefficients([0.3], [1, 4], [0])
-    >>> I_id = utils.InternalDelay.from_tf_coefficients([1], [1], [0])
+    >>> F_id = robustcontrol.InternalDelay.from_tf_coefficients([0.3], [1, 4], [0])
+    >>> I_id = robustcontrol.InternalDelay.from_tf_coefficients([1], [1], [0])
     >>> GKI_id = (P_id * C_id + I_id)**(-1)
     >>> PF_id = P_id * F_id
     >>> PFGKI_id = PF_id * GKI_id
@@ -60,10 +60,10 @@ class InternalDelay:
 
     MIMO Example
     ------------
-    >>> s = utils.tf([1, 0], 1)
-    >>> G = 1/(1.25*(s + 1)*(s + 2)) * utils.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
+    >>> s = robustcontrol.tf([1, 0], 1)
+    >>> G = 1/(1.25*(s + 1)*(s + 2)) * robustcontrol.mimotf([[s - 1, s * numpy.exp(-2*s)], [-6, s - 2]])
 
-    >>> G_id = utils.InternalDelay(G)
+    >>> G_id = robustcontrol.InternalDelay(G)
     >>> uf = lambda t: [1, 1]
     >>> ts = numpy.linspace(0, 20, 1000)
 
@@ -73,14 +73,14 @@ class InternalDelay:
     def __init__(self, *system):
         N = len(system)
 
-        if N == 1:  # could be either a utils.tf or utils.mimotf object
+        if N == 1:  # could be either a robustcontrol.tf or robustcontrol.mimotf object
             sys = system[0]
-            if isinstance(sys, utils.tf):
+            if isinstance(sys, robustcontrol.tf):
                 matrices = InternalDelay.from_tf(sys).get_matrices()
-            elif isinstance(sys, utils.mimotf):
+            elif isinstance(sys, robustcontrol.mimotf):
                 matrices = InternalDelay.from_mimotf(sys).get_matrices()
             else:
-                raise ValueError(f"Expected utils.tf or utils.mimotf object. Received {type(sys)} object")
+                raise ValueError(f"Expected robustcontrol.tf or robustcontrol.mimotf object. Received {type(sys)} object")
 
         elif N == 10:
             matrices = system
@@ -103,10 +103,10 @@ class InternalDelay:
     @staticmethod
     def from_tf(tf):
         """
-        Constructs `InternalDelay` object from `utils.tf` object
+        Constructs `InternalDelay` object from `robustcontrol.tf` object
         """
-        if not isinstance(tf, utils.tf):
-            raise ValueError(f"Expected utils.tf and got {type(tf)}")
+        if not isinstance(tf, robustcontrol.tf):
+            raise ValueError(f"Expected robustcontrol.tf and got {type(tf)}")
 
         lti = scipy.signal.lti(tf.numerator, tf.denominator).to_ss()
         delay = [tf.deadtime]
@@ -118,10 +118,10 @@ class InternalDelay:
     @staticmethod
     def from_mimotf(mimotf):
         """
-        Constructs `InternalDelay` object from `utils.mimotf` object
+        Constructs `InternalDelay` object from `robustcontrol.mimotf` object
         """
-        if not isinstance(mimotf, utils.mimotf):
-            raise ValueError(f"Expected utils.mimoft and got {type(mimotf)}")
+        if not isinstance(mimotf, robustcontrol.mimotf):
+            raise ValueError(f"Expected robustcontrol.mimoft and got {type(mimotf)}")
 
         G = mimotf
         num = numpy.zeros(G.shape).tolist()

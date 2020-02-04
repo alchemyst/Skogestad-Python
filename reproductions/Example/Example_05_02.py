@@ -1,4 +1,4 @@
-from utils import tf, RHPonly
+from robustcontrol import tf, RHPonly
 import numpy as np
 
 s = tf([1,0],[1])

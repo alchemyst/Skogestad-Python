@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-from utils import tf
-from utilsplot import bode
+from robustcontrol import tf
+from robustcontrolplot import bode
 
 G = tf([5], [10, 1], deadtime=2)
 

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-from utils import circle
+from robustcontrol import circle
 
 
 w = 0.5

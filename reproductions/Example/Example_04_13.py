@@ -1,4 +1,4 @@
-from utils import pole_zero_directions, tf, mimotf
+from robustcontrol import pole_zero_directions, tf, mimotf
 from reporting import display_export_data
 
 s = tf([1, 0])

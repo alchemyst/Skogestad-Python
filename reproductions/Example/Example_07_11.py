@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf
+from robustcontrol import tf
 
 
 WP = tf([0.25, 0.1], [1, 0])

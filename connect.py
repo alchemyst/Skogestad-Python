@@ -5,9 +5,9 @@ Created on Wed May 22 19:03:56 2013
 @author: Simon Streicher
 """
 from __future__ import print_function
-from utils import tf, feedback, tf_step
+from robustcontrol import tf, feedback, tf_step
 import matplotlib.pyplot as plt
-import utilsplot
+import robustcontrolplot
 
 """
 This function aims to be the Python equivalent of the MatLab connect function
@@ -35,7 +35,7 @@ plt.plot(t, y)
 plt.xlabel('Time')
 plt.ylabel('y(t)')
 plt.show()
-#utilsplot.step(T, t_end = 6)
+#robustcontrolplot.step(T, t_end = 6)
 
 # Assign names to lines as in second example
 F.u = 'r';  F.y = 'uF'

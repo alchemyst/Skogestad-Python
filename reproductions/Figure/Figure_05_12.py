@@ -1,7 +1,7 @@
-import utilsplot
+import robustcontrolplot
 import matplotlib.pyplot as plt
 
-from utils import tf
+from robustcontrol import tf
 
 s = tf([1, 0])
 
@@ -12,5 +12,5 @@ tau = 1.25
 K = (tau*s + 1)/(tau*s)
 
 plt.figure('Figure 5.12')
-utilsplot.freq_step_response_plot(G, K, Kc, 4, 'T')
+robustcontrolplot.freq_step_response_plot(G, K, Kc, 4, 'T')
 plt.show()

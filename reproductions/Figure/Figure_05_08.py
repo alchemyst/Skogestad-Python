@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-import utilsplot
+import robustcontrolplot
 import numpy as np
 
-from utils import tf, feedback
+from robustcontrol import tf, feedback
 
 s = tf([1, 0])
 
@@ -12,7 +12,7 @@ Kcs = [0.1, 0.5, 0.9]
 K = -1*s/((1 + 0.02*s)*(1 + 0.05*s))
 
 plt.figure('Figure 5.8')
-utilsplot.freq_step_response_plot(G, K, Kcs, 0.2, 'S')
+robustcontrolplot.freq_step_response_plot(G, K, Kcs, 0.2, 'S')
 
 # Plot negative step response
 t = np.linspace(0, 0.2, 1000)

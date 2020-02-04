@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 
-from utils import RGA
+from robustcontrol import RGA
 
 
 # Blending process: mix sugar (u1) and water (u2) to control amount

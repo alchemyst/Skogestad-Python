@@ -9,7 +9,7 @@ import numpy as np
 import control
 import matplotlib.pyplot as plt
 
-from utils import feedback
+from robustcontrol import feedback
 
 w = np.logspace(-1, 2, 1000)
 s = control.tf([1, 0], 1)

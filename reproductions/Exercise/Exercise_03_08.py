@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import RGA
+from robustcontrol import RGA
 
 G = np.matrix([[16.8, 30.5, 4.30],
                [-16.7, 31.0, -1.41],

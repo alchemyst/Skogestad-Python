@@ -4,17 +4,17 @@ Test function checking dimensions of tf2ss
 
 """
 
-import utils
+import robustcontrol
 
-s = utils.tf([1, 0], 1)
+s = robustcontrol.tf([1, 0], 1)
 
-G = utils.mimotf([
+G = robustcontrol.mimotf([
     [0.66/(6.7*s + 1), -0.61/(8.64*s + 1), -0.0049/(9.06*s + 1)],
     [1.11/(3.25*s + 1), -2.36/(5.0*s + 1), -0.012/(7.09*s + 1)],
     [-34.68/(8.15*s + 1), 46.2/(10.9*s + 1), 0.87*(11.61*s + 1)/((3.89*s + 1)*(18.8*s + 1))]
     ])
 
-A, B, C, D = utils.tf2ss(G)
+A, B, C, D = robustcontrol.tf2ss(G)
 
 Nstates = A.shape[0]
 Ninputs = B.shape[1]

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf
+from robustcontrol import tf
 
 s = tf([1,0], 1)
 

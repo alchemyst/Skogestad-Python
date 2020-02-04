@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 
-from utils import pole_zero_directions, BoundST, tf, mimotf, RHPonly
+from robustcontrol import pole_zero_directions, BoundST, tf, mimotf, RHPonly
 from reporting import display_export_data
 
 s = tf([1, 0])

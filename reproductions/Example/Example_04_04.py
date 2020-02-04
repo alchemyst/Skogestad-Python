@@ -4,7 +4,7 @@ import numpy.linalg as lin
 import scipy.linalg as LA
 import scipy.signal as sign
 
-from utils import state_controllability, zeros
+from robustcontrol import state_controllability, zeros
 
 # This module executes Example 4.4.
 # The controllability Gramian has been included

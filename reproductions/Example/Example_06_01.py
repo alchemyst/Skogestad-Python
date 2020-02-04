@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import numpy.linalg as nplinalg
-from utils import tf, BoundST, RHPonly
+from robustcontrol import tf, BoundST, RHPonly
 from scipy.linalg import sqrtm
 from numpy import sqrt
 

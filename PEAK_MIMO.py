@@ -3,8 +3,8 @@ import numpy as np
 import scipy.linalg as sc_lin
 import matplotlib.pyplot as plt
 
-from utils import poles, zeros
-from utilsplot import plot_freq_subplot, ref_perfect_const_plot
+from robustcontrol import poles, zeros
+from robustcontrolplot import plot_freq_subplot, ref_perfect_const_plot
 
 
 # TODO redefine this function with utils and utilsplot functions

@@ -17,7 +17,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf, margins
+from robustcontrol import tf, margins
 import Chapter_05 as ch5
 
 

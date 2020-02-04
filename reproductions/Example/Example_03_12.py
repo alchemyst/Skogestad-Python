@@ -1,6 +1,6 @@
 from __future__ import print_function
 import numpy as np
-from utils import RGA
+from robustcontrol import RGA
 
 
 # The following code performs Example 3.12 of Skogestad.

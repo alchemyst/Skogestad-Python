@@ -1,8 +1,8 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import feedback, tf, marginsclosedloop
-from utilsplot import step_response_plot, bodeclosedloop
+from robustcontrol import feedback, tf, marginsclosedloop
+from robustcontrolplot import step_response_plot, bodeclosedloop
 
 
 s = tf([1, 0], 1)

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
-from utils import tf
+from robustcontrol import tf
 
 def LI(rk, tmax, w):
     L = np.zeros(np.size(w))

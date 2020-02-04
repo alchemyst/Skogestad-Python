@@ -37,9 +37,9 @@ plt.show()
 
 """
 from __future__ import print_function
-import numpy  # do not abbreviate this module as np in utilsplot.py
+import numpy  # do not abbreviate this module as np in robustcontrolplot.py
 import matplotlib.pyplot as plt
-import utils
+import robustcontrol
 import doc_func as df
 
 
@@ -175,7 +175,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
     plt.clf()
 
-    GM, PM, wc, w_180 = utils.margins(G)
+    GM, PM, wc, w_180 = robustcontrol.margins(G)
 
     # plotting of Bode plot and with corresponding frequencies for PM and GM
 #    if ((w2 < numpy.log(w_180)) and margin):
@@ -197,7 +197,7 @@ def bode(G, w_start=-2, w_end=2, axlim=None, points=1000, margin=False):
 
     # Phase of G(jw)
     plt.subplot(2, 1, 2)
-    phaseangle = utils.phase(G(s), deg=True)
+    phaseangle = robustcontrol.phase(G(s), deg=True)
     plt.semilogx(w, phaseangle)
     if margin:
         plt.axvline(wc, color='black')
@@ -231,8 +231,8 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2,
     _, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     L = G(1j*w) * K(1j*w)
-    S = utils.feedback(1, L)
-    T = utils.feedback(L, 1)
+    S = robustcontrol.feedback(1, L)
+    T = robustcontrol.feedback(L, 1)
 
     plt.subplot(2, 1, 1)
     plt.loglog(w, abs(L))
@@ -247,9 +247,9 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2,
         plt.plot(w, 1/numpy.sqrt(2) * numpy.ones(len(w)), linestyle='dotted')
 
     plt.subplot(2, 1, 2)
-    plt.semilogx(w, utils.phase(L, deg=True))
-    plt.semilogx(w, utils.phase(S, deg=True))
-    plt.semilogx(w, utils.phase(T, deg=True))
+    plt.semilogx(w, robustcontrol.phase(L, deg=True))
+    plt.semilogx(w, robustcontrol.phase(S, deg=True))
+    plt.semilogx(w, robustcontrol.phase(T, deg=True))
     plt.axis(axlim)
     plt.grid()
     plt.ylabel("Phase")
@@ -330,7 +330,7 @@ def mimo_bode(G, w_start=-2, w_end=2,
         f = False
         wA = 0
         for i in range(len(w)):
-            Sv[i, :] = utils.sigmas(G(s[i]))
+            Sv[i, :] = robustcontrol.sigmas(G(s[i]))
             if not f:
                 if ((labB == 'wC' and Sv[i, -1] < 1) or
                         (labB == 'wB' and Sv[i, 0] > 0.707)):
@@ -470,10 +470,10 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
     freqresp = [G(si) for si in s]
 
     if plot_type == 'input':
-        vec = numpy.array([V for _, _, V in map(utils.SVD, freqresp)])
+        vec = numpy.array([V for _, _, V in map(robustcontrol.SVD, freqresp)])
         d = 'v'
     elif plot_type == 'output':
-        vec = numpy.array([U for U, _, _ in map(utils.SVD, freqresp)])
+        vec = numpy.array([U for U, _, _ in map(robustcontrol.SVD, freqresp)])
         d = 'u'
     else:
         raise ValueError('Invalid plot_type parameter.')
@@ -487,8 +487,8 @@ def sv_dir_plot(G, plot_type, w_start=-2, w_end=2, axlim=None, points=1000):
         plt.axis(axlim)
         plt.ylabel('$|{0}_{1}|$'.format(d, i + 1))
         plt.subplot(dim*2, 1, 2*i + 2)
-        plt.semilogx(w, utils.phase(vec[:, i, 0], deg=True), label='$%s_{max}$' % d, lw=2)
-        plt.semilogx(w, utils.phase(vec[:, i, -1], deg=True), label='$%s_{min}$' % d, lw=2)
+        plt.semilogx(w, robustcontrol.phase(vec[:, i, 0], deg=True), label='$%s_{max}$' % d, lw=2)
+        plt.semilogx(w, robustcontrol.phase(vec[:, i, -1], deg=True), label='$%s_{min}$' % d, lw=2)
         plt.axhline(0, color='red', ls=':')
         plt.axis(axlim)
         plt.ylabel(r'$\angle {0}_{1}$'.format(d, i + 1))
@@ -526,7 +526,7 @@ def condtn_nm_plot(G, w_start=-2, w_end=2, axlim=None, points=1000):
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     def cndtn_nm(G):
-        return utils.sigmas(G)[0]/utils.sigmas(G)[-1]
+        return robustcontrol.sigmas(G)[0]/robustcontrol.sigmas(G)[-1]
 
     freqresp = [G(si) for si in s]
 
@@ -631,7 +631,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
 
                 mag = numpy.array(
                           numpy.abs(
-                              ([utils.RGA(Gfr)[i, j] for Gfr in freqresp])
+                              ([robustcontrol.RGA(Gfr)[i, j] for Gfr in freqresp])
                           )
                       )
                 ax.semilogx(w, mag)
@@ -661,7 +661,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
 
             for j in range(plotting_order[plot_type]['j']):
                 rgas = numpy.array(
-                    numpy.abs(([utils.RGA(Gfr)[i, j] for Gfr in freqresp]))
+                    numpy.abs(([robustcontrol.RGA(Gfr)[i, j] for Gfr in freqresp]))
                 )
                 plotlabel = plotting_order[plot_type]['legend'].format(
                     i + 1, j + 1
@@ -689,7 +689,7 @@ def rga_plot(G, w_start=-2, w_end=2, axlim=None, points=1000, fig=0,
             for j in range(dim[1]):
 
                 plt.semilogx(w, numpy.array(numpy.abs(
-                    [utils.RGA(Gfr)[i, j] for Gfr in freqresp]))
+                    [robustcontrol.RGA(Gfr)[i, j] for Gfr in freqresp]))
                 )
                 plt.axis(axlim)
                 plt.ylabel('|$\lambda$$_{i,j}$|')
@@ -757,7 +757,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
 
     if plot_type == 'all':
         for p in pairing_list:
-            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp],
+            plt.semilogx(w, [robustcontrol.RGAnumber(Gfr, p) for Gfr in freqresp],
                          label=pairing_names[plot_No])
             plot_No += 1
         plt.axis(axlim)
@@ -771,7 +771,7 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
         for p in pairing_list:
             plot_No += 1
             plt.subplot(1, pcount, plot_No)
-            plt.semilogx(w, [utils.RGAnumber(Gfr, p) for Gfr in freqresp])
+            plt.semilogx(w, [robustcontrol.RGAnumber(Gfr, p) for Gfr in freqresp])
             plt.axis(axlim)
             plt.title(pairing_names[plot_No - 1])
             plt.xlabel('Frequency [rad/unit time]')
@@ -820,7 +820,7 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2,
     condtn_nm_gd = numpy.zeros((dim, points))
     for i in range(dim):
         for k in range(points):
-            inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = utils.distRej(
+            inv_norm_gd[i, k], yd[i, k, :], condtn_nm_gd[i, k] = robustcontrol.distRej(
                 G(s[k]), Gd(s[k])[:, i])
 
     if S is None:
@@ -857,9 +857,9 @@ def dis_rejctn_plot(G, Gd, S=None, w_start=-2,
         for i in range(dim):
             plt.loglog(w, inv_norm_gd[i], label=('$1/||g_{d%s}||_2$' % (i+1)))
             s_min = numpy.array(
-                [utils.sigmas(S(s[p]), 'min') for p in range(points)])
+                [robustcontrol.sigmas(S(s[p]), 'min') for p in range(points)])
             s_max = numpy.array(
-                [utils.sigmas(S(s[p]), 'max') for p in range(points)])
+                [robustcontrol.sigmas(S(s[p]), 'max') for p in range(points)])
             plt.loglog(w, s_min, label='$\sigma_{min}$')
             plt.loglog(w, s_max, label='$\sigma_{max}$')
         plt.axis(axlim)
@@ -953,9 +953,9 @@ def ref_perfect_const_plot(G, R, wr, w_start=-2, w_end=2, axlim=None,
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     lab1 = '$\sigma_{min} (G(jw))$'
-    bound1 = [utils.sigmas(G(si), 'min') for si in s]
+    bound1 = [robustcontrol.sigmas(G(si), 'min') for si in s]
     lab2 = '$\sigma_{min} (R^{-1}G(jw))$'
-    bound2 = [utils.sigmas(numpy.linalg.pinv(R) * G(si), 'min') for si in s]
+    bound2 = [robustcontrol.sigmas(numpy.linalg.pinv(R) * G(si), 'min') for si in s]
 
     if plot_type == 'all':
         plt.loglog(w, bound1, label=lab1)
@@ -1003,7 +1003,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
     s, w, axlim = df.frequency_plot_setup(axlim, w_start, w_end, points)
 
     freqresp = [G(si) for si in s]
-    sig = numpy.array([utils.sigmas(Gfr) for Gfr in freqresp])
+    sig = numpy.array([robustcontrol.sigmas(Gfr) for Gfr in freqresp])
     one = numpy.ones(points)
 
     plot_No = 1
@@ -1014,7 +1014,7 @@ def input_acceptable_const_plot(G, Gd, w_start=-2, w_end=2, axlim=None,
     for j in range(dimGd):
         for i in range(dimG):
             for k in range(points):
-                U, _, _ = utils.SVD(G(s[k]))
+                U, _, _ = robustcontrol.SVD(G(s[k]))
                 acceptable_control[j, i, k] = numpy.abs(U[:, i].H *
                                                         Gd(s[k])[:, j])
             plt.subplot(dimG, dimGd, plot_No)
@@ -1070,7 +1070,7 @@ def step(G, t_end=100, initial_val=0, input_label=None,
     rows = numpy.shape(G(0))[0]
     columns = numpy.shape(G(0))[1]
 
-    s = utils.tf([1, 0])
+    s = robustcontrol.tf([1, 0])
     system = G(s)
 
     if (input_label is None) and (output_label is None):
@@ -1158,7 +1158,7 @@ def freq_step_response_plot(G, K, Kc, t_end=50, freqtype='S', w_start=-2,
 
     # Controllers transfer function with various controller gains
     Ks = [(kc * K) for kc in Kc]
-    Ts = [utils.feedback(G * Kss, 1) for Kss in Ks]
+    Ts = [robustcontrol.feedback(G * Kss, 1) for Kss in Ks]
 
     if freqtype == 'S':
         Fs = [(1 - Tss) for Tss in Ts]
@@ -1227,16 +1227,16 @@ def step_response_plot(Y, U, t_end=50, initial_val=0, timedim='sec',
 
     axlim = df.frequency_plot_setup(axlim)
 
-    [t, y] = utils.tf_step(Y, t_end, initial_val)
+    [t, y] = robustcontrol.tf_step(Y, t_end, initial_val)
     plt.plot(t, y)
 
-    [t, y] = utils.tf_step(U, t_end, initial_val)
+    [t, y] = robustcontrol.tf_step(U, t_end, initial_val)
     plt.plot(t, y)
 
     if constraint is None:
         plt.legend(['$y(t)$', '$u(t)$'])
     else:
-        [t, y] = utils.tf_step(U, t_end, initial_val,
+        [t, y] = robustcontrol.tf_step(U, t_end, initial_val,
                                points, constraint, Y, method)
         plt.plot(t, y[0])
         plt.plot(t, y[1])
@@ -1308,15 +1308,15 @@ def perf_Wp_plot(S, wB_req, maxSSerror, w_start, w_end,
     Wpi = numpy.zeros((len(w)))
     f = 0                                    # f for flag
     for i in range(len(w)):
-        _, Sv, _ = utils.SVD(S(s[i]))
+        _, Sv, _ = robustcontrol.SVD(S(s[i]))
         magPlotS1[i] = Sv[0]
         magPlotS3[i] = Sv[-1]
         if f < 1 and magPlotS1[i] > 0.707:
             wB = w[i]
             f = 1
     for i in range(len(w)):
-        # 2j is max frequency, as required by utils.Wp
-        Wpi[i] = utils.Wp(wB_req, w_end, maxSSerror, s[i])
+        # 2j is max frequency, as required by robustcontrol.Wp
+        Wpi[i] = robustcontrol.Wp(wB_req, w_end, maxSSerror, s[i])
 
     plt.subplot(2, 1, 1)
     plt.loglog(w, magPlotS1, 'r-', label='Max $\sigma$(S)')

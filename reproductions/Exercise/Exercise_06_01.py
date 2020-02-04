@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import pole_zero_directions, tf, mimotf, BoundKS, BoundST
+from robustcontrol import pole_zero_directions, tf, mimotf, BoundKS, BoundST
 from reporting import display_export_data
 
 s = tf([1, 0], 1)

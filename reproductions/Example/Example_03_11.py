@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilsplot import rga_plot, rga_nm_plot
+from robustcontrolplot import rga_plot, rga_nm_plot
 
 
 def G(s):

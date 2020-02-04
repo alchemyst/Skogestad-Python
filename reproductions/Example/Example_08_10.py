@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import utils
+import robustcontrol
 
 
 a = 10
@@ -26,7 +26,7 @@ def T(s):
 frequency = np.logspace(-3, 2, 1000)
 s = 1j * frequency
 
-max_singular_value_of_T = [max(utils.sigmas(T(si))) for si in s]
+max_singular_value_of_T = [max(robustcontrol.sigmas(T(si))) for si in s]
 mu_T = [max(np.abs(np.linalg.eigvals(T(si)))) for si in s]
 
 plt.loglog(frequency, max_singular_value_of_T, 'b')

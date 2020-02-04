@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sp
 
-from utilsplot import dis_rejctn_plot, input_perfect_const_plot, input_acceptable_const_plot
-from utils import distRHPZ, tf, mimotf
+from robustcontrolplot import dis_rejctn_plot, input_perfect_const_plot, input_acceptable_const_plot
+from robustcontrol import distRHPZ, tf, mimotf
 
 s = tf([1, 0])
 

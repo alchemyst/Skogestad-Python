@@ -2,8 +2,8 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf, feedback, marginsclosedloop
-from utilsplot import bode, step_response_plot
+from robustcontrol import tf, feedback, marginsclosedloop
+from robustcontrolplot import bode, step_response_plot
 
 # Loop shaping is an iterative procedure where the designer
 # 1. shapes and reshapes |L(jw)| after computing PM and GM,

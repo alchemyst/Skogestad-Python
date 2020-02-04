@@ -1,5 +1,5 @@
 import numpy as np
-import utils
+import robustcontrol
 
 
 """Use this file to add more MIMO functions for robust stability and performance"""
@@ -51,7 +51,7 @@ def UnstructuredDelta(M, DeltaStructure):
     """
 
     if DeltaStructure == "Full":
-        [U, s, V] = utils.SVD(M)
+        [U, s, V] = robustcontrol.SVD(M)
         S = np.diag(s)
         delta = 1/s[0] * V[:,0] * U[:,0].H
     elif DeltaStructure == 'Diagonal':

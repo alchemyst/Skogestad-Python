@@ -43,7 +43,7 @@ install:
 # Run test
 script:
   - coverage run runall.py
-  - coverage run -a utils.py
+  - coverage run -a robustcontrol.py
 
 after_success:
   - coveralls --config_file .coveragerc

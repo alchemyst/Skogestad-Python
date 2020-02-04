@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-from utils import tf
-from utilsplot import bode
+from robustcontrol import tf
+from robustcontrolplot import bode
 
 # Trasfer function of L(s)
 s = tf([1, 0], 1)

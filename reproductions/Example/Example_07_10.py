@@ -1,12 +1,12 @@
-import utils
+import robustcontrol
 import numpy as np
 import sympy as sp
 from scipy.optimize import fsolve
 
-s = utils.tf([1,0],[1])
+s = robustcontrol.tf([1,0],[1])
 L = (-s + 2)/(s*(s + 2))
 
-_,_,_,w180 = utils.margins(L)
+_,_,_,w180 = robustcontrol.margins(L)
 GM = 1/np.abs(L(1j*w180))
 print('w_180',w180)
 print('GM = 1/|L(w180)|',GM)

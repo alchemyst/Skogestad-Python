@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilsplot import plot_freq_subplot, sv_dir_plot
-from utils import mimotf, tf
+from robustcontrolplot import plot_freq_subplot, sv_dir_plot
+from robustcontrol import mimotf, tf
 
 
 def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils import feedback, tf
+from robustcontrol import feedback, tf
 
 # Process model of G with various Controller Gains
 s = tf([1, 0], 1)

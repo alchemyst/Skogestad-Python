@@ -1,7 +1,7 @@
 from __future__ import print_function
-from utils import tf, marginsclosedloop, margins, tf_step, maxpeak
+from robustcontrol import tf, marginsclosedloop, margins, tf_step, maxpeak
 import matplotlib.pyplot as plt
-import utilsplot
+import robustcontrolplot
 import numpy as np
 
 s = tf([1,0], 1)

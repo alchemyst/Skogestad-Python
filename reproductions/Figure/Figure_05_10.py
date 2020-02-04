@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf, feedback
+from robustcontrol import tf, feedback
 
 s = tf([1, 0])
 G = 4/((s - 1)*(0.02*s + 1)**2)

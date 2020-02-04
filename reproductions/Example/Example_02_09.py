@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import tf
+from robustcontrol import tf
 
 def funG(s):
     return 200/((10*s + 1)*(0.05*s + 1)**2)

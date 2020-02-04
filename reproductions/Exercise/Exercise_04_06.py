@@ -1,6 +1,6 @@
 import sympy
 import numpy
-from utils import ssr_solve
+from robustcontrol import ssr_solve
 
 a11, a12, a21, a22, b21, b22, z = sympy.symbols(
     'a11 a12 a21 a22 b21 b22 z'

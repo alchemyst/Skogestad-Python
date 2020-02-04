@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize
 
-import utils
+import robustcontrol
 
 
 I = np.identity(2)
@@ -30,7 +30,7 @@ def M(s):
 
 
 def maxsigma(G):
-    return max(utils.sigmas(G))
+    return max(robustcontrol.sigmas(G))
 
 def specrad(G):
     return max(np.abs(np.linalg.eigvals(G)))

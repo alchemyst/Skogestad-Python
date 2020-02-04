@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilsplot import step_response_plot
-from utils import feedback, tf
+from robustcontrolplot import step_response_plot
+from robustcontrol import feedback, tf
 
 
 s = tf([1,0], 1)

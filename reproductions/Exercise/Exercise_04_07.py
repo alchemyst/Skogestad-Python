@@ -1,6 +1,6 @@
 import sympy
 import numpy
-from utils import ssr_solve
+from robustcontrol import ssr_solve
 
 c1, z = sympy.symbols('c1 z')
 

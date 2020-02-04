@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import doc_func as df
 
-from utils import tf, margins
+from robustcontrol import tf, margins
 
 """
 All of the functions below are from pages 206-207 and the associated rules that
