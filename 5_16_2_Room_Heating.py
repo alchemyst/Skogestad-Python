@@ -24,7 +24,7 @@ scont.rule_three_four(G, Gd, R=3, freq=freqs, perfect=False)
 
 # From Disturbance Bode you can see |G| > |Gd| always. This implies that
 # there will not be any input constraints wrt disturbances. (Rule 3)
-# I.e. your system will always be strong enough to counteract your disturbances.
+# i.e. your system will always be strong enough to counteract your disturbances.
 
 # Using R = 3 you get an intersection of w_r = 0.0065 which implies that
 # the plant will be able to track set point changes up to w_r. The required response time
