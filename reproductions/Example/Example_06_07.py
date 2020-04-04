@@ -33,7 +33,7 @@ for z in z_vec:
         eq = distRHPZ(G, Gdz, z)
         print('For RHP-zero {0} the general condition is {1} < 1'.format(z, eq))
         print('For k=1, |yzH.gd({0})| is {1} < 1'.format(z, distRHPZ(G, Gd, z)))
-        k = sp.Symbol('k',real=True)
+        k = sp.Symbol('k', real=True)
         k_range = sp.solve(eq - 1)
         print('For acceptable control, k should be in the range {0}.'.format(k_range))
         print('The plant is not input-output controllable if k < {0} or k > {1}.'.format(k_range[0], k_range[1]))
