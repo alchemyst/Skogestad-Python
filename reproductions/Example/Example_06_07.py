@@ -17,14 +17,14 @@ G = mimotf([[G11, G12],
             [G21, G22]])
 
 def Gdk(s, k):
-    return 6 / (s + 2) * np.matrix([[k],[1]])
+    return 6 / (s + 2) * np.matrix([[k], [1]])
 
 def Gd(s):
     k = 1
     return Gdk(s, k)
 
 def Gdz(s):
-    k = sp.Symbol('k',real=True)
+    k = sp.Symbol('k', real=True)
     return Gdk(s, k)
 
 z_vec = G.zeros()
