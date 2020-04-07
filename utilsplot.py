@@ -41,7 +41,7 @@ import numpy  # do not abbreviate this module as np in utilsplot.py
 import matplotlib.pyplot as plt
 import utils
 import doc_func as df
-
+import sympy
 
 def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
     """
@@ -781,6 +781,65 @@ def rga_nm_plot(G, pairing_list=None, pairing_names=None, w_start=-2,
         raise ValueError("Invalid plot_type parameter.")
 
 
+        
+def symbolic_RGA_plot(G, w_start=-2, w_end=2, RGAmag=True, RGAno=True, points=20):
+    """
+    Plots the RGA magnitude and RGA number against frequency on two graphs for a diagonal and off-diagonal pairing.
+
+    Parameters
+    ----------
+    G : sympy matrix
+        Plant model.
+    RGAmag : RGA magnitude graph plotted if True
+    RGAmag : RGA number graph plotted if True
+
+    Returns
+    -------
+    Plot : matplotlib figure
+
+    Example
+    -------
+    # Adapted from example 3.11 pg 86 S. Skogestad
+    >>> s = sympy.symbols('s')
+    >>> G = sympy.Matrix([[10/(s + 10), 1.1/(s + 1)], [10/(s + 10), 1]])
+    >>> symbolic_RGA_plot(G, w_start=-5, w_end=2, RGAmag=True, RGAno=True)
+    
+    Note:
+    -----
+    Do not use too many points. This function can take very log to compute. 
+    """
+    s = sympy.symbols('s')
+    w = numpy.logspace(w_start, w_end, points)
+    
+    if RGAmag==True:
+        λ11, λ12 = utils.symbolic_RGA(G)[0], utils.symbolic_RGA(G)[1]
+        λ1 = numpy.abs([λ11.subs(s, 1j*wi) for wi in w])
+        λ2 = numpy.abs([λ12.subs(s, 1j*wi) for wi in w])
+
+        plt.figure(1)
+        plt.title('RGA Values over Frequency')
+        plt.xlabel(r'Frequency [rad/s]')
+        plt.ylabel(r'Magnitude')
+        plt.loglog(w, abs(λ1), label='$\lambda_{11}/\lambda_{22}$')
+        plt.loglog(w, abs(λ2), label='$\lambda_{12}/\lambda_{21}$')
+        plt.grid(b=None, which='both', axis='both')
+        plt.legend()
+
+    if RGAno==True:    
+        shape =  utils.symbolic_RGA(G).shape[0]
+        RGA_diag = [utils.symbolic_RGAnumber(G, sympy.eye(shape)).subs(s, 1j*wi) for wi in w]
+        RGA_offdiag = [utils.symbolic_RGAnumber(G, sympy.ones(shape) - sympy.eye(shape)).subs(s, 1j*wi) for wi in w]
+        
+        plt.figure(2)
+        plt.title('RGA no over Frequency')
+        plt.xlabel(r'Frequency [rad/s]')
+        plt.ylabel(r'RGA no')
+        plt.loglog(w, RGA_offdiag, label='Off-diagonal pairing')
+        plt.loglog(w, RGA_diag, label='Diagonal pairing')
+        plt.grid(b=None, which='both', axis='both')
+        plt.legend()        
+        
+        
 def dis_rejctn_plot(G, Gd, S=None, w_start=-2,
                     w_end=2, axlim=None, points=1000):
     """
