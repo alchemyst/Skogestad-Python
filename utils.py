@@ -2834,13 +2834,12 @@ def distRej(G, gd):
     1/||gd|| :math:`_2` : float
         The inverse of the 2-norm of a single disturbance gd.
 
-    yd : numpy matrix
-        Disturbance direction.
-        
     distCondNum : float
         The disturbance condition number
         :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
-    
+
+    yd : numpy matrix
+        Disturbance direction.
     """
 
     gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
@@ -2934,3 +2933,55 @@ if __name__ == '__main__':
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
 
+def symbolic_RGA(G):
+    """
+    Computes the RGA (Relative Gain Array) of a symbolic matrix.
+
+    Parameters
+    ----------
+    G : sympy matrix (n x n)
+        The transfer function G(s) of the system.
+
+    Returns
+    -------
+    RGA matrix : matrix
+        RGA matrix of complex numbers.
+
+    Example
+    -------
+    >>> G = sympy.Matrix([[10/(s + 10), 1.1/(s + 1)], [10/(s + 10), 1]])
+    >>> symbolic_RGA(G)
+    Matrix([[10/(s + 10), 1.1/(s + 1)],
+             [10/(s + 10),           1]])
+    """  
+    
+    Λ = sympy.matrix_multiply_elementwise(G, (G.inv()).T)
+    Λ1, Λ2 = Λ[0].simplify(), Λ[1].simplify()
+    return sympy.Matrix([[Λ1, Λ2], [Λ2, Λ1]])
+
+def symbolic_RGAnumber(Gs, I):
+    """
+    Computes the RGA (Relative Gain Array) number of a symbolic matrix.
+
+    Parameters
+    ----------
+    G : sympy matrix (n x n)
+        The transfer function G(s) of the system.
+    I : sympy matrix (n x n)
+        The pairing matrix of the system.
+
+    Returns
+    -------
+    RGA number : matrix
+        RGA matrix of complex numbers.
+
+    Example
+    -------
+    >>> G = sympy.Matrix([[10/(s + 10), 1.1/(s + 1)], [10/(s + 10), 1]])
+    >>> symbolic_RGAnumber(G)
+    44.0/Abs(10.0*s - 1.0)
+    """
+    
+    i, j = sympy.symbols('i, j')
+    Λ = symbolic_RGA(Gs)
+    return sympy.Sum(sympy.Abs(Λ - I)[i, j], (i, 0, 1), (j, 0, 1)).doit()
