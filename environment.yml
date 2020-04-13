@@ -16,5 +16,6 @@ dependencies:
  - python-coveralls
  - nose-cov
  - pytest
+ - nbformat
  - pip:
     - harold>=1.0.1
