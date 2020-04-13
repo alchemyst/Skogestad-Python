@@ -110,7 +110,7 @@ class InternalDelay:
 
         lti = scipy.signal.lti(tf.numerator, tf.denominator).to_ss()
         delay = [tf.deadtime]
-        matrices = InternalDelay.from_lti(lti, delay)
+        matrices = InternalDelay.from_lti(lti, delay).get_matrices()
         A, B1, B2, C1, C2, D11, D12, D21, D22, delays = matrices
 
         return InternalDelay(A, B1, B2, C1, C2, D11, D12, D21, D22, delays)
