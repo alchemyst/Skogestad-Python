@@ -42,7 +42,7 @@ install:
 
 # Run test
 script:
-  - coverage run runall.py
+  - coverage run test_all_notebooks.py
   - coverage run -a utils.py
 
 after_success:
