@@ -17,5 +17,6 @@ dependencies:
  - nose-cov
  - pytest
  - nbformat
+ - nbconvert
  - pip:
     - harold>=1.0.1
