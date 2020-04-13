@@ -15,5 +15,6 @@ dependencies:
  - control
  - python-coveralls
  - nose-cov
+ - pytest
  - pip:
     - harold>=1.0.1
