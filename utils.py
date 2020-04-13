@@ -502,47 +502,6 @@ class mimotf(object):
         inv = (1./detA)*C_T
         return inv
 
-    def step(self, u_input, t_start=0, t_end=100, points=1000):
-        """
-        Calculate the time domian step response of a mimotf object.
-        
-        Parameters:
-        -----------
-        
-        u_input:    The values of the input variables to the transfer function.
-                    The values can be given as a 1D list or 1D numpy.array 
-                    object.
-        t_start:    The lower bound of the time domain simulation.
-        t_end:      The upper bound of the time domain simulation.
-        points:     The number of iteration points used for the simulation.
-        
-        Returns:
-        --------
-        
-        tspan:      The time values corresponding with the response data points.
-        G_response: A list of arrays, with a length equal to the amount of 
-                    outputs of the transfer function. The arrays contain the 
-                    step response data of each output.
-        """
-        
-        tspan = numpy.linspace(t_start, t_end, points)
-        
-        G_stepdata = [[0 for i in range(self.shape[0])], [0 for i in range(self.shape[1])]]
-        
-        for i in range(self.shape[0]):
-            for j in range(self.shape[1]):
-                if u_input[j] == 0:
-                    G_stepdata[i][j] = numpy.zeros(tspan.shape)
-                else:
-                    G_stepdata[i][j] = tf_step(self[i, j], t_end = t_end)[1]
-        
-        G_response = []
-        
-        for i in range(2):
-            G_response.append(sum(G_stepdata[i]))
-
-        return tspan, G_response
-    
     def __call__(self, s):
         """
         >>> G = mimotf([[1]])
@@ -2834,13 +2793,12 @@ def distRej(G, gd):
     1/||gd|| :math:`_2` : float
         The inverse of the 2-norm of a single disturbance gd.
 
-    yd : numpy matrix
-        Disturbance direction.
-        
     distCondNum : float
         The disturbance condition number
         :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
-    
+
+    yd : numpy matrix
+        Disturbance direction.
     """
 
     gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)

@@ -22,7 +22,7 @@ This project is aimed at creating Python code for the various code examples in t
 
 The code is tested on Python 2.7 and 3.5. You can click the "build" badge above to see the most recent test results.
 
-We are using `Python-Future`_ as our compatibility layer.
+We are using `Python-Future`_ as our compatability layer.
 
 The code is largely contributed by students doing the course CBT700 at the University of Pretoria.
 
