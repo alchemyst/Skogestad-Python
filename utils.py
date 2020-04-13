@@ -2834,12 +2834,13 @@ def distRej(G, gd):
     1/||gd|| :math:`_2` : float
         The inverse of the 2-norm of a single disturbance gd.
 
+    yd : numpy matrix
+        Disturbance direction.
+        
     distCondNum : float
         The disturbance condition number
         :math:`\sigma` (G) :math:`\sigma` (G :math:`^{-1}` yd)
-
-    yd : numpy matrix
-        Disturbance direction.
+    
     """
 
     gd1 = 1 / numpy.linalg.norm(gd, 2)  # Returns largest sing value of gd(wj)
