@@ -3,9 +3,9 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-import doc_func as df
+from . import doc_func as df
 
-from utils import tf, margins
+from .utils import tf, margins
 
 """
 All of the functions below are from pages 206-207 and the associated rules that

@@ -1,5 +1,5 @@
 import numpy as np
-import utils
+from . import utils
 
 
 """Use this file to add more MIMO functions for robust stability and performance"""

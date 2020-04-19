@@ -39,8 +39,8 @@ plt.show()
 from __future__ import print_function
 import numpy  # do not abbreviate this module as np in utilsplot.py
 import matplotlib.pyplot as plt
-import utils
-import doc_func as df
+from . import utils
+from . import doc_func as df
 
 
 def adjust_spine(xlabel, ylabel, x0=0, y0=0, width=1, height=1):
