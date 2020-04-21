@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as spla
 
-from utils import state_controllability
+from .utils import state_controllability
 
 
 def state_observability(A, C):

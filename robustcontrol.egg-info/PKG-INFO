@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: robustcontrol
+Version: 0.1.0
+Summary: Code contributed by students doing the course CBT700 - 'Multivariable Control Theory' at the University of Pretoria.
+Home-page: https://github.com/alchemyst/Skogestad-Python
+Author: 
+Author-email: 
+License: UNKNOWN
+Description: This project is aimed at creating Python code for the various code examples in the textbook. Skogestad, S., I. Postlethwaite; Multivariable Feedback Control: Analysis and Design; John Wiley & Sons, 2005. The code is tested on Python 2.7 and 3.6. We are using Python-Future as our compatability layer. The code is largely contributed by students doing the course CBT700 at the University of Pretoria.
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

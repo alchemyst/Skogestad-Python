@@ -7,7 +7,7 @@ Created on Apr 19, 2019
 
 import numpy
 import numbers
-import utils
+from . import utils
 import scipy.signal
 import harold
 

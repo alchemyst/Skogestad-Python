@@ -31,7 +31,10 @@ searchpath = pathlib.Path('.')
 # Read patterns from .testignore file
 ignores = [line.strip() for line in open('.testignore') if line.strip()]
 
-# Ignore hidden folders (startswith('.')) and files matching ignore patterns
+##move up one directory since we are in tests which is not the main directory
+searchpath = searchpath.absolute().parents[0]
+
+## Ignore hidden folders (startswith('.')) and files matching ignore patterns
 notebooks = [notebook for notebook in searchpath.glob('**/*.ipynb')
              if not (any(parent.startswith('.')
                          for parent in notebook.parent.parts)
