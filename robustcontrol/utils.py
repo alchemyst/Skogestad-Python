@@ -14,7 +14,7 @@ import scipy.linalg as sc_linalg
 from functools import reduce
 import itertools
 
-from InternalDelay import *
+from robustcontrol.InternalDelay import *
 
 def astf(maybetf):
     """
