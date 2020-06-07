@@ -2476,11 +2476,12 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
         lcm = lcm_of_all_minors(G)
         allminors = minors(G, G.shape[0])
         gcd = None
+        s = sympy.Symbol('s')
         for m in allminors:
             numer, denom = num_denom(m, symbolic_expr=True)
             if denom != lcm:
                 numer *= denom
-            if numer.find('s'):
+            if numer.find(s):
                 num_coeff = [float(k) for k in numer.as_poly().all_coeffs()]
                 if not gcd:
                     gcd = numpy.poly1d(num_coeff)
