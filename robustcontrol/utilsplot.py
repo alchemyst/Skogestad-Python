@@ -260,7 +260,44 @@ def bodeclosedloop(G, K, w_start=-2, w_end=2,
 #                                Chapter 4                                    #
 ###############################################################################
 
+def plot_zeros_poles(z, labels=None, markers='*', markersize=30, markercolor='blue'):
+    """
+    Plots poles or zeros on imaginary axis.
 
+    Parameters
+    ----------
+    z : numpy array
+        Plant poles or zeros.
+    labels : string
+        Label for legend ('poles' or 'zeros').
+    markers : string
+        Matplotlib marker type.
+    markers : string
+        Matplotlib marker type.
+    markersize : float
+        Matplotlib marker size (default=30).
+    markercolor : string
+        Matplotlib marker color (default=blue).
+    """
+    
+    
+    plt.axhline(y=0, color='k', linewidth='0.5')
+    plt.axvline(x=0, color='k', linewidth='0.5')
+
+    Re = []
+    Im = []
+    for i in range(len(z)):
+        Re.append(np.real(z[i]))
+        Im.append(np.imag(z[i]))
+    plt.scatter(Re, Im, marker=markers, color=markercolor, label=labels, s=markersize)
+    plt.legend()
+    plt.xlabel('Real')
+    plt.ylabel('Imaginary')
+    plt.legend()
+    
+    
+   
+    
 def mimo_bode(G, w_start=-2, w_end=2,
               axlim=None, points=1000,
               Kin=None, text=False, sv_all=False, legend_loc='best'):
