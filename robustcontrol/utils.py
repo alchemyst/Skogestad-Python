@@ -1721,6 +1721,24 @@ def feedback_mimo(G, K=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
+def checkvalid(G, z):
+    """
+    Check if zeros are valid by ensuring the singular value of G at z is zero.
+    Outputs equal to zero are valid.
+
+    Parameters
+    ----------
+    G : np matrix
+        Plant mimo transfer function.
+    z : numpy array
+        Plant zeros.   
+    """  
+    
+    sv= []
+    for zi in z:
+        u, svd, vh = np.linalg.svd(G(zi))
+        sv.append(round(svd[-1], 4))
+    return sv
 
 def tf2ss(H):
     """
@@ -1910,6 +1928,45 @@ def state_controllability(A, B):
 
     return state_control, u_p, control_matrix
 
+def state_observability(A, C):
+    """
+    This method checks if the state space description of the system is state
+    observ able according to Definition 4.2.
+
+    Parameters
+    ----------
+    A : numpy matrix
+        Matrix A of state-space representation.
+    C : numpy matrix
+        Matrix C of state-space representation.
+
+    Returns
+    -------
+    state_obv : boolean
+        True if state observable
+    y_p : array
+        Ouput pole vectors for the states y_p_i
+    obs_matrix : numpy matrix
+        State Observability Matrix
+    v_r : numpy array
+        Right Eigenvectors
+
+      """
+    state_obs = True
+
+    # Compute output pole vectors.
+    ev, vr = scipy.linalg.eig(A, left=False, right=True)
+    y_p = []
+    for i in range(vr.shape[1]):
+        vri = np.asmatrix(vr[:, i])
+        y_p.append(C*vri.T)
+    state_obs = not any(np.linalg.norm(x) == 0.0 for x in y_p)
+
+    # compute observ matrix
+    O_plus = [C*A**n for n in range(A.shape[0])]
+    obs_matrix = np.vstack(O_plus)
+
+    return state_obs, y_p, obs_matrix, vr
 
 def state_observability_matrix(a, c):
     """calculate the observability matrix
@@ -2935,3 +2992,31 @@ if __name__ == '__main__':
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
 
+
+def add_deadtime(G, θ): 
+    """
+    Adds deadtime to transfer functions within a mimotf.
+    
+    Inputs:
+    G: mimotf
+    θ: sympy or numpy matrix of dead time 
+    
+    Output:
+    Mimotf including time delay
+    
+    """
+    return utils.mimotf([[G[i, j]*utils.tf(1, 1, θ[i, j]) for j in range(0, G.shape[1])] for i in range(0, G.shape[0])])
+
+def add_padeapprox_deadtime(G, θ): 
+    """
+    Adds first order pade deadtime approx to transfer functions within a mimotf.
+    
+    Inputs:
+    G: mimotf
+    θ: sympy or numpy matrix of dead time 
+    
+    Output:
+    Mimotf including time delay
+    
+    """
+    return utils.mimotf([[G[i, j]*utils.tf(1 - θ[i, j]/2, 1 + θ[i, j]/2) for j in range(0, G.shape[1])] for i in range(0, G.shape[0])])
