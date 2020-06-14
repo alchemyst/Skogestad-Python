@@ -19,11 +19,10 @@ def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):
     #  getting the size of the system
     A = G(0.0001)
     [U, s, V] = np.linalg.svd(A)
-    output_direction_max = np.zeros([U.shape[0], len(w)])
-    input_direction_max = np.zeros([V.shape[0], len(w)])
-    output_direction_min = np.zeros([U.shape[0], len(w)])
-    input_direction_min = np.zeros([V.shape[0], len(w)])
-
+    output_direction_max = np.zeros([len(w), U.shape[0]])
+    input_direction_max = np.zeros([len(w), V.shape[0]])
+    output_direction_min = np.zeros([len(w), U.shape[0]])
+    input_direction_min = np.zeros([len(w), V.shape[0]])
 
     store_max = np.zeros(len(w))
     store_min = np.zeros(len(w))
@@ -32,11 +31,11 @@ def SVD_w(G, w_start=-2, w_end=2, axlim=None, points=10000):
         A = G(w_iter)
         [U, S, V] = np.linalg.svd(A)
 
-        output_direction_max[:, count] = U[:, 0]
-        input_direction_max[:, count] = V[:, 0]
+        output_direction_max[count, :] = numpy.transpose(U[:, 0])
+        input_direction_max[count, :] = numpy.transpose(V[:, 0])
 
-        output_direction_min[:, count] = U[:, -1]
-        input_direction_min[:, count] = V[:, -1]
+        output_direction_min[count, :] = numpy.transpose(U[:, -1])
+        input_direction_min[count, :] = numpy.transpose(V[:, -1])
 
         store_max[count] = S[0]
         store_min[count] = S[1]
