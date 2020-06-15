@@ -542,6 +542,32 @@ class mimotf(object):
             G_response.append(sum(G_stepdata[i]))
 
         return tspan, G_response
+        
+    def add_deadtime(self, θ): 
+        """
+        Adds deadtime to transfer functions within a mimotf.
+
+        Inputs:
+        θ: sympy or numpy matrix of dead time 
+
+        Output:
+        Mimotf including time delay
+
+        """
+        return mimotf([[self[i, j]*tf(1, 1, θ[i, j]) for j in range(0, self.shape[1])] for i in range(0, self.shape[0])])
+
+    def add_padeapprox_deadtime(self, θ): 
+        """
+        Adds first order pade deadtime approx to transfer functions within a mimotf.
+
+        Inputs:
+        θ: sympy or numpy matrix of dead time 
+
+        Output:
+        Mimotf including pade approx of time delay
+
+        """
+        return mimotf([[self[i, j]*tf(1 - θ[i, j]/2, 1 + θ[i, j]/2) for j in range(0, self.shape[1])] for i in range(0, self.shape[0])])
     
     def __call__(self, s):
         """
@@ -623,6 +649,8 @@ class mimotf(object):
             return result.matrix[0, 0]
         else:
             return result
+        
+        
 
 
 def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
@@ -1721,25 +1749,36 @@ def feedback_mimo(G, K=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
-def checkvalid(G, z):
+def min_max_sigma(G, w, minimum=True, maximum=False):
     """
-    Check if zeros are valid by ensuring the singular value of G at z is zero.
-    Outputs equal to zero are valid.
+    Returns maximum or minimum singular value at the frequencies in w.
 
     Parameters
     ----------
     G : np matrix
         Plant mimo transfer function.
-    z : numpy array
-        Plant zeros.   
+    w : numpy array
+        Frequency range.  
+    Minimum : Bool
+              If True will return minimum singular value at each frequency
+    Maximum : Bool
+              If True will return maximum singular value at each frequency
     """  
-    
-    sv= []
-    for zi in z:
-        u, svd, vh = np.linalg.svd(G(zi))
-        sv.append(round(svd[-1], 4))
-    return sv
 
+    if minimum==True:
+        svmin= []
+        for wi in w:
+            u, svd, vh = np.linalg.svd(G(wi))
+            sv.append(round(svd[-1], 4))
+        return sv
+
+    if maximum==True:
+        svmax= []
+        for wi in w:
+            u, svd, vh = np.linalg.svd(G(wi))
+            sv.append(round(svd[0], 4))
+        return svmax
+    
 def tf2ss(H):
     """
     Converts a mimotf object to the controllable canonical form state space
@@ -1928,7 +1967,7 @@ def state_controllability(A, B):
 
     return state_control, u_p, control_matrix
 
-def state_observability(A, C):
+def state_observability(A, C, tol=1e-6):
     """
     This method checks if the state space description of the system is state
     observ able according to Definition 4.2.
@@ -1939,7 +1978,8 @@ def state_observability(A, C):
         Matrix A of state-space representation.
     C : numpy matrix
         Matrix C of state-space representation.
-
+    tol : float
+          Tolerance
     Returns
     -------
     state_obv : boolean
@@ -1960,7 +2000,7 @@ def state_observability(A, C):
     for i in range(vr.shape[1]):
         vri = np.asmatrix(vr[:, i])
         y_p.append(C*vri.T)
-    state_obs = not any(np.linalg.norm(x) == 0.0 for x in y_p)
+    state_obs = not any(np.linalg.norm(x) < tol for x in y_p)
 
     # compute observ matrix
     O_plus = [C*A**n for n in range(A.shape[0])]
@@ -2993,30 +3033,3 @@ if __name__ == '__main__':
     sys.exit(doctest.testmod()[0])
 
 
-def add_deadtime(G, θ): 
-    """
-    Adds deadtime to transfer functions within a mimotf.
-    
-    Inputs:
-    G: mimotf
-    θ: sympy or numpy matrix of dead time 
-    
-    Output:
-    Mimotf including time delay
-    
-    """
-    return utils.mimotf([[G[i, j]*utils.tf(1, 1, θ[i, j]) for j in range(0, G.shape[1])] for i in range(0, G.shape[0])])
-
-def add_padeapprox_deadtime(G, θ): 
-    """
-    Adds first order pade deadtime approx to transfer functions within a mimotf.
-    
-    Inputs:
-    G: mimotf
-    θ: sympy or numpy matrix of dead time 
-    
-    Output:
-    Mimotf including time delay
-    
-    """
-    return utils.mimotf([[G[i, j]*utils.tf(1 - θ[i, j]/2, 1 + θ[i, j]/2) for j in range(0, G.shape[1])] for i in range(0, G.shape[0])])
