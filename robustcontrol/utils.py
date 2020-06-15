@@ -542,6 +542,32 @@ class mimotf(object):
             G_response.append(sum(G_stepdata[i]))
 
         return tspan, G_response
+        
+    def add_deadtime(self, θ): 
+        """
+        Adds deadtime to transfer functions within a mimotf.
+
+        Inputs:
+        θ: sympy or numpy matrix of dead time 
+
+        Output:
+        Mimotf including time delay
+
+        """
+        return mimotf([[self[i, j]*tf(1, 1, θ[i, j]) for j in range(0, self.shape[1])] for i in range(0, self.shape[0])])
+
+    def add_padeapprox_deadtime(self, θ): 
+        """
+        Adds first order pade deadtime approx to transfer functions within a mimotf.
+
+        Inputs:
+        θ: sympy or numpy matrix of dead time 
+
+        Output:
+        Mimotf including pade approx of time delay
+
+        """
+        return mimotf([[self[i, j]*tf(1 - θ[i, j]/2, 1 + θ[i, j]/2) for j in range(0, self.shape[1])] for i in range(0, self.shape[0])])
     
     def __call__(self, s):
         """
@@ -623,6 +649,8 @@ class mimotf(object):
             return result.matrix[0, 0]
         else:
             return result
+        
+        
 
 
 def scaling(G_hat, e, u, input_type='symbolic', Gd_hat=None, d=None):
@@ -1721,7 +1749,34 @@ def feedback_mimo(G, K=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
+def min_max_sigma(G, w, sense='min'):
+    """
+    Returns maximum or minimum singular value at the frequencies in w.
 
+    Parameters
+    ----------
+    G : np matrix
+        Plant mimo transfer function.
+    w : numpy array
+        Frequency range.  
+    sense : string
+            If 'min' will return minimum singular value at each frequency.
+            If 'max' will return maximum singular value at each frequency.
+    """  
+    pos = -1
+    
+    if sense=='max':
+        pos = 0
+    if sense=='min':
+        pos = -1
+        
+    sv = []
+    for wi in w:
+        u, svd, vh = np.linalg.svd(G(wi))
+        sv.append(round(svd[pos], 4))
+    return sv
+
+    
 def tf2ss(H):
     """
     Converts a mimotf object to the controllable canonical form state space
@@ -1910,6 +1965,46 @@ def state_controllability(A, B):
 
     return state_control, u_p, control_matrix
 
+def state_observability(A, C, tol=1e-6):
+    """
+    This method checks if the state space description of the system is state
+    observ able according to Definition 4.2.
+
+    Parameters
+    ----------
+    A : numpy matrix
+        Matrix A of state-space representation.
+    C : numpy matrix
+        Matrix C of state-space representation.
+    tol : float
+          Tolerance
+    Returns
+    -------
+    state_obv : boolean
+        True if state observable
+    y_p : array
+        Ouput pole vectors for the states y_p_i
+    obs_matrix : numpy matrix
+        State Observability Matrix
+    v_r : numpy array
+        Right Eigenvectors
+
+      """
+    state_obs = True
+
+    # Compute output pole vectors.
+    ev, vr = scipy.linalg.eig(A, left=False, right=True)
+    y_p = []
+    for i in range(vr.shape[1]):
+        vri = np.asmatrix(vr[:, i])
+        y_p.append(C*vri.T)
+    state_obs = not any(np.linalg.norm(x) < tol for x in y_p)
+
+    # compute observ matrix
+    O_plus = [C*A**n for n in range(A.shape[0])]
+    obs_matrix = np.vstack(O_plus)
+
+    return state_obs, y_p, obs_matrix, vr
 
 def state_observability_matrix(a, c):
     """calculate the observability matrix
@@ -2934,4 +3029,5 @@ if __name__ == '__main__':
 
     # Exit with an error code equal to number of failed tests
     sys.exit(doctest.testmod()[0])
+
 
