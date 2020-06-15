@@ -1760,15 +1760,15 @@ def min_max_sigma(G, w, sense='min'):
     w : numpy array
         Frequency range.  
     sense : string
-            If 'min' will return minimum singular value at each frequency
-            If 'max' will return maximum singular value at each frequency
+            If 'min' will return minimum singular value at each frequency.
+            If 'max' will return maximum singular value at each frequency.
     """  
     pos = -1
     
     if sense=='max':
         pos = 0
     if sense=='min':
-        pos = 0
+        pos = -1
         
     sv = []
     for wi in w:
