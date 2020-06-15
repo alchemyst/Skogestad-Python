@@ -1749,7 +1749,7 @@ def feedback_mimo(G, K=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
-def min_max_sigma(G, w, minimum=True, maximum=False):
+def min_max_sigma(G, w, minimum=True):
     """
     Returns maximum or minimum singular value at the frequencies in w.
 
@@ -1761,23 +1761,19 @@ def min_max_sigma(G, w, minimum=True, maximum=False):
         Frequency range.  
     Minimum : Bool
               If True will return minimum singular value at each frequency
-    Maximum : Bool
-              If True will return maximum singular value at each frequency
+              If False will return maximum singular value at each frequency
     """  
+    pos = -1
+    
+    if minimum==False:
+        pos = 0
+        
+    sv = []
+    for wi in w:
+        u, svd, vh = np.linalg.svd(G(wi))
+        sv.append(round(svd[pos], 4))
+    return sv
 
-    if minimum==True:
-        svmin= []
-        for wi in w:
-            u, svd, vh = np.linalg.svd(G(wi))
-            sv.append(round(svd[-1], 4))
-        return sv
-
-    if maximum==True:
-        svmax= []
-        for wi in w:
-            u, svd, vh = np.linalg.svd(G(wi))
-            sv.append(round(svd[0], 4))
-        return svmax
     
 def tf2ss(H):
     """
