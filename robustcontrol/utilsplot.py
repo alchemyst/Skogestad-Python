@@ -280,17 +280,13 @@ def plot_zeros_poles(z, labels=None, markers='*', markersize=30, markercolor='bl
         Matplotlib marker color (default=blue).
     """
     
-    
     plt.axhline(y=0, color='k', linewidth='0.5')
     plt.axvline(x=0, color='k', linewidth='0.5')
 
-    Re = []
-    Im = []
-    for i in range(len(z)):
-        Re.append(np.real(z[i]))
-        Im.append(np.imag(z[i]))
-    plt.scatter(Re, Im, marker=markers, color=markercolor, label=labels, s=markersize)
-    plt.legend()
+    real = z.real
+    imag = z.imag
+    
+    plt.scatter(real, imag, marker=markers, color=markercolor, label=labels, s=markersize)
     plt.xlabel('Real')
     plt.ylabel('Imaginary')
     plt.legend()
