@@ -1749,7 +1749,7 @@ def feedback_mimo(G, K=None, positive=False):
 #                                Chapter 4                                    #
 ###############################################################################
 
-def min_max_sigma(G, w, minimum=True):
+def min_max_sigma(G, w, sense='min'):
     """
     Returns maximum or minimum singular value at the frequencies in w.
 
@@ -1759,13 +1759,15 @@ def min_max_sigma(G, w, minimum=True):
         Plant mimo transfer function.
     w : numpy array
         Frequency range.  
-    Minimum : Bool
-              If True will return minimum singular value at each frequency
-              If False will return maximum singular value at each frequency
+    sense : string
+            If 'min' will return minimum singular value at each frequency
+            If 'max' will return maximum singular value at each frequency
     """  
     pos = -1
     
-    if minimum==False:
+    if sense=='max':
+        pos = 0
+    if sense=='min':
         pos = 0
         
     sv = []
