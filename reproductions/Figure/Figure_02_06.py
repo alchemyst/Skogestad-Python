@@ -2,19 +2,19 @@
 import numpy
 import matplotlib.pyplot as plt
 
+G = (3/(-2*s +1))/((10*s+1)*(5*s+1))
+
 #Parameters
 r = 1
 ω = 0.42
 s = ω*1j
 t = numpy.linspace(0, 50, 100)
 
-#System gains
+#System gain
 Kc = 2.5
 
 #System phase
 PS = numpy.angle(G)        #All the curves have the same phase
-
-G = (3/(-2*s +1))/((10*s+1)*(5*s+1))
 
 #System outputs
 y = Kc*numpy.sin(ω*t + PS)
