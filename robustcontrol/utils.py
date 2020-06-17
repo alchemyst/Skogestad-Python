@@ -2130,7 +2130,7 @@ def kalman_controllable(A, B, C, P=None, RP=None):
 
 
 def kalman_observable(A, B, C, Q=None, RQ=None):
-    """Computes the Kalman Observable Canonical Form of the inout system
+    """Computes the Kalman Observable Canonical Form of the input system
     A, B, C, making use of QR Decomposition. Can be used in sequentially
     with kalman_controllable to obtain a minimal realisation.
 
