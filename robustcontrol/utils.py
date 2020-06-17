@@ -2898,7 +2898,7 @@ def BoundST(G, poles, zeros, deadtime=None):
 
 def BoundKS(G, poles, up, e=0.00001):
     """
-    The function uses equaption 6.24 (p229) to calculate the peak value for KS
+    The function uses equation 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
 
     Parameters
@@ -2962,7 +2962,7 @@ def distRej(G, gd):
 def distRHPZ(G, Gd, RHP_Z):
     """
     Applies equation 6.48 (p239) for performance requirements imposed by
-    disturbances. Calculate the system's zeros alignment with the disturbacne
+    disturbances. Calculate the system's zeros alignment with the disturbance
     matrix.
 
     Parameters
