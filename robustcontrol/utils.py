@@ -2340,6 +2340,18 @@ def minimal_realisation(a, b, c):
 
     return Aco, Bco, Cco
 
+def is_min_realisation(A, B, C):
+    """
+    Parameters: A => state space matrix A
+                B => state space matrix B
+                C => state space matrix C
+
+    Returns: is_min_real => True if the system is the minimum realisation
+    """
+    state_obsr, out_pole_vec, observe_matrix, vr = state_observability(A, C)
+    state_control, in_pole_vec, control_matrix = state_controllability(A, B)
+
+    return state_control, state_obsr
 
 def num_denom(A, symbolic_expr=False):
 
