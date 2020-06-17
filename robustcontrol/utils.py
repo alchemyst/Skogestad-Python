@@ -1063,7 +1063,7 @@ def det(A):
     tf([ 3. 16. 28. 16.], [ 1. 10. 40. 80. 80. 32.])
 
     """
-    if type(A) is tf or type(A) is mimotf:
+    if isinstance(A,tf) or isinstance(A,mimotf):
         A = A.matrix
 
     A = numpy.asmatrix(A)
@@ -2347,7 +2347,7 @@ def num_denom(A, symbolic_expr=False):
     sym_num = 0
     s = sympy.Symbol('s')
 
-    if type(A) == mimotf:
+    if isinstance(A,mimotf):
         denom = 1
         num = 1
 
@@ -2366,7 +2366,7 @@ def num_denom(A, symbolic_expr=False):
         else:
             return num, denom
 
-    elif type(A) == tf:
+    elif isinstance(A,tf):
         denom = []
         num = []
 
@@ -2407,9 +2407,9 @@ def minors(G, order):
             rowstokeep = numpy.array(rowstokeep)
             colstokeep = numpy.array(colstokeep)
             G_slice = G[rowstokeep[:, None], colstokeep]
-            if type(G_slice) == tf:
+            if isinstance(G_slice,tf):
                 retlist.append(G_slice)
-            elif (type(G_slice) == mimotf) and (G_slice.shape[0] == G_slice.shape[1]):
+            elif (isinstance(G_slice,mimotf)) and (G_slice.shape[0] == G_slice.shape[1]):
                 retlist.append(G_slice.det())
     return retlist
 
@@ -2521,7 +2521,7 @@ def poles(G=None, A=None):
     """
 
     if G:
-        if not (type(G) == tf or type(G) == mimotf):
+        if not (isinstance(G,tf)  or isinstance(G,mimotf)):
             G = sym2mimotf(G)
         lcm = lcm_of_all_minors(G)
         return lcm.r
@@ -2566,7 +2566,7 @@ def zeros(G=None, A=None, B=None, C=None, D=None):
     # switch between tf and ss
 
     if G:
-        if not (type(G) == tf or type(G) == mimotf):
+        if not (isinstance(G,tf) or isinstance(G,mimotf)):
             G = sym2mimotf(G)
         lcm = lcm_of_all_minors(G)
         allminors = minors(G, G.shape[0])
