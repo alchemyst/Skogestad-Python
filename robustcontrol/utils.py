@@ -2341,7 +2341,8 @@ def minimal_realisation(a, b, c):
     return Aco, Bco, Cco
 
 def is_min_realisation(A, B, C):
-    """
+    """Checks if the system is minimal realisation
+    
     Parameters: A => state space matrix A
                 B => state space matrix B
                 C => state space matrix C
