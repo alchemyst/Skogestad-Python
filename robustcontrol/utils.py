@@ -1772,7 +1772,7 @@ def min_max_sigma(G, w, sense='min'):
         
     sv = []
     for wi in w:
-        u, svd, vh = np.linalg.svd(G(wi))
+        u, svd, vh = numpy.linalg.svd(G(wi))
         sv.append(round(svd[pos], 4))
     return sv
 
@@ -1996,13 +1996,13 @@ def state_observability(A, C, tol=1e-6):
     ev, vr = scipy.linalg.eig(A, left=False, right=True)
     y_p = []
     for i in range(vr.shape[1]):
-        vri = np.asmatrix(vr[:, i])
+        vri = numpy.asmatrix(vr[:, i])
         y_p.append(C*vri.T)
-    state_obs = not any(np.linalg.norm(x) < tol for x in y_p)
+    state_obs = not any(numpy.linalg.norm(x) < tol for x in y_p)
 
     # compute observ matrix
     O_plus = [C*A**n for n in range(A.shape[0])]
-    obs_matrix = np.vstack(O_plus)
+    obs_matrix = numpy.vstack(O_plus)
 
     return state_obs, y_p, obs_matrix, vr
 
