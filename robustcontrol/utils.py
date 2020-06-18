@@ -2351,8 +2351,12 @@ def is_min_realisation(A, B, C):
     """
     state_obsr, out_pole_vec, observe_matrix, vr = state_observability(A, C)
     state_control, in_pole_vec, control_matrix = state_controllability(A, B)
+    
+    if state_control and state_obsr:
+        return True
+    else:
+        return False
 
-    return state_control, state_obsr
 
 def num_denom(A, symbolic_expr=False):
 
