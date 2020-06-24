@@ -2043,7 +2043,7 @@ def state_observability_matrix(a, c):
 
 
 def kalman_controllable(A, B, C, P=None, RP=None):
-    """Computes the Kalman Controllable Canonical Form of the inout system
+    """Computes the Kalman Controllable Canonical Form of the input system
     A, B, C, making use of QR Decomposition. Can be used in sequentially with
     kalman_observable to obtain a minimal realisation.
 
@@ -2130,7 +2130,7 @@ def kalman_controllable(A, B, C, P=None, RP=None):
 
 
 def kalman_observable(A, B, C, Q=None, RQ=None):
-    """Computes the Kalman Observable Canonical Form of the inout system
+    """Computes the Kalman Observable Canonical Form of the input system
     A, B, C, making use of QR Decomposition. Can be used in sequentially
     with kalman_controllable to obtain a minimal realisation.
 
@@ -2339,6 +2339,23 @@ def minimal_realisation(a, b, c):
         return a, b, c
 
     return Aco, Bco, Cco
+
+def is_min_realisation(A, B, C):
+    """Checks if the system is minimal realisation
+    
+    Parameters: A => state space matrix A
+                B => state space matrix B
+                C => state space matrix C
+
+    Returns: is_min_real => True if the system is the minimum realisation
+    """
+    state_obsr, out_pole_vec, observe_matrix, vr = state_observability(A, C)
+    state_control, in_pole_vec, control_matrix = state_controllability(A, B)
+    
+    if state_control and state_obsr:
+        return True
+    else:
+        return False
 
 
 def num_denom(A, symbolic_expr=False):
@@ -2885,7 +2902,7 @@ def BoundST(G, poles, zeros, deadtime=None):
 
 def BoundKS(G, poles, up, e=0.00001):
     """
-    The function uses equaption 6.24 (p229) to calculate the peak value for KS
+    The function uses equation 6.24 (p229) to calculate the peak value for KS
     transfer function using the stable version of the plant.
 
     Parameters
@@ -2949,7 +2966,7 @@ def distRej(G, gd):
 def distRHPZ(G, Gd, RHP_Z):
     """
     Applies equation 6.48 (p239) for performance requirements imposed by
-    disturbances. Calculate the system's zeros alignment with the disturbacne
+    disturbances. Calculate the system's zeros alignment with the disturbance
     matrix.
 
     Parameters
